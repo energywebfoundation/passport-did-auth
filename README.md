@@ -1,4 +1,4 @@
-# Node.js Passport strategy using DIDs(Decentralised Identifiers) and VCs(Verifiable Credentials)
+# Node.js Passport strategy using decentralised identifiers
 
 
 ## Maintainers
