@@ -1,0 +1,174 @@
+import { BaseStrategy, StrategyOptions } from './BaseStrategy'
+import { Request } from 'express'
+import * as jwt from 'jsonwebtoken'
+import { providers } from 'ethers'
+import axios, { AxiosInstance } from 'axios'
+import { lookup, namehash, verifyClaim } from './utils'
+import {
+  DecodedToken,
+  IRole,
+  IRoleDefinition,
+  ITokenPayload,
+} from './LoginStrategy.types'
+import { PublicResolverFactory } from '../ethers/PublicResolverFactory'
+import { PublicResolver } from '../ethers/PublicResolver'
+
+interface LoginStrategyOptions extends StrategyOptions {
+  jwtSecret: string
+  claimField?: string
+  rpcUrl: string
+  cacheServerUrl?: string
+  numberOfBlocksBack?: number
+  ensResolverAddress?: string
+}
+
+export class LoginStrategy extends BaseStrategy {
+  private claimField: string
+  private jwtSecret: string
+  private provider: providers.JsonRpcProvider
+  private httpClient: AxiosInstance | undefined
+  private numberOfBlocksBack: number
+  private ensResolver: PublicResolver
+  constructor(
+    {
+      claimField = 'claim',
+      rpcUrl,
+      cacheServerUrl,
+      numberOfBlocksBack = 2,
+      jwtSecret,
+      ensResolverAddress = '0x0a97e07c4Df22e2e31872F20C5BE191D5EFc4680',
+      ...options
+    }: LoginStrategyOptions,
+    _nestJsCB?: VoidFunction // Added just for nestjs compatibility
+  ) {
+    super(options)
+    this.claimField = claimField
+    this.provider = new providers.JsonRpcProvider(rpcUrl)
+    this.ensResolver = PublicResolverFactory.connect(
+      ensResolverAddress,
+      this.provider
+    )
+    if (cacheServerUrl) {
+      this.httpClient = axios.create({
+        baseURL: cacheServerUrl,
+      })
+    }
+    this.numberOfBlocksBack = numberOfBlocksBack
+    this.jwtSecret = jwtSecret
+  }
+  async validate(
+    token: string,
+    payload: ITokenPayload,
+    done: (err?: Error, user?: any, info?: any) => void
+  ) {
+    const verified = verifyClaim(token, payload)
+
+    if (!verified) {
+      console.log('Not Verified')
+      done(null, null, 'Not Verified')
+    }
+    try {
+      const latestBlock = await this.provider.getBlockNumber()
+      if (!payload.claimData.blockNumber || latestBlock - this.numberOfBlocksBack >= payload.claimData.blockNumber) {
+        console.log('Claim outdated')
+        done(null, null, 'Claim outdated')
+      }
+    } catch (err) {
+      console.log('Provider err', err)
+      done(err)
+    }
+
+    try {
+      const roles = await Promise.all(
+        payload.claimData.roleClaims.map(async (claim) => {
+          if (claim.iss) {
+            return this.verifyRole({
+              issuer: claim.iss,
+              namespace: claim.claimType,
+            })
+          }
+          const issuedClaim = this.decodeToken(
+            claim.issuedToken
+          ) as DecodedToken
+          return this.verifyRole({
+            issuer: issuedClaim.iss,
+            namespace: claim.claimType,
+          })
+        })
+      )
+
+      const filteredRoles = roles.filter(Boolean)
+      if (filteredRoles.length < 1) {
+        console.log('All roles are not valid')
+        done(null, null, 'All roles are not valid')
+      }
+      const user = {
+        did: payload.iss,
+        verifiedRoles: filteredRoles,
+      }
+
+      const jwtToken = this.encodeToken(user)
+      done(null, jwtToken)
+    } catch (err) {
+      console.log(err)
+      done(err)
+    }
+  }
+
+  decodeToken(token: string, options?: jwt.DecodeOptions) {
+    return jwt.decode(token, options)
+  }
+
+  encodeToken(data: any, options?: jwt.SignOptions) {
+    return jwt.sign(data, this.jwtSecret, options)
+  }
+
+  extractToken(req: Request) {
+    return (
+      lookup(req.body, this.claimField) || lookup(req.query, this.claimField)
+    )
+  }
+
+  async verifyRole({
+    namespace,
+    issuer,
+  }: {
+    namespace: string
+    issuer: string
+  }) {
+    const role = await this.getRoleDefinition(namespace)
+    if (!role) {
+      return null
+    }
+    if ((role as IRoleDefinition).version) {
+      if ((role as IRoleDefinition).issuer.did.includes(issuer)) {
+        return {
+          name: (role as IRoleDefinition).roleName,
+          namespace,
+        }
+      }
+    }
+    if (!(role as IRole).definition) {
+      return null
+    }
+    if ((role as IRole).definition.issuer.did.includes(issuer)) {
+      return {
+        name: (role as IRole).name,
+        namespace: (role as IRole).namespace,
+      }
+    }
+    return null
+  }
+
+  async getRoleDefinition(namespace: string) {
+    if (this.httpClient) {
+      const { data } = await this.httpClient.get<IRole>(`/role/${namespace}`)
+      return data
+    }
+    const namespaceHash = namehash(namespace)
+    const definition = await this.ensResolver.text(namespaceHash, 'metadata')
+    if (definition) {
+      return JSON.parse(definition) as IRoleDefinition
+    }
+  }
+}
