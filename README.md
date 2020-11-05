@@ -8,30 +8,39 @@
 
 ## Getting Started
 
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
+This repository consists of a Node.js Password Strategy and examples which show how the strategy can be used.
 
-### Prerequisites
+The strategy provides verification of the issuance of claims made regarding roles defined in an Ethereum Naming System (ENS).
 
-What things you need to install the software and how to install them
+The examples consists of both client and server components.
 
-```
-Give examples
-```
-
-### Installing
-
-A step by step series of examples that tell you how to get a development env running
-
-Say what the step will be
+### Prerequisities
 
 ```
-Give the example
+npm version 6+
+nodejs version 10+
 ```
 
-And repeat
-:
+### Building the Passport Strategy
 ```
-until finished
+npm run build
 ```
 
-End with an example of getting some data out of the system or using it for a little demo
+### Running the examples
+Two different examples are provided, each using a different server application but the same client application. The two server examples provided are: a NestJS example and an ExpressJS example.
+
+The examples can be started in a single command which builds the passport strategy and starts both the client and respective server.
+
+To run the NestJS example:
+```
+npm run example:nest
+```
+
+To run the ExpressJS example:
+```
+npm run example:express
+```
+
+For both examples, the client is accessible at `http://localhost:3000` and the server is listening at `http://localhost:3333`
+
+TODO: Add screenshots of expect result of examples
