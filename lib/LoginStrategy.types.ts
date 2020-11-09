@@ -24,17 +24,8 @@ export interface IRole {
 }
 
 export interface Claim {
-  uid: string
-  id: string
-  requester: string
-  claimIssuer: string[]
   claimType: string
-  token: string
   issuedToken?: string
-  isAccepted: boolean
-  createdAt: string
-  parentNamespace: string
-  acceptedBy?: string
   iss?: string
 }
 
@@ -47,6 +38,5 @@ export interface DecodedToken {
 export interface ITokenPayload extends DecodedToken {
   claimData: {
     blockNumber: number;
-    roleClaims: Claim[]
   }
 }
