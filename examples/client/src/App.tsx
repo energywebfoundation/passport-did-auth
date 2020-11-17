@@ -29,7 +29,7 @@ function App() {
 
   useEffect(() => {
     async function init() {
-      const { did } = await iam.initializeConnection()
+      const { did } = await iam.initializeConnection({ useMetamaskExtension: false })
       if (did) {
         setMyDid(did)
       }
@@ -38,18 +38,10 @@ function App() {
   }, [])
 
   const handleLogin = async () => {
-    const myRoles = await iam.getRequestedClaims({ did: myDid, isAccepted: true})
     const signer = iam.getSigner()
     const latestBlock = await signer?.provider?.getBlockNumber()
-    // const myRoles = [
-    //   {
-    //     claimType: 'daniel.roles.apple.apps.daniel.iam.ewc',
-    //     issuedToken:
-    //       'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJkaWQiOiJkaWQ6ZXRocjoweDhjMjRFZkQ3Yzg0YTE4YzkzZDM0MjMwMTM4RTAwNEU1NWM3MGQ5NWQiLCJzaWduZXIiOiJkaWQ6ZXRocjoweDhjMjRFZkQ3Yzg0YTE4YzkzZDM0MjMwMTM4RTAwNEU1NWM3MGQ5NWQiLCJjbGFpbURhdGEiOnsiZmllbGRzIjpbeyJrZXkiOiJuYW1lIiwidmFsdWUiOiJEYW5pZWwifV0sImNsYWltVHlwZSI6ImFwcGxlLmFwcHMuZGFuaWVsLmlhbS5ld2MifSwic3ViIjoiIiwiaWF0IjoxNjAyODU1ODY0NjcwLCJpc3MiOiJkaWQ6ZXRocjoweDhjMjRFZkQ3Yzg0YTE4YzkzZDM0MjMwMTM4RTAwNEU1NWM3MGQ5NWQifQ.MHg2YzVmYzUxMTc3NGMxYThlMmY3ZWExMzNkOGEwYjgyMTFkZTc3N2ZiNTgwOTBhOWRlMWJkZTE5Mjk1NGQ2ZTU2MDQ1ZjJlMDE1ZjM0YmY4YjlmNTNhNTg5YTAzMWQ1MmM2ZDJlMzAyOGM2MmRlNGQ5NmVlY2I0N2IzZmU5MTU5NDFi',
-    //   },
-    // ]
     const claim = await iam.createPublicClaim({
-      data: { blockNumber: latestBlock, roleClaims: myRoles },
+      data: { blockNumber: latestBlock },
     })
     const { data } = await axios.post<{ token: string }>('/login', {
       claim,

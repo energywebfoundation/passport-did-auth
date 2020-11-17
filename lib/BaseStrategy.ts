@@ -1,6 +1,7 @@
 import { AuthenticateOptions, Strategy } from 'passport'
 import { Request } from 'express'
 import { inherits } from 'util'
+import { Claim } from './LoginStrategy.types'
 
 export interface StrategyOptions {
   name: string
@@ -14,6 +15,7 @@ export abstract class BaseStrategy extends Strategy {
   ): void
   abstract extractToken(req: Request): string
   abstract decodeToken(token: string): string | { [key: string]: any }
+  abstract getUserClaims(did: string): Promise<Claim[]>
 
   constructor({ name }: StrategyOptions) {
     super()
