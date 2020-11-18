@@ -50,7 +50,7 @@ export function labelhash(unnormalizedLabelOrLabelhash: string) {
     : "0x" + sha3(normalize(unnormalizedLabelOrLabelhash));
 }
 
-export const lookup = function (obj: {}, field: string) {
+export function lookup (obj: {}, field: string) {
   if (!obj) { return null; }
   const chain = field.split(']').join('').split('[');
   for (let i = 0, len = chain.length; i < len; i++) {
@@ -68,5 +68,5 @@ export const verifyClaim = <T>(token: string, tokenPayload: T | any) => {
   const signature = base64url.decode(encodedSignature);
   const address = recoverAddress(arrayify(keccak256(msg)), signature);
   const decodedAddress = tokenPayload.iss.split(':')[2];
-  return decodedAddress === address;
+  return decodedAddress === address ? tokenPayload.iss : '';
 }

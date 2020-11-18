@@ -3,8 +3,15 @@ import { Request } from 'express'
 import * as jwt from 'jsonwebtoken'
 import { providers } from 'ethers'
 import axios, { AxiosInstance } from 'axios'
+import {
+  ethrReg,
+  Resolver,
+  VoltaAddress1056,
+} from '@ew-did-registry/did-ethr-resolver'
+
 import { lookup, namehash, verifyClaim } from './utils'
 import {
+  Claim,
   DecodedToken,
   IRole,
   IRoleDefinition,
@@ -12,6 +19,10 @@ import {
 } from './LoginStrategy.types'
 import { PublicResolverFactory } from '../ethers/PublicResolverFactory'
 import { PublicResolver } from '../ethers/PublicResolver'
+import { Methods } from '@ew-did-registry/did'
+import { DidStore } from '@ew-did-registry/did-ipfs-store'
+
+const { abi: abi1056 } = ethrReg
 
 interface LoginStrategyOptions extends StrategyOptions {
   jwtSecret: string
@@ -20,6 +31,8 @@ interface LoginStrategyOptions extends StrategyOptions {
   cacheServerUrl?: string
   numberOfBlocksBack?: number
   ensResolverAddress?: string
+  didContractAddress?: string
+  ipfsUrl?: string
 }
 
 export class LoginStrategy extends BaseStrategy {
@@ -29,14 +42,18 @@ export class LoginStrategy extends BaseStrategy {
   private httpClient: AxiosInstance | undefined
   private numberOfBlocksBack: number
   private ensResolver: PublicResolver
+  private didResolver: Resolver
+  private ipfsStore: DidStore
   constructor(
     {
       claimField = 'claim',
       rpcUrl,
       cacheServerUrl,
-      numberOfBlocksBack = 2,
+      numberOfBlocksBack = 4,
       jwtSecret,
       ensResolverAddress = '0x0a97e07c4Df22e2e31872F20C5BE191D5EFc4680',
+      didContractAddress = VoltaAddress1056,
+      ipfsUrl = 'https://ipfs.infura.io:5001/api/v0/',
       ...options
     }: LoginStrategyOptions,
     _nestJsCB?: VoidFunction // Added just for nestjs compatibility
@@ -53,6 +70,13 @@ export class LoginStrategy extends BaseStrategy {
         baseURL: cacheServerUrl,
       })
     }
+    const registrySetting = {
+      abi: abi1056,
+      address: didContractAddress,
+      method: Methods.Erc1056,
+    }
+    this.didResolver = new Resolver(this.provider, registrySetting)
+    this.ipfsStore = new DidStore(ipfsUrl)
     this.numberOfBlocksBack = numberOfBlocksBack
     this.jwtSecret = jwtSecret
   }
@@ -61,35 +85,39 @@ export class LoginStrategy extends BaseStrategy {
     payload: ITokenPayload,
     done: (err?: Error, user?: any, info?: any) => void
   ) {
-    const verified = verifyClaim(token, payload)
+    const did = verifyClaim(token, payload)
 
-    if (!verified) {
+    if (!did) {
       console.log('Not Verified')
-      done(null, null, 'Not Verified')
+      return done(null, null, 'Not Verified')
     }
     try {
       const latestBlock = await this.provider.getBlockNumber()
-      if (!payload.claimData.blockNumber || latestBlock - this.numberOfBlocksBack >= payload.claimData.blockNumber) {
+      if (
+        !payload.claimData.blockNumber ||
+        latestBlock - this.numberOfBlocksBack >= payload.claimData.blockNumber
+      ) {
         console.log('Claim outdated')
-        done(null, null, 'Claim outdated')
+        return done(null, null, 'Claim outdated')
       }
     } catch (err) {
       console.log('Provider err', err)
-      done(err)
+      return done(err)
     }
 
     try {
+      const roleClaims = await this.getUserClaims(did)
       const roles = await Promise.all(
-        payload.claimData.roleClaims.map(async (claim) => {
+        roleClaims.map(async (claim) => {
           if (claim.iss) {
             return this.verifyRole({
               issuer: claim.iss,
               namespace: claim.claimType,
             })
           }
-          const issuedClaim = this.decodeToken(
+          const issuedClaim = this.decodeToken<DecodedToken>(
             claim.issuedToken
-          ) as DecodedToken
+          );
           return this.verifyRole({
             issuer: issuedClaim.iss,
             namespace: claim.claimType,
@@ -100,7 +128,7 @@ export class LoginStrategy extends BaseStrategy {
       const filteredRoles = roles.filter(Boolean)
       if (filteredRoles.length < 1) {
         console.log('All roles are not valid')
-        done(null, null, 'All roles are not valid')
+        return done(null, null, 'All roles are not valid')
       }
       const user = {
         did: payload.iss,
@@ -108,15 +136,15 @@ export class LoginStrategy extends BaseStrategy {
       }
 
       const jwtToken = this.encodeToken(user)
-      done(null, jwtToken)
+      return done(null, jwtToken)
     } catch (err) {
       console.log(err)
-      done(err)
+      return done(err)
     }
   }
 
-  decodeToken(token: string, options?: jwt.DecodeOptions) {
-    return jwt.decode(token, options)
+  decodeToken<T>(token: string, options?: jwt.DecodeOptions): T {
+    return jwt.decode(token, options) as T
   }
 
   encodeToken(data: any, options?: jwt.SignOptions) {
@@ -170,5 +198,35 @@ export class LoginStrategy extends BaseStrategy {
     if (definition) {
       return JSON.parse(definition) as IRoleDefinition
     }
+  }
+
+  async getUserClaims(did: string) {
+    if (this.httpClient) {
+      const { data } = await this.httpClient.get<{ claim: Claim[] }>(
+        `/claim/requester/${did}?accepted=true`
+      )
+      return data.claim
+    }
+    const didDocument = await this.didResolver.read(did)
+    const services = didDocument.service || []
+    const claims: Claim[] = await Promise.all(
+      services.map(async ({ serviceEndpoint }) => {
+        const claimToken = await this.ipfsStore.get(serviceEndpoint)
+        const { claimData, iss } = this.decodeToken<{
+          claimData: { claimType?: string }
+          iss: string
+        }>(claimToken)
+        return {
+          iss,
+          claimType: claimData?.claimType,
+        }
+      })
+    )
+    return claims.reduce((acc, item) => {
+      if (item.claimType) {
+        acc.push(item)
+      }
+      return acc
+    }, [] as Claim[])
   }
 }

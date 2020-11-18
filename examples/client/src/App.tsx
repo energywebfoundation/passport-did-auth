@@ -27,16 +27,15 @@ function App() {
   const [roles, setRoles] = useState<Role[]>([])
 
   const handleLogin = async () => {
-    const { did } = await iam.initializeConnection()
+    const { did } = await iam.initializeConnection({useMetamaskExtension: false})
     if (!did) {
       console.log("unable to retrieve DID")
       return
     }
-    const myRoles = await iam.getRequestedClaims({ did: did, isAccepted: true})
     const signer = iam.getSigner()
     const latestBlock = await signer?.provider?.getBlockNumber()
     const claim = await iam.createPublicClaim({
-      data: { blockNumber: latestBlock, roleClaims: myRoles },
+      data: { blockNumber: latestBlock },
     })
     const { data } = await axios.post<{ token: string }>('/login', {
       claim,
