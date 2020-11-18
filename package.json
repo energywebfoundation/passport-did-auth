@@ -10,6 +10,11 @@
   "scripts": {
     "build": "rm -rf dist && rm -rf ethers && npm run build:contracts && npm run build:ts",
     "prepare": "npm run build",
+    "example:nest": "npm run build && concurrently -n client,nest -c bgBlue,bgGreen \"npm run example:client\" \"npm run example:server-nest\"",
+    "example:express": "npm run build && concurrently -n client,express -c bgBlue,bgGreen \"npm run example:client\" \"npm run example:server-express\"",
+    "example:client": "cd examples/client && npm install && npm start",
+    "example:server-nest": "cd examples/server/nestjs && npm install && npm start",
+    "example:server-express": "cd examples/server/express && npm install && node index.js",
     "build:ts": "tsc",
     "build:contracts": "npm run build:typechain:resolver",
     "build:typechain:resolver": "typechain --target ethers-v4 --outDir ethers './node_modules/@ensdomains/resolver/build/contracts/PublicResolver.json'"
@@ -43,6 +48,7 @@
     "@typechain/ethers-v4": "^1.0.1",
     "@types/jsonwebtoken": "^8.5.0",
     "@types/passport": "^1.0.4",
+    "concurrently": "^5.3.0",
     "typechain": "^3.0.0"
   }
 }

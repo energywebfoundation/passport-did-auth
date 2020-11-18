@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import './App.css'
 import { IAM, CacheServerClient } from 'iam-client-lib'
 import axios from 'axios'
@@ -25,19 +25,13 @@ type User = {
 
 function App() {
   const [roles, setRoles] = useState<Role[]>([])
-  const [myDid, setMyDid] = useState<string>('')
-
-  useEffect(() => {
-    async function init() {
-      const { did } = await iam.initializeConnection({ useMetamaskExtension: false })
-      if (did) {
-        setMyDid(did)
-      }
-    }
-    init()
-  }, [])
 
   const handleLogin = async () => {
+    const { did } = await iam.initializeConnection({useMetamaskExtension: false})
+    if (!did) {
+      console.log("unable to retrieve DID")
+      return
+    }
     const signer = iam.getSigner()
     const latestBlock = await signer?.provider?.getBlockNumber()
     const claim = await iam.createPublicClaim({
