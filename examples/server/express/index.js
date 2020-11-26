@@ -1,5 +1,5 @@
 const express = require('express')
-
+const cors = require('cors')
 const morgan = require('morgan')
 const bodyParser = require('body-parser')
 const { preparePassport } = require('./passport')
@@ -8,7 +8,7 @@ const { passport, LOGIN_STRATEGY } = preparePassport()
 
 const app = express();
 
-app.use(passport.initialize())
+app.use(passport.initialize(), cors())
 
 app.use(morgan())
 app.use(bodyParser.urlencoded({ extended: false }))
