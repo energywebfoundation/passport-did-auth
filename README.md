@@ -5,6 +5,8 @@
 **Primary**: 
  - [Mani H.](https://github.com/manihagh>)
  - [Daniel Wojno](https://github.com/dwojno>)
+**Team**:
+ - [Dmitry Fesenko](https://github.com/JGiter)
 
 ## Getting Started
 
@@ -40,7 +42,3 @@ To run the ExpressJS example:
 ```
 npm run example:express
 ```
-
-For both examples, the client is accessible at `http://localhost:3000` and the server is listening at `http://localhost:3333`
-
-TODO: Add screenshots of expect result of examples

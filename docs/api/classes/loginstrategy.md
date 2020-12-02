@@ -71,12 +71,14 @@ Name | Type |
 
 *Overrides void*
 
+**`description`** template method to authenticate DID
+
 #### Parameters:
 
-Name | Type |
------- | ------ |
-`req` | Request |
-`options` | AuthenticateOptions |
+Name | Type | Description |
+------ | ------ | ------ |
+`req` | Request |  |
+`options` | AuthenticateOptions |   |
 
 **Returns:** void
 
@@ -111,10 +113,10 @@ ___
 
 #### Parameters:
 
-Name | Type |
------- | ------ |
-`data` | any |
-`options?` | SignOptions |
+Name | Type | Description |
+------ | ------ | ------ |
+`data` | any | payload to encode |
+`options?` | SignOptions |   |
 
 **Returns:** string
 
@@ -148,13 +150,17 @@ ___
 
 *Overrides [BaseStrategy](basestrategy.md).[extractToken](basestrategy.md#extracttoken)*
 
+**`description`** extracts encoded payload either from request body or query
+
 #### Parameters:
 
-Name | Type |
------- | ------ |
-`req` | Request |
+Name | Type | Description |
+------ | ------ | ------ |
+`req` | Request |   |
 
 **Returns:** any
+
+encoded claim
 
 ___
 
@@ -280,6 +286,10 @@ ___
 
 *Overrides [BaseStrategy](basestrategy.md).[validate](basestrategy.md#validate)*
 
+**`description`** verifies issuer signature, then check that claim issued
+no latter then `this.numberOfBlocksBack` and user has enrolled with at
+least one role
+
 #### Parameters:
 
 Name | Type |
@@ -295,6 +305,8 @@ ___
 ### verifyRole
 
 ▸ **verifyRole**(`__namedParameters`: { issuer: string ; namespace: string  }): Promise\<{ name: string = (role as IRoleDefinition).roleName; namespace: string  }>
+
+**`description`** checks that role which corresponds to `namespace` is owned by the `issuer`
 
 #### Parameters:
 

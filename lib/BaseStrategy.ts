@@ -30,13 +30,15 @@ export abstract class BaseStrategy extends Strategy {
    * @description extracts token from request
    * 
    * @param req object than encapsules request to protected endpoint
+   * @returns encoded token
    */
   abstract extractToken(req: Request): string
   /**
-   * @description decodes token payload
    * @abstract
+   * @description decodes token payload
    * 
-   * @param token
+   * @param token encoded payload
+   * @returns decoded payload fields
    */
   abstract decodeToken(token: string): string | { [key: string]: any }
   /**
@@ -47,11 +49,20 @@ export abstract class BaseStrategy extends Strategy {
    */
   abstract getUserClaims(did: string): Promise<Claim[]>
 
-  constructor({ name }: StrategyOptions) {
+  /**
+   * @constructor
+   */
+  constructor({name}: StrategyOptions) {
     super()
     this.name = name
   }
 
+  /**
+   * @description template method to authenticate DID
+   * 
+   * @param req
+   * @param options 
+   */
   authenticate(req: Request, options: AuthenticateOptions) {
     const self = this
     const token = this.extractToken(req)

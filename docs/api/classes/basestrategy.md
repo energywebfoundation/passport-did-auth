@@ -70,12 +70,14 @@ Name | Type |
 
 *Overrides void*
 
+**`description`** template method to authenticate DID
+
 #### Parameters:
 
-Name | Type |
------- | ------ |
-`req` | Request |
-`options` | AuthenticateOptions |
+Name | Type | Description |
+------ | ------ | ------ |
+`req` | Request |  |
+`options` | AuthenticateOptions |   |
 
 **Returns:** void
 
@@ -85,17 +87,19 @@ ___
 
 ▸ `Abstract`**decodeToken**(`token`: string): string \| { [key:string]: any;  }
 
-**`description`** decodes token payload
-
 **`abstract`** 
+
+**`description`** decodes token payload
 
 #### Parameters:
 
 Name | Type | Description |
 ------ | ------ | ------ |
-`token` | string |   |
+`token` | string | encoded payload |
 
 **Returns:** string \| { [key:string]: any;  }
+
+decoded payload fields
 
 ___
 
@@ -133,9 +137,11 @@ ___
 
 Name | Type | Description |
 ------ | ------ | ------ |
-`req` | Request | object than encapsules request to protected endpoint  |
+`req` | Request | object than encapsules request to protected endpoint |
 
 **Returns:** string
+
+encoded token
 
 ___
 

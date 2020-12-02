@@ -1,16 +1,18 @@
 # Node.js Passport strategy using decentralised identifiers
 
+
 ## Maintainers
 **Primary**: 
  - [Mani H.](https://github.com/manihagh>)
  - [Daniel Wojno](https://github.com/dwojno>)
- - [Dmitry Fesenko](htpps://gitgub.com/JGiter)
+**Team**:
+ - [Dmitry Fesenko](https://github.com/JGiter)
 
 ## Getting Started
 
 This repository consists of a Node.js Password Strategy and examples which show how the strategy can be used.
 
-The strategy provides verification of the issuance of claims made regarding roles defined in an Ethereum Naming Service (ENS).
+The strategy provides verification of the issuance of claims made regarding roles defined in an Ethereum Naming System (ENS).
 
 The examples consists of both client and server components.
 
@@ -40,7 +42,5 @@ To run the ExpressJS example:
 ```
 npm run example:express
 ```
-
-For both examples, the client is accessible at `http://localhost:3000` and the server is listening at `http://localhost:3333`
 
 TODO: Add screenshots of expect result of examples
