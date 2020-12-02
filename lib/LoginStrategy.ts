@@ -107,6 +107,7 @@ export class LoginStrategy extends BaseStrategy {
 
     try {
       const roleClaims = await this.getUserClaims(did)
+      console.log('User claims:', roleClaims);
       const roles = await Promise.all(
         roleClaims.map(async (claim) => {
           if (claim.iss) {

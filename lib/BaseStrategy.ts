@@ -7,14 +7,44 @@ export interface StrategyOptions {
   name: string
 }
 
+/**
+ * @abstract
+ * @description passport strategy used to authenticate decetralized identity.
+ * Subclasses should define their token extraction and validation logic
+ */
 export abstract class BaseStrategy extends Strategy {
+  /**
+   * @abstract
+   * @description contains token validation logic
+   * @param token  serialized claims
+   * @param tokenPayload claim payload 
+   * @param done 
+   */
   abstract validate(
     token: string,
     tokenPayload: any,
     done: (err?: Error, user?: any, info?: any) => any
   ): void
+  /**
+   * @abstract
+   * @description extracts token from request
+   * 
+   * @param req object than encapsules request to protected endpoint
+   */
   abstract extractToken(req: Request): string
+  /**
+   * @description decodes token payload
+   * @abstract
+   * 
+   * @param token
+   */
   abstract decodeToken(token: string): string | { [key: string]: any }
+  /**
+   * @abstract
+   * @description fetches claims published by the did
+   * 
+   * @param did
+   */
   abstract getUserClaims(did: string): Promise<Claim[]>
 
   constructor({ name }: StrategyOptions) {
