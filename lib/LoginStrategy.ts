@@ -134,10 +134,6 @@ export class LoginStrategy extends BaseStrategy {
       )
 
       const filteredRoles = roles.filter(Boolean)
-      if (filteredRoles.length < 1) {
-        console.log('All roles are not valid')
-        return done(null, null, 'All roles are not valid')
-      }
       const user = {
         did: payload.iss,
         verifiedRoles: filteredRoles,
