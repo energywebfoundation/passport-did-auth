@@ -30,13 +30,14 @@ export interface Claim {
 }
 
 export interface DecodedToken {
-  iss: string;
-  claimData: Record<string, unknown>;
-  sub: string;
+  iss: string
+  claimData: Record<string, unknown>
+  sub: string
 }
 
 export interface ITokenPayload extends DecodedToken {
   claimData: {
-    blockNumber: number;
+    blockNumber: number
   }
+  iss: string
 }
