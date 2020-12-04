@@ -80,6 +80,14 @@ export class LoginStrategy extends BaseStrategy {
     this.numberOfBlocksBack = numberOfBlocksBack
     this.jwtSecret = jwtSecret
   }
+  /**
+   * @description verifies issuer signature, then check that claim issued 
+   * no latter then `this.numberOfBlocksBack` and user has enrolled with at 
+   * least one role
+   * @param token 
+   * @param payload 
+   * @callback done on successful validation is called with encoded {did, verifiedRoles} object
+   */
   async validate(
     token: string,
     payload: ITokenPayload,
@@ -147,16 +155,32 @@ export class LoginStrategy extends BaseStrategy {
     return jwt.decode(token, options) as T
   }
 
+  /**
+   * 
+   * @param data payload to encode
+   * @param options 
+   */
   encodeToken(data: any, options?: jwt.SignOptions) {
     return jwt.sign(data, this.jwtSecret, options)
   }
 
+  /**
+   * @description extracts encoded payload either from request body or query
+   * 
+   * @param req
+   * 
+   * @returns {string} encoded claim
+   */
   extractToken(req: Request) {
     return (
       lookup(req.body, this.claimField) || lookup(req.query, this.claimField)
     )
   }
 
+  /**
+   * @description checks that role which corresponds to `namespace` is owned by the `issuer`
+   * @param param0 
+   */
   async verifyRole({
     namespace,
     issuer,

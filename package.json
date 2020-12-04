@@ -17,7 +17,8 @@
     "example:server-express": "cd examples/server/express && npm install && node index.js",
     "build:ts": "tsc",
     "build:contracts": "npm run build:typechain:resolver",
-    "build:typechain:resolver": "typechain --target ethers-v4 --outDir ethers './node_modules/@ensdomains/resolver/build/contracts/PublicResolver.json'"
+    "build:typechain:resolver": "typechain --target ethers-v4 --outDir ethers './node_modules/@ensdomains/resolver/build/contracts/PublicResolver.json'",
+    "build:api_docs": "rm -rf docs/api && typedoc"
   },
   "repository": {
     "type": "git",
@@ -49,6 +50,8 @@
     "@types/jsonwebtoken": "^8.5.0",
     "@types/passport": "^1.0.4",
     "concurrently": "^5.3.0",
-    "typechain": "^3.0.0"
+    "typechain": "^3.0.0",
+    "typedoc": "^0.19.2",
+    "typedoc-plugin-markdown": "^3.0.11"
   }
 }
