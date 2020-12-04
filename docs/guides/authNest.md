@@ -1,7 +1,5 @@
 # Authentication in NestJs application
 
-To authenticate user need to:
-
 1. Extend passport strategy [LoginStrategy](../api/classes/loginstrategy.md) wrapped by NestJs `PassportStrategy`:
 
 ``` typescript
@@ -22,7 +20,7 @@ export class AuthStrategy extends PassportStrategy(LoginStrategy, 'login') {
 }
 ```
 
-2. Create AuthGuard which uses created strategy
+2. Create AuthGuard which uses this strategy
 
 ``` typescript
 import { Injectable } from '@nestjs/common';

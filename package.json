@@ -10,7 +10,6 @@
   "scripts": {
     "build": "rm -rf dist && rm -rf ethers && npm run build:contracts && npm run build:ts",
     "prepare": "npm run build",
-    "dev:nest": "concurrently -n nest,lib -c bgGreen,bgRed \"cd examples/server/nestjs && npm run start:dev\" \"tsc --watch\" ",
     "example:nest": "npm run build && concurrently -n client,nest -c bgBlue,bgGreen \"npm run example:client\" \"npm run example:server-nest\"",
     "example:express": "npm run build && concurrently -n client,express -c bgBlue,bgGreen \"npm run example:client\" \"npm run example:server-express\"",
     "example:client": "cd examples/client && npm install && npm start",

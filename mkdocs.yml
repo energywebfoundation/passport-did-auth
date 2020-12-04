@@ -1,6 +1,9 @@
 site_name: Passport DID strategy
 nav:
     - Home: index.md
+    - Guides:
+      - Authentication in Nest: guides/authNest.md
+      - Authentication in Express: guides/authExpress.md
     - API: api/
 theme: readthedocs
 

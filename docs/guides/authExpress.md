@@ -1,8 +1,10 @@
 # Authentication in Express application
 
-1. Create login strategy and include it in application middleware along with
+1. Create [LoginStrategy](../api/classes/loginstrategy.md) and include it in application middleware along with
 jwt strategies:
 ```javascript
+const passport = require('passport')
+const { ExtractJwt, Strategy } = require('passport-jwt')
 
 const jwtSecret = 'secret'
 
