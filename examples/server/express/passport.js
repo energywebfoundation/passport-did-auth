@@ -1,4 +1,5 @@
 const passport = require('passport');
+const providers = require('ethers/providers');
 const { LoginStrategy } = require('../../../dist')
 
 const LOGIN_STRATEGY = 'login'
@@ -12,7 +13,8 @@ const jwtOptions = {
   secretOrKey: jwtSecret
 }
 module.exports.preparePassport = () => {
-  passport.use(new LoginStrategy({ jwtSecret, name: LOGIN_STRATEGY, rpcUrl: 'https://volta-rpc-vkn5r5zx4ke71f9hcu0c.energyweb.org/', cacheServerUrl: 'http://13.52.78.249:3333/' }))
+  const provider = new providers.JsonRpcProvider('https://volta-rpc-vkn5r5zx4ke71f9hcu0c.energyweb.org/')
+  passport.use(new LoginStrategy({ jwtSecret, name: LOGIN_STRATEGY, provider: provider, cacheServerUrl: 'http://13.52.78.249:3333/' }))
   passport.use(new Strategy(jwtOptions, function (payload, done) {
     return done(null, payload)
   }))

@@ -27,7 +27,7 @@ const { abi: abi1056 } = ethrReg
 interface LoginStrategyOptions extends StrategyOptions {
   jwtSecret: string
   claimField?: string
-  rpcUrl: string
+  provider: providers.Provider
   cacheServerUrl?: string
   numberOfBlocksBack?: number
   ensResolverAddress?: string
@@ -38,7 +38,7 @@ interface LoginStrategyOptions extends StrategyOptions {
 export class LoginStrategy extends BaseStrategy {
   private claimField: string
   private jwtSecret: string
-  private provider: providers.JsonRpcProvider
+  private provider: providers.Provider
   private httpClient: AxiosInstance | undefined
   private numberOfBlocksBack: number
   private ensResolver: PublicResolver
@@ -47,7 +47,7 @@ export class LoginStrategy extends BaseStrategy {
   constructor(
     {
       claimField = 'claim',
-      rpcUrl,
+      provider,
       cacheServerUrl,
       numberOfBlocksBack = 4,
       jwtSecret,
@@ -60,7 +60,7 @@ export class LoginStrategy extends BaseStrategy {
   ) {
     super(options)
     this.claimField = claimField
-    this.provider = new providers.JsonRpcProvider(rpcUrl)
+    this.provider = provider
     this.ensResolver = PublicResolverFactory.connect(
       ensResolverAddress,
       this.provider
