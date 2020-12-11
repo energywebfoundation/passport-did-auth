@@ -38,7 +38,7 @@ ___
 
 •  **iss**: string
 
-*Inherited from [DecodedToken](decodedtoken.md).[iss](decodedtoken.md#iss)*
+*Overrides [DecodedToken](decodedtoken.md).[iss](decodedtoken.md#iss)*
 
 ___
 
