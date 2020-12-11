@@ -45,7 +45,7 @@ ___
 
 ### sha3
 
-• `Const` **sha3**: any = require("js-sha3").keccak\_256
+• `Const` **sha3**: any = require('js-sha3').keccak\_256
 
 ## Functions
 
@@ -122,19 +122,13 @@ ___
 
 ### verifyClaim
 
-▸ `Const`**verifyClaim**\<T>(`token`: string, `tokenPayload`: T \| any): any
-
-#### Type parameters:
-
-Name |
------- |
-`T` |
+▸ `Const`**verifyClaim**(`token`: string, `__namedParameters`: { iss: string  }): string
 
 #### Parameters:
 
 Name | Type |
 ------ | ------ |
 `token` | string |
-`tokenPayload` | T \| any |
+`__namedParameters` | { iss: string  } |
 
-**Returns:** any
+**Returns:** string
