@@ -8,8 +8,8 @@ export class AuthStrategy extends PassportStrategy(LoginStrategy, 'login') {
     super({
       jwtSecret: 'secret',
       name: 'login',
-      rpcUrl: 'https://volta-rpc-vkn5r5zx4ke71f9hcu0c.energyweb.org/',
-      cacheServerUrl: 'http://13.52.78.249:3333/',
+      rpcUrl: 'https://volta-rpc.energyweb.org/',
+      cacheServerUrl: 'https://volta-iam-cacheserver.energyweb.org/',
     });
   }
 }

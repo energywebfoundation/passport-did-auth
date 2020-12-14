@@ -2,7 +2,7 @@ version: '3.4'
 
 services:
   didauth_express_example:
-    image: expressexample:latest
+    image: passport-did-auth-express:latest
     restart: always
     ports:
       - 3333:3333
