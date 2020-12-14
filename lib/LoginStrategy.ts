@@ -81,11 +81,11 @@ export class LoginStrategy extends BaseStrategy {
     this.jwtSecret = jwtSecret
   }
   /**
-   * @description verifies issuer signature, then check that claim issued 
-   * no latter then `this.numberOfBlocksBack` and user has enrolled with at 
+   * @description verifies issuer signature, then check that claim issued
+   * no latter then `this.numberOfBlocksBack` and user has enrolled with at
    * least one role
-   * @param token 
-   * @param payload 
+   * @param token
+   * @param payload
    * @callback done on successful validation is called with encoded {did, verifiedRoles} object
    */
   async validate(
@@ -123,9 +123,7 @@ export class LoginStrategy extends BaseStrategy {
               namespace: claim.claimType,
             })
           }
-          const issuedClaim = this.decodeToken<DecodedToken>(
-            claim.issuedToken
-          );
+          const issuedClaim = this.decodeToken<DecodedToken>(claim.issuedToken)
           return this.verifyRole({
             issuer: issuedClaim.iss,
             namespace: claim.claimType,
@@ -152,9 +150,9 @@ export class LoginStrategy extends BaseStrategy {
   }
 
   /**
-   * 
+   *
    * @param data payload to encode
-   * @param options 
+   * @param options
    */
   encodeToken(data: any, options?: jwt.SignOptions) {
     return jwt.sign(data, this.jwtSecret, options)
@@ -162,9 +160,9 @@ export class LoginStrategy extends BaseStrategy {
 
   /**
    * @description extracts encoded payload either from request body or query
-   * 
+   *
    * @param req
-   * 
+   *
    * @returns {string} encoded claim
    */
   extractToken(req: Request) {
@@ -175,7 +173,7 @@ export class LoginStrategy extends BaseStrategy {
 
   /**
    * @description checks that role which corresponds to `namespace` is owned by the `issuer`
-   * @param param0 
+   * @param param0
    */
   async verifyRole({
     namespace,
@@ -188,21 +186,28 @@ export class LoginStrategy extends BaseStrategy {
     if (!role) {
       return null
     }
-    if ((role as IRoleDefinition).version) {
-      if ((role as IRoleDefinition).issuer.did.includes(issuer)) {
+
+    if (role.issuer?.issuerType === 'DID') {
+      if (
+        Array.isArray(role.issuer?.did) &&
+        role.issuer?.did.includes(issuer)
+      ) {
         return {
-          name: (role as IRoleDefinition).roleName,
+          name: role.roleName,
           namespace,
         }
       }
-    }
-    if (!(role as IRole).definition) {
       return null
     }
-    if ((role as IRole).definition.issuer.did.includes(issuer)) {
-      return {
-        name: (role as IRole).name,
-        namespace: (role as IRole).namespace,
+
+    if (role.issuer?.issuerType === 'Role') {
+      if (!this.httpClient) return null
+      const dids = await this.getDidsWithAcceptedRole(role.issuer.roleName)
+      if (dids.includes(issuer)) {
+        return {
+          name: role.roleName,
+          namespace,
+        }
       }
     }
     return null
@@ -211,7 +216,7 @@ export class LoginStrategy extends BaseStrategy {
   async getRoleDefinition(namespace: string) {
     if (this.httpClient) {
       const { data } = await this.httpClient.get<IRole>(`/role/${namespace}`)
-      return data
+      return data.definition
     }
     const namespaceHash = namehash(namespace)
     const definition = await this.ensResolver.text(namespaceHash, 'metadata')
@@ -248,5 +253,12 @@ export class LoginStrategy extends BaseStrategy {
       }
       return acc
     }, [] as Claim[])
+  }
+
+  async getDidsWithAcceptedRole(role: string) {
+    const { data } = await this.httpClient.get<string[]>(
+      `/claim/did/${role}?accepted=true`
+    )
+    return data
   }
 }

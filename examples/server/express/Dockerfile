@@ -12,7 +12,7 @@ FROM node AS final
 ENV NODE_ENV production
 
 # Update the system
-RUN apk --no-cache -U upgrade
+RUN apk --no-cache -U upgrade && apk add python make g++
 
 # Prepare destination directory and ensure user node owns it
 RUN mkdir -p /home/node/app/dist
@@ -22,7 +22,7 @@ RUN chown -R node:node /home/node/app
 # Copy the passport strategy code
 WORKDIR /home/node/app
 COPY --chown=node:node /dist ./dist
-COPY --chown=node:node package*.json .
+COPY --chown=node:node package*.json ./
 
 # Install libraries as user node
 RUN npm i --only=production
@@ -34,7 +34,7 @@ WORKDIR /home/node/app/examples/server/express
 RUN npm i -g pm2
 
 # Copy package.json, package-lock.json and process.yml
-COPY --chown=node:node examples/server/express/. .
+COPY --chown=node:node examples/server/express/. ./
 
 # Switch to user node
 USER node
