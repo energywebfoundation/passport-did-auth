@@ -201,9 +201,9 @@ export class LoginStrategy extends BaseStrategy {
     }
 
     if (role.issuer?.issuerType === 'Role') {
-      if (!this.httpClient) return null
-      const dids = await this.getDidsWithAcceptedRole(role.issuer.roleName)
-      if (dids.includes(issuer)) {
+      const issuerClaims = await this.getUserClaims(issuer)
+      const issuerRoles = issuerClaims.map(c => c.claimType)
+      if (issuerRoles.includes(role.issuer.roleName)) {
         return {
           name: role.roleName,
           namespace,
