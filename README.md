@@ -1,15 +1,6 @@
 # Node.js Passport strategy using decentralised identifiers
 
 
-## Maintainers
-**Primary**: 
- - [Mani H.](https://github.com/manihagh>)
- - [Daniel Wojno](https://github.com/dwojno>)
- 
-**Team**:
- - [Dmitry Fesenko](https://github.com/JGiter)
- - [John Henderson](https://github.com/jrhender)
-
 ## Getting Started
 
 This repository consists of a Node.js Password Strategy and examples which show how the strategy can be used.
@@ -47,3 +38,10 @@ npm run example:express
 
 ### Client examples
 Example clients which demonstrate interaction with the strategy can be found in the [iam-client-lib repo](https://github.com/energywebfoundation/iam-client-lib/tree/develop/examples)
+
+
+## Active Maintainers
+ - [Mani H.](https://github.com/manihagh>)
+ - [Daniel Wojno](https://github.com/dwojno>)
+ - [Dmitry Fesenko](https://github.com/JGiter)
+ - [John Henderson](https://github.com/jrhender)
