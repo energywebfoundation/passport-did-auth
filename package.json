@@ -46,6 +46,7 @@
     "@typechain/ethers-v4": "^1.0.1",
     "@types/jsonwebtoken": "^8.5.0",
     "@types/passport": "^1.0.4",
+    "semantic-release": "^17.3.0",
     "typechain": "^3.0.0",
     "typedoc": "^0.19.2",
     "typedoc-plugin-markdown": "^3.0.11"
