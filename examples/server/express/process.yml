@@ -1,3 +1,0 @@
-apps:
-    - name: passport-did-auth-express-example
-      script: ./index.js

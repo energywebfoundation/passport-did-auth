@@ -10,8 +10,6 @@
   "scripts": {
     "build": "rm -rf dist && rm -rf ethers && npm run build:contracts && npm run build:ts",
     "prepare": "npm run build",
-    "example:nest": "npm run build && cd examples/server/nestjs && npm install && npm start",
-    "example:express": "npm run build && cd examples/server/express && npm install && node index.js",
     "build:ts": "tsc",
     "build:contracts": "npm run build:typechain:resolver",
     "build:typechain:resolver": "typechain --target ethers-v4 --outDir ethers './node_modules/@ensdomains/resolver/build/contracts/PublicResolver.json'",
