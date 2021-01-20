@@ -13,7 +13,8 @@
     "build:ts": "tsc",
     "build:contracts": "npm run build:typechain:resolver",
     "build:typechain:resolver": "typechain --target ethers-v4 --outDir ethers './node_modules/@ensdomains/resolver/build/contracts/PublicResolver.json'",
-    "build:api_docs": "rm -rf docs/api && typedoc"
+    "build:api_docs": "rm -rf docs/api && typedoc",
+    "test": "jest"
   },
   "repository": {
     "type": "git",
@@ -42,10 +43,19 @@
     "typescript": "^4.0.3"
   },
   "devDependencies": {
+    "@babel/core": "^7.12.10",
+    "@babel/preset-env": "^7.12.11",
+    "@babel/preset-typescript": "^7.12.7",
+    "@ew-did-registry/claims": "0.0.1-alpha.694.1",
+    "@ew-did-registry/did-resolver-interface": "0.0.1-alpha.694.1",
     "@typechain/ethers-v4": "^1.0.1",
+    "@types/jest": "^26.0.20",
     "@types/jsonwebtoken": "^8.5.0",
     "@types/passport": "^1.0.4",
+    "babel-jest": "^26.6.3",
+    "jest": "^26.6.3",
     "semantic-release": "^17.3.0",
+    "ts-node": "^9.1.1",
     "typechain": "^3.0.0",
     "typedoc": "^0.19.2",
     "typedoc-plugin-markdown": "^3.0.11"

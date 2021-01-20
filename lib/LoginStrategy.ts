@@ -12,6 +12,7 @@ import { lookup, namehash, verifyClaim } from './utils'
 import {
   Claim,
   DecodedToken,
+  IRole,
   IRoleDefinition,
   ITokenPayload,
 } from './LoginStrategy.types'
@@ -20,6 +21,7 @@ import { PublicResolver } from '../ethers/PublicResolver'
 import { Methods } from '@ew-did-registry/did'
 import { DidStore } from '@ew-did-registry/did-ipfs-store'
 import { CacheServerClient } from './cacheServerClient'
+import { ClaimVerifier } from './ClaimVerifier'
 
 const { abi: abi1056 } = ethrReg
 
@@ -145,29 +147,8 @@ export class LoginStrategy extends BaseStrategy {
          * if address attempting to login is the address of the strategy
          */
         this.strategyAddress === address ? [] : await this.getUserClaims(did)
-      const roles = await Promise.all(
-        roleClaims.map(
-          async ({ claimType, claimTypeVersion, iss, issuedToken }) => {
-            if (!claimType) return
-
-            if (iss) {
-              return this.verifyRole({
-                issuer: iss,
-                namespace: claimType,
-                version: claimTypeVersion,
-              })
-            }
-            const issuedClaim = this.decodeToken<DecodedToken>(issuedToken)
-            return this.verifyRole({
-              issuer: issuedClaim.iss,
-              namespace: claimType,
-              version: claimTypeVersion,
-            })
-          }
-        )
-      )
-      const filteredRoles = roles.filter(Boolean)
-      const uniqueRoles = [...new Set(filteredRoles)]
+      const verifier = new ClaimVerifier(roleClaims, this.getRoleDefinition, this.getUserClaims)
+      const uniqueRoles = await verifier.getVerifiedRoles();
 
       if (
         this.acceptedRoles &&
@@ -218,54 +199,6 @@ export class LoginStrategy extends BaseStrategy {
     return (
       lookup(req.body, this.claimField) || lookup(req.query, this.claimField)
     )
-  }
-
-  /**
-   * @description checks that role which corresponds to `namespace` is owned by the `issuer`
-   * @param param0
-   */
-  async verifyRole({
-    namespace,
-    issuer,
-    version,
-  }: {
-    namespace: string
-    issuer: string
-    version?: string
-  }) {
-    const role = await this.getRoleDefinition(namespace)
-    if (!role) {
-      return null
-    }
-
-    if (version && role.version !== version) {
-      return null
-    }
-
-    if (role.issuer?.issuerType === 'DID') {
-      if (
-        Array.isArray(role.issuer?.did) &&
-        role.issuer?.did.includes(issuer)
-      ) {
-        return {
-          name: role.roleName,
-          namespace,
-        }
-      }
-      return null
-    }
-
-    if (role.issuer?.issuerType === 'Role') {
-      const issuerClaims = await this.getUserClaims(issuer)
-      const issuerRoles = issuerClaims.map((c) => c.claimType)
-      if (issuerRoles.includes(role.issuer.roleName)) {
-        return {
-          name: role.roleName,
-          namespace,
-        }
-      }
-    }
-    return null
   }
 
   async getRoleDefinition(namespace: string) {
