@@ -10,11 +10,7 @@
 
 ## Getting Started
 
-This repository consists of a Node.js Password Strategy and examples which show how the strategy can be used.
-
-The strategy provides verification of the issuance of claims made regarding roles defined in an Ethereum Naming System (ENS).
-
-The examples consists of both client and server components.
+This repository consists of a Node.js Password Strategy which provides verification of the issuance of claims made regarding roles defined in an Ethereum Naming System (ENS).
 
 ### Prerequisities
 
@@ -28,19 +24,6 @@ nodejs version 10+
 npm run build
 ```
 
-### Running the examples
-Two different examples are provided, each using a different server application but the same client application. The two server examples provided are: a NestJS example and an ExpressJS example.
-
-The examples can be started in a single command which builds the passport strategy and starts both the client and respective server.
-
-To run the NestJS example:
-```
-npm run example:nest
-```
-
-To run the ExpressJS example:
-```
-npm run example:express
-```
-
-TODO: Add screenshots of expect result of examples
+### Example applications
+Example server applications which demonstrate the use of the passport strategy can be found in [this repository](https://github.com/energywebfoundation/iam-client-examples).
+The repository also contains client examples which leverage the [iam-client-lib](https://github.com/energywebfoundation/iam-client-lib/) to interact with the server applications.
