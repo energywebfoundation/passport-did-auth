@@ -33,6 +33,7 @@ interface LoginStrategyOptions extends StrategyOptions {
   ensResolverAddress?: string
   didContractAddress?: string
   ipfsUrl?: string
+  acceptedRoles?: string[]
 }
 
 export class LoginStrategy extends BaseStrategy {
@@ -44,6 +45,7 @@ export class LoginStrategy extends BaseStrategy {
   private ensResolver: PublicResolver
   private didResolver: Resolver
   private ipfsStore: DidStore
+  private acceptedRoles: Set<string>
   constructor(
     {
       claimField = 'claim',
@@ -54,6 +56,7 @@ export class LoginStrategy extends BaseStrategy {
       ensResolverAddress = '0x0a97e07c4Df22e2e31872F20C5BE191D5EFc4680',
       didContractAddress = VoltaAddress1056,
       ipfsUrl = 'https://ipfs.infura.io:5001/api/v0/',
+      acceptedRoles,
       ...options
     }: LoginStrategyOptions,
     _nestJsCB?: VoidFunction // Added just for nestjs compatibility
@@ -79,6 +82,7 @@ export class LoginStrategy extends BaseStrategy {
     this.ipfsStore = new DidStore(ipfsUrl)
     this.numberOfBlocksBack = numberOfBlocksBack
     this.jwtSecret = jwtSecret
+    this.acceptedRoles = acceptedRoles && new Set(acceptedRoles)
   }
   /**
    * @description verifies issuer signature, then check that claim issued
@@ -130,11 +134,22 @@ export class LoginStrategy extends BaseStrategy {
           })
         })
       )
-
       const filteredRoles = roles.filter(Boolean)
+      const uniqueRoles = [...new Set(filteredRoles)]
+
+      if (
+        this.acceptedRoles &&
+        this.acceptedRoles.size > 0 &&
+        uniqueRoles.length > 0 &&
+        !uniqueRoles.some(({ namespace }) => {
+          return this.acceptedRoles.has(namespace)
+        })
+      ) {
+        return done(null, null, 'User does not have an accepted role.')
+      }
       const user = {
         did: payload.iss,
-        verifiedRoles: filteredRoles,
+        verifiedRoles: uniqueRoles,
       }
 
       const jwtToken = this.encodeToken(user)
@@ -202,7 +217,7 @@ export class LoginStrategy extends BaseStrategy {
 
     if (role.issuer?.issuerType === 'Role') {
       const issuerClaims = await this.getUserClaims(issuer)
-      const issuerRoles = issuerClaims.map(c => c.claimType)
+      const issuerRoles = issuerClaims.map((c) => c.claimType)
       if (issuerRoles.includes(role.issuer.roleName)) {
         return {
           name: role.roleName,
