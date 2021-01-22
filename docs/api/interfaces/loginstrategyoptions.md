@@ -14,17 +14,25 @@
 
 ### Properties
 
+* [acceptedRoles](loginstrategyoptions.md#acceptedroles)
 * [cacheServerUrl](loginstrategyoptions.md#cacheserverurl)
 * [claimField](loginstrategyoptions.md#claimfield)
 * [didContractAddress](loginstrategyoptions.md#didcontractaddress)
 * [ensResolverAddress](loginstrategyoptions.md#ensresolveraddress)
 * [ipfsUrl](loginstrategyoptions.md#ipfsurl)
 * [jwtSecret](loginstrategyoptions.md#jwtsecret)
+* [jwtSignOptions](loginstrategyoptions.md#jwtsignoptions)
 * [name](loginstrategyoptions.md#name)
 * [numberOfBlocksBack](loginstrategyoptions.md#numberofblocksback)
 * [rpcUrl](loginstrategyoptions.md#rpcurl)
 
 ## Properties
+
+### acceptedRoles
+
+• `Optional` **acceptedRoles**: string[]
+
+___
 
 ### cacheServerUrl
 
@@ -58,7 +66,13 @@ ___
 
 ### jwtSecret
 
-•  **jwtSecret**: string
+•  **jwtSecret**: string \| Buffer
+
+___
+
+### jwtSignOptions
+
+• `Optional` **jwtSignOptions**: SignOptions
 
 ___
 
