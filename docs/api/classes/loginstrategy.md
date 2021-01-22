@@ -28,6 +28,7 @@
 * [error](loginstrategy.md#error)
 * [extractToken](loginstrategy.md#extracttoken)
 * [fail](loginstrategy.md#fail)
+* [getDidsWithAcceptedRole](loginstrategy.md#getdidswithacceptedrole)
 * [getRoleDefinition](loginstrategy.md#getroledefinition)
 * [getUserClaims](loginstrategy.md#getuserclaims)
 * [pass](loginstrategy.md#pass)
@@ -40,7 +41,7 @@
 
 ### constructor
 
-\+ **new LoginStrategy**(`__namedParameters`: { cacheServerUrl: string ; claimField: string = "claim"; didContractAddress: string = VoltaAddress1056; ensResolverAddress: string = "0x0a97e07c4Df22e2e31872F20C5BE191D5EFc4680"; ipfsUrl: string = "https://ipfs.infura.io:5001/api/v0/"; jwtSecret: string ; numberOfBlocksBack: number = 4; options: options ; rpcUrl: string  }, `_nestJsCB?`: VoidFunction): [LoginStrategy](loginstrategy.md)
+\+ **new LoginStrategy**(`__namedParameters`: { acceptedRoles: string[] ; cacheServerUrl: string ; claimField: string = "claim"; didContractAddress: string = VoltaAddress1056; ensResolverAddress: string = "0x0a97e07c4Df22e2e31872F20C5BE191D5EFc4680"; ipfsUrl: string = "https://ipfs.infura.io:5001/api/v0/"; jwtSecret: string \| Buffer ; jwtSignOptions: SignOptions ; numberOfBlocksBack: number = 4; options: options ; rpcUrl: string  }, `_nestJsCB?`: VoidFunction): [LoginStrategy](loginstrategy.md)
 
 *Overrides [BaseStrategy](basestrategy.md).[constructor](basestrategy.md#constructor)*
 
@@ -48,7 +49,7 @@
 
 Name | Type |
 ------ | ------ |
-`__namedParameters` | { cacheServerUrl: string ; claimField: string = "claim"; didContractAddress: string = VoltaAddress1056; ensResolverAddress: string = "0x0a97e07c4Df22e2e31872F20C5BE191D5EFc4680"; ipfsUrl: string = "https://ipfs.infura.io:5001/api/v0/"; jwtSecret: string ; numberOfBlocksBack: number = 4; options: options ; rpcUrl: string  } |
+`__namedParameters` | { acceptedRoles: string[] ; cacheServerUrl: string ; claimField: string = "claim"; didContractAddress: string = VoltaAddress1056; ensResolverAddress: string = "0x0a97e07c4Df22e2e31872F20C5BE191D5EFc4680"; ipfsUrl: string = "https://ipfs.infura.io:5001/api/v0/"; jwtSecret: string \| Buffer ; jwtSignOptions: SignOptions ; numberOfBlocksBack: number = 4; options: options ; rpcUrl: string  } |
 `_nestJsCB?` | VoidFunction |
 
 **Returns:** [LoginStrategy](loginstrategy.md)
@@ -109,14 +110,13 @@ ___
 
 ### encodeToken
 
-▸ **encodeToken**(`data`: any, `options?`: SignOptions): string
+▸ **encodeToken**(`data`: any): string
 
 #### Parameters:
 
 Name | Type | Description |
 ------ | ------ | ------ |
 `data` | any | payload to encode |
-`options?` | SignOptions |   |
 
 **Returns:** string
 
@@ -186,9 +186,23 @@ Name | Type |
 
 ___
 
+### getDidsWithAcceptedRole
+
+▸ **getDidsWithAcceptedRole**(`role`: string): Promise\<string[]>
+
+#### Parameters:
+
+Name | Type |
+------ | ------ |
+`role` | string |
+
+**Returns:** Promise\<string[]>
+
+___
+
 ### getRoleDefinition
 
-▸ **getRoleDefinition**(`namespace`: string): Promise\<[IRoleDefinition](../interfaces/iroledefinition.md) \| [IRole](../interfaces/irole.md)>
+▸ **getRoleDefinition**(`namespace`: string): Promise\<[IRoleDefinition](../interfaces/iroledefinition.md)>
 
 #### Parameters:
 
@@ -196,7 +210,7 @@ Name | Type |
 ------ | ------ |
 `namespace` | string |
 
-**Returns:** Promise\<[IRoleDefinition](../interfaces/iroledefinition.md) \| [IRole](../interfaces/irole.md)>
+**Returns:** Promise\<[IRoleDefinition](../interfaces/iroledefinition.md)>
 
 ___
 
@@ -304,7 +318,7 @@ ___
 
 ### verifyRole
 
-▸ **verifyRole**(`__namedParameters`: { issuer: string ; namespace: string  }): Promise\<{ name: string = (role as IRoleDefinition).roleName; namespace: string  }>
+▸ **verifyRole**(`__namedParameters`: { issuer: string ; namespace: string  }): Promise\<{ name: string = role.roleName; namespace: string  }>
 
 **`description`** checks that role which corresponds to `namespace` is owned by the `issuer`
 
@@ -314,4 +328,4 @@ Name | Type |
 ------ | ------ |
 `__namedParameters` | { issuer: string ; namespace: string  } |
 
-**Returns:** Promise\<{ name: string = (role as IRoleDefinition).roleName; namespace: string  }>
+**Returns:** Promise\<{ name: string = role.roleName; namespace: string  }>
