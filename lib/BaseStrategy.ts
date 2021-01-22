@@ -17,8 +17,8 @@ export abstract class BaseStrategy extends Strategy {
    * @abstract
    * @description contains token validation logic
    * @param token  serialized claims
-   * @param tokenPayload claim payload 
-   * @param done 
+   * @param tokenPayload claim payload
+   * @param done
    */
   abstract validate(
     token: string,
@@ -28,7 +28,7 @@ export abstract class BaseStrategy extends Strategy {
   /**
    * @abstract
    * @description extracts token from request
-   * 
+   *
    * @param req object than encapsules request to protected endpoint
    * @returns encoded token
    */
@@ -36,7 +36,7 @@ export abstract class BaseStrategy extends Strategy {
   /**
    * @abstract
    * @description decodes token payload
-   * 
+   *
    * @param token encoded payload
    * @returns decoded payload fields
    */
@@ -44,7 +44,7 @@ export abstract class BaseStrategy extends Strategy {
   /**
    * @abstract
    * @description fetches claims published by the did
-   * 
+   *
    * @param did
    */
   abstract getUserClaims(did: string): Promise<Claim[]>
@@ -52,16 +52,16 @@ export abstract class BaseStrategy extends Strategy {
   /**
    * @constructor
    */
-  constructor({name}: StrategyOptions) {
+  constructor({ name }: StrategyOptions) {
     super()
     this.name = name
   }
 
   /**
    * @description template method to authenticate DID
-   * 
+   *
    * @param req
-   * @param options 
+   * @param options
    */
   authenticate(req: Request, options: AuthenticateOptions) {
     const self = this

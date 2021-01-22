@@ -25,7 +25,6 @@ import { DidStore } from '@ew-did-registry/did-ipfs-store'
 const { abi: abi1056 } = ethrReg
 
 interface LoginStrategyOptions extends StrategyOptions {
-  jwtSecret: string
   claimField?: string
   rpcUrl: string
   cacheServerUrl?: string
@@ -34,11 +33,14 @@ interface LoginStrategyOptions extends StrategyOptions {
   didContractAddress?: string
   ipfsUrl?: string
   acceptedRoles?: string[]
+  jwtSecret: string | Buffer
+  jwtSignOptions?: jwt.SignOptions
 }
 
 export class LoginStrategy extends BaseStrategy {
   private claimField: string
-  private jwtSecret: string
+  private jwtSecret: string | Buffer
+  private jwtSignOptions?: jwt.SignOptions
   private provider: providers.JsonRpcProvider
   private httpClient: AxiosInstance | undefined
   private numberOfBlocksBack: number
@@ -53,6 +55,7 @@ export class LoginStrategy extends BaseStrategy {
       cacheServerUrl,
       numberOfBlocksBack = 4,
       jwtSecret,
+      jwtSignOptions,
       ensResolverAddress = '0x0a97e07c4Df22e2e31872F20C5BE191D5EFc4680',
       didContractAddress = VoltaAddress1056,
       ipfsUrl = 'https://ipfs.infura.io:5001/api/v0/',
@@ -83,6 +86,7 @@ export class LoginStrategy extends BaseStrategy {
     this.numberOfBlocksBack = numberOfBlocksBack
     this.jwtSecret = jwtSecret
     this.acceptedRoles = acceptedRoles && new Set(acceptedRoles)
+    this.jwtSignOptions = jwtSignOptions
   }
   /**
    * @description verifies issuer signature, then check that claim issued
@@ -169,8 +173,8 @@ export class LoginStrategy extends BaseStrategy {
    * @param data payload to encode
    * @param options
    */
-  encodeToken(data: any, options?: jwt.SignOptions) {
-    return jwt.sign(data, this.jwtSecret, options)
+  encodeToken(data: any) {
+    return jwt.sign(data, this.jwtSecret, this.jwtSignOptions)
   }
 
   /**
