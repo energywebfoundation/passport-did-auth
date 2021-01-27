@@ -1,7 +1,6 @@
 import { arrayify, hashMessage, keccak256, recoverAddress } from 'ethers/utils'
 import base64url from 'base64url'
 import { normalize } from 'eth-ens-namehash'
-import * as jwt from 'jsonwebtoken'
 import { ITokenPayload } from './LoginStrategy.types'
 
 const sha3 = require('js-sha3').keccak_256
@@ -54,7 +53,7 @@ export function labelhash(unnormalizedLabelOrLabelhash: string) {
     : '0x' + sha3(normalize(unnormalizedLabelOrLabelhash))
 }
 
-export function lookup(obj: {}, field: string) {
+export function lookup(obj: {}, field: string): string | null {
   if (!obj) {
     return null
   }
@@ -72,10 +71,7 @@ export function lookup(obj: {}, field: string) {
   return null
 }
 
-export const verifyClaim = (
-  token: string,
-  { iss }: ITokenPayload
-) => {
+export const verifyClaim = (token: string, { iss }: ITokenPayload) => {
   const [encodedHeader, encodedPayload, encodedSignature] = token.split('.')
   const msg = `0x${Buffer.from(`${encodedHeader}.${encodedPayload}`).toString(
     'hex'
@@ -90,4 +86,29 @@ export const verifyClaim = (
   const digest = hashMessage(arrayify(hash))
   const addressFromDigest = recoverAddress(arrayify(digest), signature)
   return decodedAddress === addressFromDigest ? iss : ''
+}
+
+export const createLoginTokenHeadersAndPayload = ({
+  address,
+  blockNumber,
+}: {
+  address: string
+  blockNumber: number
+}) => {
+  const header = {
+    alg: 'ES256',
+    typ: 'JWT',
+  }
+
+  const encodedHeader = base64url(JSON.stringify(header))
+
+  const payload = {
+    iss: `did:ethr:${address}`,
+    claimData: {
+      blockNumber,
+    },
+  }
+
+  const encodedPayload = base64url(JSON.stringify(payload))
+  return { encodedHeader, encodedPayload }
 }
