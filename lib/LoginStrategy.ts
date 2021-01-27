@@ -1,7 +1,7 @@
 import { BaseStrategy, StrategyOptions } from './BaseStrategy'
 import { Request } from 'express'
 import * as jwt from 'jsonwebtoken'
-import { providers } from 'ethers'
+import { providers, Signer, Wallet, utils } from 'ethers'
 import axios, { AxiosInstance } from 'axios'
 import {
   ethrReg,
@@ -9,7 +9,12 @@ import {
   VoltaAddress1056,
 } from '@ew-did-registry/did-ethr-resolver'
 
-import { lookup, namehash, verifyClaim } from './utils'
+import {
+  createLoginTokenHeadersAndPayload,
+  lookup,
+  namehash,
+  verifyClaim,
+} from './utils'
 import {
   Claim,
   DecodedToken,
@@ -21,13 +26,17 @@ import { PublicResolverFactory } from '../ethers/PublicResolverFactory'
 import { PublicResolver } from '../ethers/PublicResolver'
 import { Methods } from '@ew-did-registry/did'
 import { DidStore } from '@ew-did-registry/did-ipfs-store'
+import base64url from 'base64url'
 
 const { abi: abi1056 } = ethrReg
+
+const { keccak256, arrayify } = utils
 
 interface LoginStrategyOptions extends StrategyOptions {
   claimField?: string
   rpcUrl: string
   cacheServerUrl?: string
+  privateKey?: string
   numberOfBlocksBack?: number
   ensResolverAddress?: string
   didContractAddress?: string
@@ -48,11 +57,13 @@ export class LoginStrategy extends BaseStrategy {
   private didResolver: Resolver
   private ipfsStore: DidStore
   private acceptedRoles: Set<string>
+  private signer: Signer
   constructor(
     {
       claimField = 'claim',
       rpcUrl,
       cacheServerUrl,
+      privateKey,
       numberOfBlocksBack = 4,
       jwtSecret,
       jwtSignOptions,
@@ -71,10 +82,17 @@ export class LoginStrategy extends BaseStrategy {
       ensResolverAddress,
       this.provider
     )
-    if (cacheServerUrl) {
+    if (cacheServerUrl && !privateKey) {
+      throw new Error(
+        'You need to provide privateKey of an accepted account to login to cache server'
+      )
+    }
+    if (cacheServerUrl && privateKey) {
       this.httpClient = axios.create({
         baseURL: cacheServerUrl,
       })
+      this.signer = new Wallet(privateKey, this.provider)
+      this.loginToCacheServer()
     }
     const registrySetting = {
       abi: abi1056,
@@ -164,6 +182,32 @@ export class LoginStrategy extends BaseStrategy {
     }
   }
 
+  async loginToCacheServer() {
+    const [address, blockNumber] = await Promise.all([
+      this.signer.getAddress(),
+      this.provider.getBlockNumber(),
+    ])
+
+    const {
+      encodedHeader,
+      encodedPayload,
+    } = createLoginTokenHeadersAndPayload({ address, blockNumber })
+    const msg = `0x${Buffer.from(`${encodedHeader}.${encodedPayload}`).toString(
+      'hex'
+    )}`
+    const hash = keccak256(msg)
+    const sig = await this.signer.signMessage(arrayify(hash))
+    const encodedSignature = base64url(sig)
+    const claim = `${encodedHeader}.${encodedPayload}.${encodedSignature}`
+    const { data } = await this.httpClient.post<{ token: string }>('/login', {
+      claim,
+    })
+    this.httpClient.defaults.headers.common[
+      'Authorization'
+    ] = `Bearer ${data.token}`
+    console.log('DIDStrategy is now logged to cache server')
+  }
+
   decodeToken<T>(token: string, options?: jwt.DecodeOptions): T {
     return jwt.decode(token, options) as T
   }
@@ -184,7 +228,7 @@ export class LoginStrategy extends BaseStrategy {
    *
    * @returns {string} encoded claim
    */
-  extractToken(req: Request) {
+  extractToken(req: Request): string {
     return (
       lookup(req.body, this.claimField) || lookup(req.query, this.claimField)
     )
