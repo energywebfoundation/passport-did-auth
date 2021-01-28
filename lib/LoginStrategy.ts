@@ -2,23 +2,16 @@ import { BaseStrategy, StrategyOptions } from './BaseStrategy'
 import { Request } from 'express'
 import * as jwt from 'jsonwebtoken'
 import { providers, Signer, Wallet, utils } from 'ethers'
-import axios, { AxiosInstance } from 'axios'
 import {
   ethrReg,
   Resolver,
   VoltaAddress1056,
 } from '@ew-did-registry/did-ethr-resolver'
 
-import {
-  createLoginTokenHeadersAndPayload,
-  lookup,
-  namehash,
-  verifyClaim,
-} from './utils'
+import { lookup, namehash, verifyClaim } from './utils'
 import {
   Claim,
   DecodedToken,
-  IRole,
   IRoleDefinition,
   ITokenPayload,
 } from './LoginStrategy.types'
@@ -26,7 +19,7 @@ import { PublicResolverFactory } from '../ethers/PublicResolverFactory'
 import { PublicResolver } from '../ethers/PublicResolver'
 import { Methods } from '@ew-did-registry/did'
 import { DidStore } from '@ew-did-registry/did-ipfs-store'
-import base64url from 'base64url'
+import { CacheServerClient } from './httpClient'
 
 const { abi: abi1056 } = ethrReg
 
@@ -51,16 +44,15 @@ export class LoginStrategy extends BaseStrategy {
   private jwtSecret: string | Buffer
   private jwtSignOptions?: jwt.SignOptions
   private provider: providers.JsonRpcProvider
-  private httpClient: AxiosInstance | undefined
+  private cacheServerClient: CacheServerClient
   private numberOfBlocksBack: number
   private ensResolver: PublicResolver
   private didResolver: Resolver
   private ipfsStore: DidStore
   private acceptedRoles: Set<string>
-  private signer: Signer
   constructor(
     {
-      claimField = 'claim',
+      claimField = 'identityToken',
       rpcUrl,
       cacheServerUrl,
       privateKey,
@@ -88,11 +80,12 @@ export class LoginStrategy extends BaseStrategy {
       )
     }
     if (cacheServerUrl && privateKey) {
-      this.httpClient = axios.create({
-        baseURL: cacheServerUrl,
+      this.cacheServerClient = new CacheServerClient({
+        privateKey,
+        provider: this.provider,
+        url: cacheServerUrl,
       })
-      this.signer = new Wallet(privateKey, this.provider)
-      this.loginToCacheServer()
+      this.cacheServerClient.login()
     }
     const registrySetting = {
       abi: abi1056,
@@ -182,32 +175,6 @@ export class LoginStrategy extends BaseStrategy {
     }
   }
 
-  async loginToCacheServer() {
-    const [address, blockNumber] = await Promise.all([
-      this.signer.getAddress(),
-      this.provider.getBlockNumber(),
-    ])
-
-    const {
-      encodedHeader,
-      encodedPayload,
-    } = createLoginTokenHeadersAndPayload({ address, blockNumber })
-    const msg = `0x${Buffer.from(`${encodedHeader}.${encodedPayload}`).toString(
-      'hex'
-    )}`
-    const hash = keccak256(msg)
-    const sig = await this.signer.signMessage(arrayify(hash))
-    const encodedSignature = base64url(sig)
-    const claim = `${encodedHeader}.${encodedPayload}.${encodedSignature}`
-    const { data } = await this.httpClient.post<{ token: string }>('/login', {
-      claim,
-    })
-    this.httpClient.defaults.headers.common[
-      'Authorization'
-    ] = `Bearer ${data.token}`
-    console.log('DIDStrategy is now logged to cache server')
-  }
-
   decodeToken<T>(token: string, options?: jwt.DecodeOptions): T {
     return jwt.decode(token, options) as T
   }
@@ -277,9 +244,8 @@ export class LoginStrategy extends BaseStrategy {
   }
 
   async getRoleDefinition(namespace: string) {
-    if (this.httpClient) {
-      const { data } = await this.httpClient.get<IRole>(`/role/${namespace}`)
-      return data.definition
+    if (this.cacheServerClient) {
+      return this.cacheServerClient.getRoleDefinition({ namespace })
     }
     const namespaceHash = namehash(namespace)
     const definition = await this.ensResolver.text(namespaceHash, 'metadata')
@@ -289,11 +255,8 @@ export class LoginStrategy extends BaseStrategy {
   }
 
   async getUserClaims(did: string) {
-    if (this.httpClient) {
-      const { data } = await this.httpClient.get<{ claim: Claim[] }>(
-        `/claim/requester/${did}?accepted=true`
-      )
-      return data.claim
+    if (this.cacheServerClient) {
+      return this.cacheServerClient.getUserAcceptedClaims({ did })
     }
     const didDocument = await this.didResolver.read(did)
     const services = didDocument.service || []
@@ -316,12 +279,5 @@ export class LoginStrategy extends BaseStrategy {
       }
       return acc
     }, [] as Claim[])
-  }
-
-  async getDidsWithAcceptedRole(role: string) {
-    const { data } = await this.httpClient.get<string[]>(
-      `/claim/did/${role}?accepted=true`
-    )
-    return data
   }
 }

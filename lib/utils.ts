@@ -87,28 +87,3 @@ export const verifyClaim = (token: string, { iss }: ITokenPayload) => {
   const addressFromDigest = recoverAddress(arrayify(digest), signature)
   return decodedAddress === addressFromDigest ? iss : ''
 }
-
-export const createLoginTokenHeadersAndPayload = ({
-  address,
-  blockNumber,
-}: {
-  address: string
-  blockNumber: number
-}) => {
-  const header = {
-    alg: 'ES256',
-    typ: 'JWT',
-  }
-
-  const encodedHeader = base64url(JSON.stringify(header))
-
-  const payload = {
-    iss: `did:ethr:${address}`,
-    claimData: {
-      blockNumber,
-    },
-  }
-
-  const encodedPayload = base64url(JSON.stringify(payload))
-  return { encodedHeader, encodedPayload }
-}
