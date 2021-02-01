@@ -77,13 +77,12 @@ export const verifyClaim = (token: string, { iss }: ITokenPayload) => {
     'hex'
   )}`
   const signature = base64url.decode(encodedSignature)
-  const hash = keccak256(msg)
   const decodedAddress = iss.split(':')[2]
-  const address = recoverAddress(arrayify(hash), signature)
+  const address = recoverAddress(msg, signature)
   if (decodedAddress === address) {
     return iss
   }
-  const digest = hashMessage(arrayify(hash))
-  const addressFromDigest = recoverAddress(arrayify(digest), signature)
+  const digest = hashMessage(msg)
+  const addressFromDigest = recoverAddress(digest, signature)
   return decodedAddress === addressFromDigest ? iss : ''
 }
