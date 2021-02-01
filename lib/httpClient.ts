@@ -44,8 +44,7 @@ export class CacheServerClient {
     const msg = `0x${Buffer.from(`${encodedHeader}.${encodedPayload}`).toString(
       'hex'
     )}`
-    const hash = keccak256(msg)
-    const sig = await this.signer.signMessage(arrayify(hash))
+    const sig = await this.signer.signMessage(msg)
     const encodedSignature = base64url(sig)
     const claim = `${encodedHeader}.${encodedPayload}.${encodedSignature}`
     const { data } = await this.httpClient.post<{ token: string }>('/login', {
