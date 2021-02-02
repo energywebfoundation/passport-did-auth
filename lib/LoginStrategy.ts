@@ -1,7 +1,7 @@
 import { BaseStrategy, StrategyOptions } from './BaseStrategy'
 import { Request } from 'express'
 import * as jwt from 'jsonwebtoken'
-import { providers, Signer, Wallet, utils } from 'ethers'
+import { providers } from 'ethers'
 import {
   ethrReg,
   Resolver,
@@ -19,11 +19,9 @@ import { PublicResolverFactory } from '../ethers/PublicResolverFactory'
 import { PublicResolver } from '../ethers/PublicResolver'
 import { Methods } from '@ew-did-registry/did'
 import { DidStore } from '@ew-did-registry/did-ipfs-store'
-import { CacheServerClient } from './httpClient'
+import { CacheServerClient } from './cacheServerClient'
 
 const { abi: abi1056 } = ethrReg
-
-const { keccak256, arrayify } = utils
 
 interface LoginStrategyOptions extends StrategyOptions {
   claimField?: string
@@ -40,16 +38,17 @@ interface LoginStrategyOptions extends StrategyOptions {
 }
 
 export class LoginStrategy extends BaseStrategy {
-  private claimField: string
-  private jwtSecret: string | Buffer
-  private jwtSignOptions?: jwt.SignOptions
-  private provider: providers.JsonRpcProvider
-  private cacheServerClient: CacheServerClient
-  private numberOfBlocksBack: number
-  private ensResolver: PublicResolver
-  private didResolver: Resolver
-  private ipfsStore: DidStore
-  private acceptedRoles: Set<string>
+  private readonly claimField: string
+  private readonly jwtSecret: string | Buffer
+  private readonly jwtSignOptions?: jwt.SignOptions
+  private readonly provider: providers.JsonRpcProvider
+  private readonly cacheServerClient: CacheServerClient
+  private readonly numberOfBlocksBack: number
+  private readonly ensResolver: PublicResolver
+  private readonly didResolver: Resolver
+  private readonly ipfsStore: DidStore
+  private readonly acceptedRoles: Set<string>
+  private readonly strategyAddress?: string
   constructor(
     {
       claimField = 'identityToken',
@@ -85,6 +84,7 @@ export class LoginStrategy extends BaseStrategy {
         provider: this.provider,
         url: cacheServerUrl,
       })
+      this.strategyAddress = this.cacheServerClient.address
       this.cacheServerClient.login()
     }
     const registrySetting = {
@@ -114,6 +114,8 @@ export class LoginStrategy extends BaseStrategy {
   ) {
     const did = verifyClaim(token, payload)
 
+    const [, , address] = did.split(':')
+
     if (!did) {
       console.log('Not Verified')
       return done(null, null, 'Not Verified')
@@ -133,7 +135,15 @@ export class LoginStrategy extends BaseStrategy {
     }
 
     try {
-      const roleClaims = await this.getUserClaims(did)
+      const roleClaims =
+        /*
+         * getUserClaims attempts to retrieve claims from cache-server
+         * and so when the cache-server itself is using the LoginStrategy,
+         * this creates a login attempt loop.
+         * Therefore, not getting userClaims
+         * if address attempting to login is the address of the strategy
+         */
+        this.strategyAddress === address ? [] : await this.getUserClaims(did)
       const roles = await Promise.all(
         roleClaims.map(async (claim) => {
           if (claim.iss) {
