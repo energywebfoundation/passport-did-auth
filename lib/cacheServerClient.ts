@@ -4,13 +4,15 @@ import { Signer, Wallet } from 'ethers'
 import { JsonRpcProvider } from 'ethers/providers'
 import { arrayify, keccak256 } from 'ethers/utils'
 import { Claim, IRole } from './LoginStrategy.types'
+import { Policy } from 'cockatiel'
 
 export class CacheServerClient {
-  private signer: Signer
-  private httpClient: AxiosInstance
-  private provider: JsonRpcProvider
+  private readonly signer: Signer
+  private readonly httpClient: AxiosInstance
+  private readonly provider: JsonRpcProvider
   private failedRequests: Array<(token: string) => void> = []
   private isAlreadyFetchingAccessToken: boolean = false
+  public readonly address: string
   constructor({
     url,
     privateKey,
@@ -20,7 +22,9 @@ export class CacheServerClient {
     privateKey: string
     provider: JsonRpcProvider
   }) {
-    this.signer = new Wallet(privateKey, provider)
+    const wallet = new Wallet(privateKey, provider)
+    this.address = wallet.address
+    this.signer = wallet
     this.provider = provider
     this.httpClient = axios.create({ baseURL: url })
     this.httpClient.interceptors.response.use(function (
@@ -32,29 +36,43 @@ export class CacheServerClient {
   }
 
   async login() {
-    const [address, blockNumber] = await Promise.all([
-      this.signer.getAddress(),
-      this.provider.getBlockNumber(),
-    ])
-
-    const {
-      encodedHeader,
-      encodedPayload,
-    } = this.createLoginTokenHeadersAndPayload({ address, blockNumber })
-    const msg = `0x${Buffer.from(`${encodedHeader}.${encodedPayload}`).toString(
-      'hex'
-    )}`
-    const sig = await this.signer.signMessage(msg)
-    const encodedSignature = base64url(sig)
-    const claim = `${encodedHeader}.${encodedPayload}.${encodedSignature}`
-    const { data } = await this.httpClient.post<{ token: string }>('/login', {
-      claim,
+    const retry = Policy.handleAll().retry().attempts(10).delay(2000)
+    retry.onFailure(({ reason }) => {
+      console.log(
+        `DID login strategy was not able to login to cache server due to ${reason}`
+      )
     })
-    this.httpClient.defaults.headers.common[
-      'Authorization'
-    ] = `Bearer ${data.token}`
-    console.log('DID Login Strategy is now logged into cache server')
-    return data.token
+
+    retry.onSuccess(({ duration }) => {
+      console.log(
+        `DID Login Strategy is now logged into cache server after ${duration}ms`
+      )
+    })
+    const token = await retry.execute(async () => {
+      const [address, blockNumber] = await Promise.all([
+        this.signer.getAddress(),
+        this.provider.getBlockNumber(),
+      ])
+
+      const {
+        encodedHeader,
+        encodedPayload,
+      } = this.createLoginTokenHeadersAndPayload({ address, blockNumber })
+      const msg = `0x${Buffer.from(
+        `${encodedHeader}.${encodedPayload}`
+      ).toString('hex')}`
+      const sig = await this.signer.signMessage(arrayify(keccak256(msg)))
+      const encodedSignature = base64url(sig)
+      const { data } = await this.httpClient.post<{ token: string }>('/login', {
+        identityToken: `${encodedHeader}.${encodedPayload}.${encodedSignature}`,
+      })
+      this.httpClient.defaults.headers.common[
+        'Authorization'
+      ] = `Bearer ${data.token}`
+
+      return data.token
+    })
+    return token
   }
 
   handleSuccessfulReLogin(token: string) {
