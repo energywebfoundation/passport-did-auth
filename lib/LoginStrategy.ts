@@ -39,7 +39,7 @@ interface LoginStrategyOptions extends StrategyOptions {
 
 export class LoginStrategy extends BaseStrategy {
   private readonly claimField: string
-  private readonly jwtSecret: string | Buffer
+  private readonly jwtSecret?: string | Buffer
   private readonly jwtSignOptions?: jwt.SignOptions
   private readonly provider: providers.JsonRpcProvider
   private readonly cacheServerClient: CacheServerClient
@@ -114,12 +114,13 @@ export class LoginStrategy extends BaseStrategy {
   ) {
     const did = verifyClaim(token, payload)
 
-    const [, , address] = did.split(':')
-
     if (!did) {
       console.log('Not Verified')
       return done(null, null, 'Not Verified')
     }
+
+    const [, , address] = did.split(':')
+
     try {
       const latestBlock = await this.provider.getBlockNumber()
       if (
@@ -176,9 +177,11 @@ export class LoginStrategy extends BaseStrategy {
         did: payload.iss,
         verifiedRoles: uniqueRoles,
       }
-
-      const jwtToken = this.encodeToken(user)
-      return done(null, jwtToken)
+      if (this.jwtSecret) {
+        const jwtToken = this.encodeToken(user)
+        return done(null, jwtToken)
+      }
+      return done(null, user)
     } catch (err) {
       console.log(err)
       return done(err)
