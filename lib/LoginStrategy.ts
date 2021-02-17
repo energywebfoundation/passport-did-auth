@@ -269,7 +269,7 @@ export class LoginStrategy extends BaseStrategy {
 
   async getUserClaims(did: string) {
     if (this.cacheServerClient) {
-      return this.cacheServerClient.getUserAcceptedClaims({ did })
+      return this.cacheServerClient.getUserClaims({ did })
     }
     const didDocument = await this.didResolver.read(did)
     const services = didDocument.service || []
