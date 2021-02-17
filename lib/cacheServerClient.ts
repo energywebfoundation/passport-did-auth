@@ -145,11 +145,11 @@ export class CacheServerClient {
     return data.definition
   }
 
-  async getUserAcceptedClaims({ did }: { did: string }) {
-    const { data } = await this.httpClient.get<{ claim: Claim[] }>(
-      `/claim/requester/${did}?accepted=true`
+  async getUserClaims({ did }: { did: string }) {
+    const { data } = await this.httpClient.get<{ service: Claim[] }>(
+      `/DID/${did}?includeClaims=true`
     )
-    return data.claim
+    return data.service
   }
 
   async getDidsWithAcceptedRole(role: string) {
