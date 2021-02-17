@@ -19,6 +19,7 @@ export class ClaimsUserFactory {
     const owner = withKey(withProvider(signerFromKeys(keys), getProvider()), walletPubKey);
 
     // Ignoring error that "Type 'RegistrySettings' is not assignable to type 'IResolverSettings'"
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     const operator: IOperator = new Operator(
       owner,

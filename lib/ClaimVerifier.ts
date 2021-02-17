@@ -48,7 +48,10 @@ export class ClaimVerifier {
     namespace: string
     issuer: string
     version?: string
-  }) {
+  }): Promise<{
+    name: string;
+    namespace: string;
+  }> {
     const role = await this.getRoleDefinition(namespace)
     if (!role) {
       return null
