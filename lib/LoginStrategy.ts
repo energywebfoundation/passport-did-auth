@@ -146,19 +146,25 @@ export class LoginStrategy extends BaseStrategy {
          */
         this.strategyAddress === address ? [] : await this.getUserClaims(did)
       const roles = await Promise.all(
-        roleClaims.map(async (claim) => {
-          if (claim.iss) {
+        roleClaims.map(
+          async ({ claimType, claimTypeVersion, iss, issuedToken }) => {
+            if (!claimType) return
+
+            if (iss) {
+              return this.verifyRole({
+                issuer: iss,
+                namespace: claimType,
+                version: claimTypeVersion,
+              })
+            }
+            const issuedClaim = this.decodeToken<DecodedToken>(issuedToken)
             return this.verifyRole({
-              issuer: claim.iss,
-              namespace: claim.claimType,
+              issuer: issuedClaim.iss,
+              namespace: claimType,
+              version: claimTypeVersion,
             })
           }
-          const issuedClaim = this.decodeToken<DecodedToken>(claim.issuedToken)
-          return this.verifyRole({
-            issuer: issuedClaim.iss,
-            namespace: claim.claimType,
-          })
-        })
+        )
       )
       const filteredRoles = roles.filter(Boolean)
       const uniqueRoles = [...new Set(filteredRoles)]
@@ -221,12 +227,18 @@ export class LoginStrategy extends BaseStrategy {
   async verifyRole({
     namespace,
     issuer,
+    version,
   }: {
     namespace: string
     issuer: string
+    version?: string
   }) {
     const role = await this.getRoleDefinition(namespace)
     if (!role) {
+      return null
+    }
+
+    if (version && role.version !== version) {
       return null
     }
 
@@ -277,12 +289,13 @@ export class LoginStrategy extends BaseStrategy {
       services.map(async ({ serviceEndpoint }) => {
         const claimToken = await this.ipfsStore.get(serviceEndpoint)
         const { claimData, iss } = this.decodeToken<{
-          claimData: { claimType?: string }
+          claimData: { claimType?: string; claimTypeVersion?: string }
           iss: string
         }>(claimToken)
         return {
           iss,
           claimType: claimData?.claimType,
+          claimTypeVersion: claimData?.claimTypeVersion,
         }
       })
     )
