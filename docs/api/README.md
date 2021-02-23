@@ -9,6 +9,8 @@
 ### Classes
 
 * [BaseStrategy](classes/basestrategy.md)
+* [CacheServerClient](classes/cacheserverclient.md)
+* [ClaimVerifier](classes/claimverifier.md)
 * [LoginStrategy](classes/loginstrategy.md)
 
 ### Interfaces
@@ -93,7 +95,7 @@ ___
 
 ### lookup
 
-▸ **lookup**(`obj`: {}, `field`: string): any
+▸ **lookup**(`obj`: {}, `field`: string): string \| null
 
 #### Parameters:
 
@@ -102,7 +104,7 @@ Name | Type |
 `obj` | {} |
 `field` | string |
 
-**Returns:** any
+**Returns:** string \| null
 
 ___
 

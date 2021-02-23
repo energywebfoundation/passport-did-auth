@@ -13,6 +13,7 @@
 ### Properties
 
 * [claimType](claim.md#claimtype)
+* [claimTypeVersion](claim.md#claimtypeversion)
 * [iss](claim.md#iss)
 * [issuedToken](claim.md#issuedtoken)
 
@@ -20,7 +21,13 @@
 
 ### claimType
 
-•  **claimType**: string
+• `Optional` **claimType**: string
+
+___
+
+### claimTypeVersion
+
+• `Optional` **claimTypeVersion**: string
 
 ___
 

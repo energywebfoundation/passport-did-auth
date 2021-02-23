@@ -24,6 +24,7 @@
 * [jwtSignOptions](loginstrategyoptions.md#jwtsignoptions)
 * [name](loginstrategyoptions.md#name)
 * [numberOfBlocksBack](loginstrategyoptions.md#numberofblocksback)
+* [privateKey](loginstrategyoptions.md#privatekey)
 * [rpcUrl](loginstrategyoptions.md#rpcurl)
 
 ## Properties
@@ -87,6 +88,12 @@ ___
 ### numberOfBlocksBack
 
 • `Optional` **numberOfBlocksBack**: number
+
+___
+
+### privateKey
+
+• `Optional` **privateKey**: string
 
 ___
 

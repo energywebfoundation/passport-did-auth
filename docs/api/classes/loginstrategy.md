@@ -28,20 +28,18 @@
 * [error](loginstrategy.md#error)
 * [extractToken](loginstrategy.md#extracttoken)
 * [fail](loginstrategy.md#fail)
-* [getDidsWithAcceptedRole](loginstrategy.md#getdidswithacceptedrole)
 * [getRoleDefinition](loginstrategy.md#getroledefinition)
 * [getUserClaims](loginstrategy.md#getuserclaims)
 * [pass](loginstrategy.md#pass)
 * [redirect](loginstrategy.md#redirect)
 * [success](loginstrategy.md#success)
 * [validate](loginstrategy.md#validate)
-* [verifyRole](loginstrategy.md#verifyrole)
 
 ## Constructors
 
 ### constructor
 
-\+ **new LoginStrategy**(`__namedParameters`: { acceptedRoles: string[] ; cacheServerUrl: string ; claimField: string = "claim"; didContractAddress: string = VoltaAddress1056; ensResolverAddress: string = "0x0a97e07c4Df22e2e31872F20C5BE191D5EFc4680"; ipfsUrl: string = "https://ipfs.infura.io:5001/api/v0/"; jwtSecret: string \| Buffer ; jwtSignOptions: SignOptions ; numberOfBlocksBack: number = 4; options: options ; rpcUrl: string  }, `_nestJsCB?`: VoidFunction): [LoginStrategy](loginstrategy.md)
+\+ **new LoginStrategy**(`__namedParameters`: { acceptedRoles: string[] ; cacheServerUrl: string ; claimField: string = "identityToken"; didContractAddress: string = VoltaAddress1056; ensResolverAddress: string = "0x0a97e07c4Df22e2e31872F20C5BE191D5EFc4680"; ipfsUrl: string = "https://ipfs.infura.io:5001/api/v0/"; jwtSecret: string \| Buffer ; jwtSignOptions: SignOptions ; numberOfBlocksBack: number = 4; options: options ; privateKey: string ; rpcUrl: string  }, `_nestJsCB?`: VoidFunction): [LoginStrategy](loginstrategy.md)
 
 *Overrides [BaseStrategy](basestrategy.md).[constructor](basestrategy.md#constructor)*
 
@@ -49,7 +47,7 @@
 
 Name | Type |
 ------ | ------ |
-`__namedParameters` | { acceptedRoles: string[] ; cacheServerUrl: string ; claimField: string = "claim"; didContractAddress: string = VoltaAddress1056; ensResolverAddress: string = "0x0a97e07c4Df22e2e31872F20C5BE191D5EFc4680"; ipfsUrl: string = "https://ipfs.infura.io:5001/api/v0/"; jwtSecret: string \| Buffer ; jwtSignOptions: SignOptions ; numberOfBlocksBack: number = 4; options: options ; rpcUrl: string  } |
+`__namedParameters` | { acceptedRoles: string[] ; cacheServerUrl: string ; claimField: string = "identityToken"; didContractAddress: string = VoltaAddress1056; ensResolverAddress: string = "0x0a97e07c4Df22e2e31872F20C5BE191D5EFc4680"; ipfsUrl: string = "https://ipfs.infura.io:5001/api/v0/"; jwtSecret: string \| Buffer ; jwtSignOptions: SignOptions ; numberOfBlocksBack: number = 4; options: options ; privateKey: string ; rpcUrl: string  } |
 `_nestJsCB?` | VoidFunction |
 
 **Returns:** [LoginStrategy](loginstrategy.md)
@@ -146,7 +144,7 @@ ___
 
 ### extractToken
 
-▸ **extractToken**(`req`: Request): any
+▸ **extractToken**(`req`: Request): string
 
 *Overrides [BaseStrategy](basestrategy.md).[extractToken](basestrategy.md#extracttoken)*
 
@@ -158,7 +156,7 @@ Name | Type | Description |
 ------ | ------ | ------ |
 `req` | Request |   |
 
-**Returns:** any
+**Returns:** string
 
 encoded claim
 
@@ -183,20 +181,6 @@ Name | Type |
 `status?` | number |
 
 **Returns:** void
-
-___
-
-### getDidsWithAcceptedRole
-
-▸ **getDidsWithAcceptedRole**(`role`: string): Promise\<string[]>
-
-#### Parameters:
-
-Name | Type |
------- | ------ |
-`role` | string |
-
-**Returns:** Promise\<string[]>
 
 ___
 
@@ -313,19 +297,3 @@ Name | Type |
 `done` | (err?: Error, user?: any, info?: any) => void |
 
 **Returns:** Promise\<void>
-
-___
-
-### verifyRole
-
-▸ **verifyRole**(`__namedParameters`: { issuer: string ; namespace: string  }): Promise\<{ name: string = role.roleName; namespace: string  }>
-
-**`description`** checks that role which corresponds to `namespace` is owned by the `issuer`
-
-#### Parameters:
-
-Name | Type |
------- | ------ |
-`__namedParameters` | { issuer: string ; namespace: string  } |
-
-**Returns:** Promise\<{ name: string = role.roleName; namespace: string  }>
