@@ -39,7 +39,7 @@ export class CacheServerClient {
     const retry = Policy.handleAll().retry().attempts(10).delay(2000)
     retry.onFailure(({ reason }) => {
       console.log(
-        `DID login strategy was not able to login to cache server due to ${reason}`
+        `DID login strategy was not able to login to cache server due to ${JSON.stringify(reason, null, 4)}`
       )
     })
 
