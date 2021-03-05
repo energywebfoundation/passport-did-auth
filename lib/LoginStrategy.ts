@@ -147,7 +147,7 @@ export class LoginStrategy extends BaseStrategy {
          * if address attempting to login is the address of the strategy
          */
         this.strategyAddress === address ? [] : await this.getUserClaims(did)
-      const verifier = new ClaimVerifier(roleClaims, this.getRoleDefinition, this.getUserClaims)
+      const verifier = new ClaimVerifier(roleClaims, this.getRoleDefinition.bind(this), this.getUserClaims.bind(this))
       const uniqueRoles = await verifier.getVerifiedRoles();
 
       if (
