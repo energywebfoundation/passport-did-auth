@@ -9,8 +9,8 @@ import { ClaimsUserFactory } from './claim-creation/ClaimsUserFactory';
 const keys = new Keys({
   privateKey: 'de0aac51c154f9d467653ae882da9b77d0699b88d98f8bb4b03fd5e687b00824',
 });
-const claimsUser: ClaimsUser = ClaimsUserFactory.create(keys)
 const issuerDID = `did:ethr:${keys.getAddress()}`
+const claimsUser: ClaimsUser = ClaimsUserFactory.create(keys)
 
 let claims: Claim[];
 
@@ -20,13 +20,13 @@ describe("ClaimVerifier", () => {
     const claimData: ClaimData = {
       claimType
     }
-  
     const claimToken = await claimsUser.createPublicClaim(claimData);
     const claim1: Claim = {
       claimType,
       issuedToken: claimToken,
       iss: issuerDID
     }
+    
     claims = [claim1]
   })
 
