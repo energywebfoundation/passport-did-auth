@@ -1,9 +1,9 @@
-import { ClaimsUser } from '@ew-did-registry/claims';
-import { Keys } from '@ew-did-registry/keys';
 import assert from 'assert';
+import { Keys } from '@ew-did-registry/keys';
+import { ClaimsUser } from '@ew-did-registry/claims';
 import { ClaimVerifier } from '../lib/ClaimVerifier';
-import { Claim, IRoleDefinition } from '../lib/LoginStrategy.types';
 import { ClaimData } from './claim-creation/ClaimData';
+import { Claim, IRoleDefinition } from '../lib/LoginStrategy.types';
 import { ClaimsUserFactory } from './claim-creation/ClaimsUserFactory';
 
 const keys = new Keys({
@@ -20,6 +20,7 @@ describe("ClaimVerifier", () => {
     const claimData: ClaimData = {
       claimType
     }
+  
     const claimToken = await claimsUser.createPublicClaim(claimData);
     const claim1: Claim = {
       claimType,
@@ -28,6 +29,7 @@ describe("ClaimVerifier", () => {
     }
     claims = [claim1]
   })
+
   it('should verify DID-type claim', async () => {
     const verifier = new ClaimVerifier(claims, getDIDTypeRoleDefinition(issuerDID), getUserClaims)
     const verifiedRoles = await verifier.getVerifiedRoles();
