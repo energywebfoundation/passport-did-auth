@@ -1,56 +1,67 @@
-import { BaseStrategy, StrategyOptions } from './BaseStrategy'
-import { Request } from 'express'
-import * as jwt from 'jsonwebtoken'
-import { providers } from 'ethers'
+import {
+  lookup,
+  namehash, 
+  decodeJwToken 
+} from './utils'
+
+import {
+  Claim,
+  IRole,
+  DecodedToken,
+  ITokenPayload,
+  IRoleDefinition
+} from './LoginStrategy.types'
+
 import {
   ethrReg,
   Resolver,
   VoltaAddress1056,
 } from '@ew-did-registry/did-ethr-resolver'
 
-import { lookup, namehash, verifyClaim } from './utils'
-import {
-  Claim,
-  DecodedToken,
-  IRole,
-  IRoleDefinition,
-  ITokenPayload,
-} from './LoginStrategy.types'
-import { PublicResolverFactory } from '../ethers/PublicResolverFactory'
-import { PublicResolver } from '../ethers/PublicResolver'
-import { Methods } from '@ew-did-registry/did'
-import { DidStore } from '@ew-did-registry/did-ipfs-store'
-import { CacheServerClient } from './cacheServerClient'
+import { Request } from 'express'
+import { providers } from 'ethers'
+import * as jwt from 'jsonwebtoken'
 import { ClaimVerifier } from './ClaimVerifier'
+import { Methods } from '@ew-did-registry/did'
+import { PublicResolver } from '../ethers/PublicResolver'
+import { CacheServerClient } from './cacheServerClient'
+import { DidStore } from '@ew-did-registry/did-ipfs-store'
+import { BaseStrategy, StrategyOptions } from './BaseStrategy'
+import { PublicResolverFactory } from '../ethers/PublicResolverFactory'
+import { IDIDDocument } from '@ew-did-registry/did-resolver-interface'
 
 const { abi: abi1056 } = ethrReg
 
-interface LoginStrategyOptions extends StrategyOptions {
-  claimField?: string
+export interface LoginStrategyOptions extends StrategyOptions {
+
   rpcUrl: string
-  cacheServerUrl?: string
+  ipfsUrl?: string
   privateKey?: string
+  claimField?: string
+  acceptedRoles?: string[]
+  cacheServerUrl?: string
+  jwtSecret: string | Buffer
   numberOfBlocksBack?: number
   ensResolverAddress?: string
   didContractAddress?: string
-  ipfsUrl?: string
-  acceptedRoles?: string[]
-  jwtSecret: string | Buffer
   jwtSignOptions?: jwt.SignOptions
+
 }
 
 export class LoginStrategy extends BaseStrategy {
+
   private readonly claimField: string
+  private readonly ipfsStore: DidStore
+  private readonly didResolver: Resolver
+  private readonly strategyAddress?: string
+  private readonly acceptedRoles: Set<string>
+  private readonly numberOfBlocksBack: number
   private readonly jwtSecret?: string | Buffer
+  private readonly ensResolver: PublicResolver
   private readonly jwtSignOptions?: jwt.SignOptions
   private readonly provider: providers.JsonRpcProvider
   private readonly cacheServerClient: CacheServerClient
-  private readonly numberOfBlocksBack: number
-  private readonly ensResolver: PublicResolver
-  private readonly didResolver: Resolver
-  private readonly ipfsStore: DidStore
-  private readonly acceptedRoles: Set<string>
-  private readonly strategyAddress?: string
+
   constructor(
     {
       claimField = 'identityToken',
@@ -101,6 +112,7 @@ export class LoginStrategy extends BaseStrategy {
     this.acceptedRoles = acceptedRoles && new Set(acceptedRoles)
     this.jwtSignOptions = jwtSignOptions
   }
+  
   /**
    * @description verifies issuer signature, then check that claim issued
    * no latter then `this.numberOfBlocksBack` and user has enrolled with at
@@ -114,7 +126,8 @@ export class LoginStrategy extends BaseStrategy {
     payload: ITokenPayload,
     done: (err?: Error, user?: any, info?: any) => void
   ) {
-    const did = verifyClaim(token, payload)
+    // const did = verifyClaim(token, payload)
+    const did = await this.verifyDidClaim(token, payload)
 
     if (!did) {
       console.log('Not Verified')
@@ -238,5 +251,35 @@ export class LoginStrategy extends BaseStrategy {
       }
       return acc
     }, [] as Claim[])
+  }
+
+  /**
+   * @description checks if the claimer is authenticated into the DID Document
+   *
+   * @param token
+   * @param payload
+   *
+   * @returns {string} issuer DID or empty string
+   */
+  async verifyDidClaim(token: string, { iss }: ITokenPayload): Promise<string> {
+    
+    const didDocument = await this.didResolver.read(iss)
+
+    if (this.isAuthorized(token, didDocument))
+      return iss
+    return null 
+  }
+
+  private isAuthorized = (claimedToken: string,didDocument: IDIDDocument) : boolean => {
+
+    //retrieve claim infos from token
+    const claimInfos: any = decodeJwToken(claimedToken)
+
+    //extract all authenticated users and filter to keep those owning the claimed DID
+    const authenticated = didDocument.authentication.filter(auth => {
+      auth["publicKey"] === `${claimInfos.did}#owner`.toString()
+    })
+
+    return authenticated.length === 0
   }
 }
