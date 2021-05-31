@@ -1,8 +1,13 @@
-import { arrayify, hashMessage, keccak256, recoverAddress } from 'ethers/utils'
+import { 
+  arrayify,
+  keccak256,
+  hashMessage,
+  recoverAddress, 
+} from 'ethers/utils'
+
 import base64url from 'base64url'
 import { normalize } from 'eth-ens-namehash'
 import { ITokenPayload } from './LoginStrategy.types'
-import * as jwt from 'jsonwebtoken'
 
 
 const sha3 = require('js-sha3').keccak_256
@@ -90,6 +95,9 @@ export const verifyClaim = (token: string, { iss }: ITokenPayload) => {
   return decodedAddress === addressFromDigest ? iss : ''
 }
 
-export const decodeJwToken = (token: string) : any => {
-  return jwt.decode(token)
+//exatract the first part of the reference in particular field of the DID document
+export const extractId = (keyReference :string)  => {
+  if (keyReference.includes("#"))
+    return keyReference.split('#')[0]
+  return keyReference
 }
