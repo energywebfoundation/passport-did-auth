@@ -1,7 +1,7 @@
 import {
   lookup,
-  namehash, 
-  decodeJwToken 
+  namehash,
+  extractId, 
 } from './utils'
 
 import {
@@ -21,14 +21,15 @@ import {
 import { Request } from 'express'
 import { providers } from 'ethers'
 import * as jwt from 'jsonwebtoken'
+import { computeAddress } from 'ethers/utils'
 import { ClaimVerifier } from './ClaimVerifier'
 import { Methods } from '@ew-did-registry/did'
-import { PublicResolver } from '../ethers/PublicResolver'
 import { CacheServerClient } from './cacheServerClient'
+import { PublicResolver } from '../ethers/PublicResolver'
 import { DidStore } from '@ew-did-registry/did-ipfs-store'
 import { BaseStrategy, StrategyOptions } from './BaseStrategy'
 import { PublicResolverFactory } from '../ethers/PublicResolverFactory'
-import { IDIDDocument } from '@ew-did-registry/did-resolver-interface'
+import { IDIDDocument,  } from '@ew-did-registry/did-resolver-interface'
 
 const { abi: abi1056 } = ethrReg
 
@@ -259,27 +260,42 @@ export class LoginStrategy extends BaseStrategy {
    * @param token
    * @param payload
    *
-   * @returns {string} issuer DID or empty string
+   * @returns {string} issuer DID or null
    */
-  async verifyDidClaim(token: string, { iss }: ITokenPayload): Promise<string> {
-    
-    const didDocument = await this.didResolver.read(iss)
+  async verifyDidClaim(token: string, payload: ITokenPayload): Promise<string> {
+
+    const didDocument = await this.didResolver.read(payload.iss)
 
     if (this.isAuthorized(token, didDocument))
-      return iss
+      return payload.iss
     return null 
   }
 
   private isAuthorized = (claimedToken: string,didDocument: IDIDDocument) : boolean => {
 
     //retrieve claim infos from token
-    const claimInfos: any = decodeJwToken(claimedToken)
+    const claimInfos = jwt.decode(claimedToken) as {[key: string]: any;}
+    const didPubKey = didDocument.publicKey
 
-    //extract all authenticated users and filter to keep those owning the claimed DID
-    const authenticated = didDocument.authentication.filter(auth => {
-      auth["publicKey"] === `${claimInfos.did}#owner`.toString()
+    if (didPubKey.length === 0)
+      return false
+    
+    //extract all authenticated users and keep those refering issuer's publicKey
+    const publicKeys = didDocument.authentication.map((auth, index) => {
+      const auth_pubkeyRef = auth["publicKey"] //public key reference in authentication field
+      const pubkey_id = didPubKey[index]["id"] //public key Id in publickKey field of DID document
+
+      /* If the auth field refers to the this public key entry, 
+        get the real public key in the publicKeyHex field */
+
+      if (extractId(auth_pubkeyRef) === extractId(pubkey_id)){
+        return didPubKey[0]["publicKeyHex"] //get the real public key in DID document
+      }
     })
 
-    return authenticated.length === 0
+    //Compute the address based on the returned public Key and compare it to the address
+    // encoding the did
+    const isPublicKeyValid = (computeAddress(publicKeys[0]) === claimInfos.iss.split(':')[2])
+    return isPublicKeyValid;
   }
 }
