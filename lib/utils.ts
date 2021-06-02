@@ -95,9 +95,13 @@ export const verifyClaim = (token: string, { iss }: ITokenPayload) => {
   return decodedAddress === addressFromDigest ? iss : ''
 }
 
-//exatract the first part of the reference in particular field of the DID document
-export const extractId = (keyReference :string)  => {
-  if (keyReference.includes("#"))
-    return keyReference.split('#')[0]
-  return keyReference
+//used to compare ids in DID Since the referenced pubkey id differs slighty from the auth reference Id
+export const areLinked = (authId :string, pubKeyID: string)  =>  {
+  if (authId === pubKeyID)
+    return true
+  if (authId.includes("#")){
+    const [idRef, typeRef] = authId.split("#")
+    return `${idRef}#key-${typeRef}` === pubKeyID
+  }
+  return false
 }
