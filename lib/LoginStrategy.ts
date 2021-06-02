@@ -1,7 +1,7 @@
 import {
   lookup,
   namehash,
-  extractId, 
+  areLinked,
 } from './utils'
 
 import {
@@ -18,6 +18,9 @@ import {
   VoltaAddress1056,
 } from '@ew-did-registry/did-ethr-resolver'
 
+import { verificationMethods } from '@ew-did-registry/jwt/dist/verify'
+import { JWT } from '@ew-did-registry/jwt'
+
 import { Request } from 'express'
 import { providers } from 'ethers'
 import * as jwt from 'jsonwebtoken'
@@ -29,7 +32,7 @@ import { PublicResolver } from '../ethers/PublicResolver'
 import { DidStore } from '@ew-did-registry/did-ipfs-store'
 import { BaseStrategy, StrategyOptions } from './BaseStrategy'
 import { PublicResolverFactory } from '../ethers/PublicResolverFactory'
-import { IDIDDocument,  } from '@ew-did-registry/did-resolver-interface'
+import { IAuthentication, IDIDDocument, IPublicKey,  } from '@ew-did-registry/did-resolver-interface'
 
 const { abi: abi1056 } = ethrReg
 
@@ -127,8 +130,7 @@ export class LoginStrategy extends BaseStrategy {
     payload: ITokenPayload,
     done: (err?: Error, user?: any, info?: any) => void
   ) {
-    // const did = verifyClaim(token, payload)
-    const did = await this.verifyDidClaim(token, payload)
+    const did = await this.verifyClaim(token, payload)
 
     if (!did) {
       console.log('Not Verified')
@@ -262,40 +264,41 @@ export class LoginStrategy extends BaseStrategy {
    *
    * @returns {string} issuer DID or null
    */
-  async verifyDidClaim(token: string, payload: ITokenPayload): Promise<string> {
-
-    const didDocument = await this.didResolver.read(payload.iss)
+  async verifyClaim(token: string, payload: ITokenPayload): Promise<string> {
+    const didDocument = await this.cacheServerClient?.getDidDocument(payload.iss) ?? await this.didResolver.read(payload.iss)
 
     if (this.isAuthorized(token, didDocument))
       return payload.iss
     return null 
   }
-
+  
   private isAuthorized = (claimedToken: string,didDocument: IDIDDocument) : boolean => {
-
-    //retrieve claim infos from token
-    const claimInfos = jwt.decode(claimedToken) as {[key: string]: any;}
+    //read publickey field in DID document
     const didPubKey = didDocument.publicKey
-
     if (didPubKey.length === 0)
       return false
     
-    //extract all authenticated users and keep those refering issuer's publicKey
-    const publicKeys = didDocument.authentication.map((auth, index) => {
-      const auth_pubkeyRef = auth["publicKey"] //public key reference in authentication field
-      const pubkey_id = didPubKey[index]["id"] //public key Id in publickKey field of DID document
+    const verifyEthersSignature = verificationMethods[1];
 
-      /* If the auth field refers to the this public key entry, 
-        get the real public key in the publicKeyHex field */
-
-      if (extractId(auth_pubkeyRef) === extractId(pubkey_id)){
-        return didPubKey[0]["publicKeyHex"] //get the real public key in DID document
-      }
+    //get all authenticated public keys
+    const authenticatedPubkeys = didDocument.publicKey.filter(pubkey => {
+      return this.isAuthenticated(pubkey, didDocument.authentication)
     })
 
-    //Compute the address based on the returned public Key and compare it to the address
-    // encoding the did
-    const isPublicKeyValid = (computeAddress(publicKeys[0]) === claimInfos.iss.split(':')[2])
-    return isPublicKeyValid;
+    //Keep in an array all keys passing the verifying process
+    const arekeysValid = authenticatedPubkeys.filter(async (key) => {
+      const publicKey = key["publicKeyHex"]
+      const keyStatus = await verifyEthersSignature(claimedToken, publicKey)
+
+      return keyStatus["success"] === true;
+    })
+    return arekeysValid.length !== 0
   }
+
+  private isAuthenticated = (publicKey: IPublicKey, authFieldDocument: (string | IAuthentication)[]) => {
+    const authenticatedKeys = authFieldDocument.map(auth => {
+      return (areLinked(auth["publicKey"], publicKey["id"]))
+    })
+    return authenticatedKeys.includes(true);
+  } 
 }
