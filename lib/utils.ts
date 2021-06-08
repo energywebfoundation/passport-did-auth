@@ -94,14 +94,3 @@ export const verifyClaim = (token: string, { iss }: ITokenPayload) => {
   const addressFromDigest = recoverAddress(digest, signature)
   return decodedAddress === addressFromDigest ? iss : ''
 }
-
-//used to compare ids in DID Since the referenced pubkey id differs slighty from the auth reference Id
-export const areLinked = (authId :string, pubKeyID: string)  =>  {
-  if (authId === pubKeyID)
-    return true
-  if (authId.includes("#")){
-    const [idRef, typeRef] = authId.split("#")
-    return `${idRef}#key-${typeRef}` === pubKeyID
-  }
-  return false
-}
