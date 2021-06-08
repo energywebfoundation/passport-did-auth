@@ -78,19 +78,3 @@ export function lookup(obj: {}, field: string): string | null {
   return null
 }
 
-export const verifyClaim = (token: string, { iss }: ITokenPayload) => {
-  const [encodedHeader, encodedPayload, encodedSignature] = token.split('.')
-  const msg = `0x${Buffer.from(`${encodedHeader}.${encodedPayload}`).toString(
-    'hex'
-  )}`
-  const signature = base64url.decode(encodedSignature)
-  const hash = arrayify(keccak256(msg))
-  const decodedAddress = iss.split(':')[2]
-  const address = recoverAddress(hash, signature)
-  if (decodedAddress === address) {
-    return iss
-  }
-  const digest = arrayify(hashMessage(hash))
-  const addressFromDigest = recoverAddress(digest, signature)
-  return decodedAddress === addressFromDigest ? iss : ''
-}
