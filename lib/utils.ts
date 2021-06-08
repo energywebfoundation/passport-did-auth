@@ -1,14 +1,4 @@
-import { 
-  arrayify,
-  keccak256,
-  hashMessage,
-  recoverAddress, 
-} from 'ethers/utils'
-
-import base64url from 'base64url'
 import { normalize } from 'eth-ens-namehash'
-import { ITokenPayload } from './LoginStrategy.types'
-
 
 const sha3 = require('js-sha3').keccak_256
 
