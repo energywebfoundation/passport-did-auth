@@ -15,9 +15,6 @@ import {
   VoltaAddress1056,
 } from '@ew-did-registry/did-ethr-resolver'
 
-import { JWT } from '@ew-did-registry/jwt'
-import { Keys } from '@ew-did-registry/keys';
-
 
 import { Request } from 'express'
 import { providers } from 'ethers'
@@ -25,11 +22,11 @@ import * as jwt from 'jsonwebtoken'
 import { ClaimVerifier } from './ClaimVerifier'
 import { Methods } from '@ew-did-registry/did'
 import { CacheServerClient } from './cacheServerClient'
+import { AuthTokenVerifier } from './AuthTokenVerifier'
 import { PublicResolver } from '../ethers/PublicResolver'
 import { DidStore } from '@ew-did-registry/did-ipfs-store'
 import { BaseStrategy, StrategyOptions } from './BaseStrategy'
 import { PublicResolverFactory } from '../ethers/PublicResolverFactory'
-import { IAuthentication, IDIDDocument, IPublicKey,  } from '@ew-did-registry/did-resolver-interface'
 
 const { abi: abi1056 } = ethrReg
 
@@ -46,7 +43,6 @@ export interface LoginStrategyOptions extends StrategyOptions {
   ensResolverAddress?: string
   didContractAddress?: string
   jwtSignOptions?: jwt.SignOptions
-
 }
 
 export class LoginStrategy extends BaseStrategy {
@@ -129,7 +125,9 @@ export class LoginStrategy extends BaseStrategy {
     payload: ITokenPayload,
     done: (err?: Error, user?: any, info?: any) => void
   ) {
-    const did = await this.verifyClaim(token, payload)
+    const didDocument = await this.cacheServerClient?.getDidDocument(payload.iss) ?? await this.didResolver.read(payload.iss)
+    const authenticationClaimVerifier = new AuthTokenVerifier(this.privateKey, didDocument)
+    const did = await authenticationClaimVerifier.verify(token, payload.iss)
 
     if (!did) {
       console.log('Not Verified')
@@ -254,78 +252,4 @@ export class LoginStrategy extends BaseStrategy {
       return acc
     }, [] as Claim[])
   }
-
-  /**
-   * @description checks if the claimer is authenticated into the DID Document
-   *
-   * @param token
-   * @param payload
-   *
-   * @returns {string} issuer DID or null
-   */
-  async verifyClaim(token: string, payload: ITokenPayload): Promise<string> {
-    const didDocument = await this.cacheServerClient?.getDidDocument(payload.iss) ?? await this.didResolver.read(payload.iss)
-
-    if (await this.isAuthorized(token, didDocument))
-      return payload.iss
-    return null 
-  }
-  
-  private isAuthorized = async (claimedToken: string,didDocument: IDIDDocument) : Promise<boolean> => {
-    //read publickey field in DID document
-    const didPubKey = didDocument.publicKey
-    if (didPubKey.length === 0)
-      return false
-
-    const keys = new Keys({privateKey: this.privateKey})
-    const jwtSigner =  new JWT(keys)
-
-    //get all authenticated public keys
-    const authenticatedPubkeys = didDocument.publicKey.filter(pubkey => {
-      return this.isAuthenticated(pubkey, didDocument.authentication)
-    })
-
-    const validKeys = await this.filterValidKeys(authenticatedPubkeys, async (pubKeyField) => {
-      try  {
-       const decodedClaim = await jwtSigner.verify(claimedToken, pubKeyField["publicKeyHex"].split('x')[1]);
-        return decodedClaim !== undefined;
-      }
-      catch(error){
-        return false
-      }
-    })
-    return validKeys.length !== 0
-  }
-
-  private filterValidKeys = async (authenticatedKey: IPublicKey[], verifSignature) => {
-    const results = await Promise.all(authenticatedKey.map(verifSignature));
-
-    return authenticatedKey.filter((_key, index) => results[index]);
-  }
-
-  private isAuthenticated = (publicKey: IPublicKey, authFieldDocument: (string | IAuthentication)[]) => {
-    const authenticatedKeys = authFieldDocument.map(auth => {
-      if (auth.length === 0 && publicKey !== undefined)
-       return this.isSigAuth(publicKey["type"])
-
-      return (this.areLinked(auth["publicKey"], publicKey["id"]))
-    })
-    return authenticatedKeys.includes(true);
-  }
-  
-//used to compare ids in DID Since the referenced pubkey id differs slighty from the auth reference Id
-  private areLinked = (authId :string, pubKeyID: string)  =>  {
-    if (authId === pubKeyID)
-      return true
-    if (authId.includes("#")){
-      const [idRef, typeRef] = authId.split("#")
-      return `${idRef}#key-${typeRef}` === pubKeyID
-    }
-    return false
-  }
-
-  private isSigAuth = (pubKeyType: string) => {
-    const extractedType = pubKeyType.substring(pubKeyType.length - 7);
-    return extractedType === "sigAuth"
-  } 
 }
