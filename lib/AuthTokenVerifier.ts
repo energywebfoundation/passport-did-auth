@@ -66,11 +66,11 @@ export class AuthTokenVerifier {
     private isAuthenticated = (publicKey: IPublicKey, authFieldDocument: (string | IAuthentication)[]) => {
         if (authFieldDocument.length === 0 && publicKey !== undefined)
             return this.isSigAuth(publicKey["type"])
-        const authenticatedKeys = authFieldDocument.map(auth => {
+        const authenticationKeys = authFieldDocument.map(auth => {
 
             return (this.areLinked(auth["publicKey"], publicKey["id"]))
         })
-        return authenticatedKeys.includes(true);
+        return authenticationKeys.includes(true);
     }
 
     //used to compare ids in DID Since the referenced pubkey id differs slighty from the auth reference Id
