@@ -104,3 +104,36 @@ export const secondDocument : IDIDDocument = {
   '@context': 'https://www.w3.org/ns/did/v1',
   logs: '{"owner":"0x0000000000000000000000000000000000000000","topBlock":{"_hex":"0xb0e89e"},"authentication":{},"publicKey":{"did:ethr:0xA533557F26477b1fA7BFa76E6eD5467D9Bc9d633#809ea74d-50c8-451b-a7ce-2fe37b724e0d":{"id":"did:ethr:0xA533557F26477b1fA7BFa76E6eD5467D9Bc9d633#809ea74d-50c8-451b-a7ce-2fe37b724e0d","type":"Secp256k1sigAuth","controller":"0xA533557F26477b1fA7BFa76E6eD5467D9Bc9d633","validity":{"_hex":"0x20000060b11c26"},"block":11945221,"publicKeyHex":"mynewkey"},"did:ethr:0x0E46cbecF1742DdEb29BBC56F27ad236483443b7#key-owner":{"id":"did:ethr:0x0E46cbecF1742DdEb29BBC56F27ad236483443b7#key-owner","type":"Secp256k1veriKey","controller":"0x0E46cbecF1742DdEb29BBC56F27ad236483443b7","validity":{"_hex":"0x20000060b2a7c6"},"block":11956465,"publicKeyHex":"0x0312c03a2ff680b9ab94a46d9f52b0cb934f15365f96dd3eae75661b0756318fd3"}},"service":{"5438d8c8-03b0-412a-a1e1-ca270161f666":{"id":"5438d8c8-03b0-412a-a1e1-ca270161f666","serviceEndpoint":"QmQefkgmLYR86yyQwwGWzVHmUNSB4EzdochTyyySKKSgEC","hash":"32f87a05f4a935397d1f68cda1e1936855b7bb719f63f33b8446f112c6a3bd63","hashAlg":"SHA256","validity":{"_hex":"0x20000060a7a38a"},"block":11854514}},"attributes":{}}'
 }
+
+export const emptyAuthenticationDocument : IDIDDocument = {
+  id: 'did:ethr:0x0E46cbecF1742DdEb29BBC56F27ad236483443b7',
+  service: [
+    {
+      id: '5438d8c8-03b0-412a-a1e1-ca270161f666',
+      did: 'did:ethr:0x0E46cbecF1742DdEb29BBC56F27ad236483443b7',
+      iat: 1621599093771,
+      iss: 'did:ethr:0x0E46cbecF1742DdEb29BBC56F27ad236483443b7',
+      sub: 'did:ethr:0x0E46cbecF1742DdEb29BBC56F27ad236483443b7',
+      hash: '32f87a05f4a935397d1f68cda1e1936855b7bb719f63f33b8446f112c6a3bd63',
+      signer: 'did:ethr:0x0E46cbecF1742DdEb29BBC56F27ad236483443b7',
+      hashAlg: 'SHA256',
+      profile: [Object],
+      serviceEndpoint: 'QmQefkgmLYR86yyQwwGWzVHmUNSB4EzdochTyyySKKSgEC'
+    }
+  ],
+  authentication: [],
+  created: null,
+  delegates: null,
+  proof: null,
+  publicKey: [
+    {
+      id: 'did:ethr:0xA533557F26477b1fA7BFa76E6eD5467D9Bc9d633#809ea74d-50c8-451b-a7ce-2fe37b724e0d',
+      type: 'Secp256k1sigAuth',
+      controller: '0xA533557F26477b1fA7BFa76E6eD5467D9Bc9d633',
+      publicKeyHex: '0x0312c03a2ff680b9ab94a46d9f52b0cb934f15365f96dd3eae75661b0756318fd3'
+    }
+  ],
+  updated: null,
+  '@context': 'https://www.w3.org/ns/did/v1',
+  logs: '{"owner":"0x0000000000000000000000000000000000000000","topBlock":{"_hex":"0xb0e89e"},"authentication":{},"publicKey":{"did:ethr:0xA533557F26477b1fA7BFa76E6eD5467D9Bc9d633#809ea74d-50c8-451b-a7ce-2fe37b724e0d":{"id":"did:ethr:0xA533557F26477b1fA7BFa76E6eD5467D9Bc9d633#809ea74d-50c8-451b-a7ce-2fe37b724e0d","type":"Secp256k1sigAuth","controller":"0xA533557F26477b1fA7BFa76E6eD5467D9Bc9d633","validity":{"_hex":"0x20000060b11c26"},"block":11945221,"publicKeyHex":"mynewkey"},"did:ethr:0x0E46cbecF1742DdEb29BBC56F27ad236483443b7#key-owner":{"id":"did:ethr:0x0E46cbecF1742DdEb29BBC56F27ad236483443b7#key-owner","type":"Secp256k1veriKey","controller":"0x0E46cbecF1742DdEb29BBC56F27ad236483443b7","validity":{"_hex":"0x20000060b2a7c6"},"block":11956465,"publicKeyHex":"0x0312c03a2ff680b9ab94a46d9f52b0cb934f15365f96dd3eae75661b0756318fd3"}},"service":{"5438d8c8-03b0-412a-a1e1-ca270161f666":{"id":"5438d8c8-03b0-412a-a1e1-ca270161f666","serviceEndpoint":"QmQefkgmLYR86yyQwwGWzVHmUNSB4EzdochTyyySKKSgEC","hash":"32f87a05f4a935397d1f68cda1e1936855b7bb719f63f33b8446f112c6a3bd63","hashAlg":"SHA256","validity":{"_hex":"0x20000060a7a38a"},"block":11854514}},"attributes":{}}'
+}

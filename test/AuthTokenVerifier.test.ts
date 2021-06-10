@@ -4,7 +4,8 @@ import { JWT } from '@ew-did-registry/jwt';
 import { Keys } from '@ew-did-registry/keys'
 import { ClaimData } from './claim-creation/ClaimData';
 import { AuthTokenVerifier } from '../lib/AuthTokenVerifier';
-import {firstDocument, secondDocument} from './TestDidDocuments';
+import {firstDocument, secondDocument, emptyAuthenticationDocument} from './TestDidDocuments';
+import { JwtPayload } from '@ew-did-registry/jwt/dist/sign';
 
 config();
 
@@ -13,8 +14,8 @@ let claimData: ClaimData;
 let secondClaimToken: string;
 let firstSigner : JWT;
 let secondSigner : JWT;
-let firstPayload;
-let secondPayload;
+let firstPayload: JwtPayload;
+let secondPayload: JwtPayload;
 let tokenAuthenticationVerifier: AuthTokenVerifier
 
 
@@ -67,7 +68,6 @@ describe("Testing LoginStrategy", () => {
     const decoded = await secondSigner.verify(testSignature, secondPubKey)
     
     assert.strictEqual(decoded, 'Initial signed content')
-
   })
 
   it("should authenticate first DID with first Claim issuer", async () => {
@@ -96,6 +96,14 @@ describe("Testing LoginStrategy", () => {
   it("should authenticate second DID with second Claim issuer", async () => {
     
     tokenAuthenticationVerifier = new AuthTokenVerifier(secondKeys.privateKey, secondDocument);
+    const did = await tokenAuthenticationVerifier.verify(secondClaimToken, secondPayload.iss)
+    
+    assert.strictEqual(did, secondDID)
+  })
+
+  it("should authenticate sigAuth on empty authentication DID", async () => {
+    
+    tokenAuthenticationVerifier = new AuthTokenVerifier(secondKeys.privateKey, emptyAuthenticationDocument);
     const did = await tokenAuthenticationVerifier.verify(secondClaimToken, secondPayload.iss)
     
     assert.strictEqual(did, secondDID)
