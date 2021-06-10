@@ -34,19 +34,20 @@ export class AuthTokenVerifier {
         //read publickey field in DID document
         const didPubKey = this.didDocument.publicKey
         if (didPubKey.length === 0)
-            return false
-
+        return false
+        
         const keys = new Keys({ privateKey: this.privateKey })
         const jwtSigner = new JWT(keys)
-
-        //get all authenticated public keys
-        const authenticatedPubkeys = this.didDocument.publicKey.filter(pubkey => {
+        
+        //get all authentication public keys
+        const authenticationPubkeys = this.didDocument.publicKey.filter(pubkey => {
             return this.isAuthenticated(pubkey, this.didDocument.authentication)
         })
 
-        const validKeys = await this.filterValidKeys(authenticatedPubkeys, async (pubKeyField) => {
+        const validKeys = await this.filterValidKeys(authenticationPubkeys, async (pubKeyField) => {
             try {
-                const decodedClaim = await jwtSigner.verify(claimedToken, pubKeyField["publicKeyHex"].split('x')[1]);
+                const publickey = pubKeyField["publicKeyHex"]?.split('x')[1]
+                const decodedClaim = await jwtSigner.verify(claimedToken, publickey);
                 return decodedClaim !== undefined;
             }
             catch (error) {
@@ -63,9 +64,9 @@ export class AuthTokenVerifier {
     }
 
     private isAuthenticated = (publicKey: IPublicKey, authFieldDocument: (string | IAuthentication)[]) => {
+        if (authFieldDocument.length === 0 && publicKey !== undefined)
+            return this.isSigAuth(publicKey["type"])
         const authenticatedKeys = authFieldDocument.map(auth => {
-            if (auth.length === 0 && publicKey !== undefined)
-                return this.isSigAuth(publicKey["type"])
 
             return (this.areLinked(auth["publicKey"], publicKey["id"]))
         })
