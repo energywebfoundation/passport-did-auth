@@ -36,7 +36,7 @@ export const firstDocument : IDIDDocument = {
         id: 'did:ethr:0x731ac21Aa72c1A6E15243AFBB34cA9CC073D419B#key-owner',
         type: 'Secp256k1veriKey',
         controller: '0x731ac21Aa72c1A6E15243AFBB34cA9CC073D419B',
-        publicKeyHex: '0x' + firstKeys.publicKey
+        publicKeyHex: '0x037cff69ef821172f5df74d3f9406679cc27aba2d96438211538deeb325c9d434d'
       }
     ],
     updated: null,
