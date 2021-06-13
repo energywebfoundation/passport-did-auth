@@ -29,7 +29,7 @@ const secondKeys = new Keys({
 const issuerDID = `did:ethr:${firstKeys.getAddress()}`
 const secondDID = `did:ethr:${secondKeys.getAddress()}`
 
-describe("Testing LoginStrategy", () => {
+describe("Testing AuthTokenVerifier", () => {
 
   beforeAll(async () => {
     claimData = {
