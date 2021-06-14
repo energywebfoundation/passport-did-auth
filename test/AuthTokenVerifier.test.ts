@@ -1,13 +1,15 @@
 import assert from 'assert';
-import { config } from 'dotenv';
 import { JWT } from '@ew-did-registry/jwt';
-import { Keys } from '@ew-did-registry/keys'
 import { ClaimData } from './claim-creation/ClaimData';
 import { AuthTokenVerifier } from '../lib/AuthTokenVerifier';
-import {firstDocument, secondDocument, emptyAuthenticationDocument} from './TestDidDocuments';
+import {
+  firstKeys,
+  secondKeys, 
+  firstDocument,
+  secondDocument, 
+  emptyAuthenticationDocument,
+} from './TestDidDocuments';
 import { JwtPayload } from '@ew-did-registry/jwt/dist/sign';
-
-config();
 
 let firstClaimToken: string;
 let claimData: ClaimData;
@@ -18,14 +20,6 @@ let firstPayload: JwtPayload;
 let secondPayload: JwtPayload;
 let tokenAuthenticationVerifier: AuthTokenVerifier
 
-
-const firstKeys = new Keys({
-  privateKey: process.env.PRIVATE_KEY
-});
-
-const secondKeys = new Keys({
-  privateKey: process.env.PRIVATE_KEY_2
-});
 const issuerDID = `did:ethr:${firstKeys.getAddress()}`
 const secondDID = `did:ethr:${secondKeys.getAddress()}`
 
@@ -64,7 +58,7 @@ describe("Testing AuthTokenVerifier", () => {
 
   it("Checks if basic signing verification works", async () => {
     const testSignature = await secondSigner.sign('Initial signed content', { algorithm: 'ES256' })
-    const secondPubKey = '0312c03a2ff680b9ab94a46d9f52b0cb934f15365f96dd3eae75661b0756318fd3'
+    const secondPubKey = secondKeys.publicKey
     const decoded = await secondSigner.verify(testSignature, secondPubKey)
     
     assert.strictEqual(decoded, 'Initial signed content')
