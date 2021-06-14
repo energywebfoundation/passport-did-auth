@@ -1,17 +1,8 @@
-import * as dotenv from 'dotenv';
 import { Keys } from '@ew-did-registry/keys'
 import {IDIDDocument} from "@ew-did-registry/did-resolver-interface"
 
-dotenv.config();
-
-const firstKeys = new Keys({
-  privateKey: process.env.PRIVATE_KEY
-});
-
-const secondKeys = new Keys({
-  privateKey: process.env.PRIVATE_KEY_2
-});
-
+export const firstKeys = new Keys();
+export const secondKeys = new Keys();
 
 export const firstDocument : IDIDDocument = {
     id: 'did:ethr:0x72EFf9faB7876c4c1b6cAe426c121358431758F3',
