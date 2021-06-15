@@ -8,11 +8,9 @@ import {
   VoltaAddress1056,
 } from '@ew-did-registry/did-ethr-resolver'
 
-import { lookup, namehash, verifyClaim } from './utils'
+import { lookup, namehash } from './utils'
 import {
   Claim,
-  DecodedToken,
-  IRole,
   IRoleDefinition,
   ITokenPayload,
 } from './LoginStrategy.types'
@@ -22,6 +20,7 @@ import { Methods } from '@ew-did-registry/did'
 import { DidStore } from '@ew-did-registry/did-ipfs-store'
 import { CacheServerClient } from './cacheServerClient'
 import { ClaimVerifier } from './ClaimVerifier'
+import { AuthTokenVerifier } from './AuthTokenVerifier'
 
 const { abi: abi1056 } = ethrReg
 
@@ -51,6 +50,8 @@ export class LoginStrategy extends BaseStrategy {
   private readonly ipfsStore: DidStore
   private readonly acceptedRoles: Set<string>
   private readonly strategyAddress?: string
+  private readonly privateKey: string
+
   constructor(
     {
       claimField = 'identityToken',
@@ -100,6 +101,7 @@ export class LoginStrategy extends BaseStrategy {
     this.jwtSecret = jwtSecret
     this.acceptedRoles = acceptedRoles && new Set(acceptedRoles)
     this.jwtSignOptions = jwtSignOptions
+    this.privateKey = privateKey
   }
   /**
    * @description verifies issuer signature, then check that claim issued
@@ -114,7 +116,9 @@ export class LoginStrategy extends BaseStrategy {
     payload: ITokenPayload,
     done: (err?: Error, user?: any, info?: any) => void
   ) {
-    const did = verifyClaim(token, payload)
+    const didDocument = await this.cacheServerClient?.getDidDocument(payload.iss) ?? await this.didResolver.read(payload.iss)
+    const authenticationClaimVerifier = new AuthTokenVerifier(this.privateKey, didDocument)
+    const did = await authenticationClaimVerifier.verify(token, payload.iss)
 
     if (!did) {
       console.log('Not Verified')
