@@ -1,6 +1,6 @@
 language: node_js
 node_js:
-  - "10.22.0"
+  - "14.17.0"
 
 before_deploy:
   - git config --global user.email ${GITHUB_EMAIL}
