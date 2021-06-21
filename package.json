@@ -30,14 +30,14 @@
   "homepage": "https://github.com/energywebfoundation/passport-did-auth#readme",
   "dependencies": {
     "@ensdomains/resolver": "^0.2.4",
-    "@ew-did-registry/did": "0.1.0-alpha.0",
-    "@ew-did-registry/did-ethr-resolver": "0.1.0-alpha.0",
-    "@ew-did-registry/did-ipfs-store": "0.1.0-alpha.0",
+    "@ew-did-registry/did": "0.5.2-alpha.1057.0",
+    "@ew-did-registry/did-ethr-resolver": "0.5.2-alpha.1057.0",
+    "@ew-did-registry/did-ipfs-store": "0.5.2-alpha.1057.0",
     "axios": "^0.21.1",
     "base64url": "^3.0.1",
     "cockatiel": "^2.0.1",
     "eth-ens-namehash": "^2.0.8",
-    "ethers": "^4.0.45",
+    "ethers": "4.0.45",
     "jsonwebtoken": "^8.5.1",
     "passport": "^0.4.1",
     "passport-strategy": "^1.0.0",
@@ -59,10 +59,10 @@
     "eslint": "^7.20.0",
     "eslint-config-prettier": "^7.2.0",
     "jest": "^26.6.3",
-    "semantic-release": "^17.3.0",
+    "semantic-release": "^17.4.4",
     "ts-node": "^9.1.1",
     "typechain": "^3.0.0",
-    "typedoc": "^0.19.2",
+    "typedoc": "^0.21.0",
     "typedoc-plugin-markdown": "^3.0.11"
   }
 }
