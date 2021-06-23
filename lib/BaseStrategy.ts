@@ -70,7 +70,7 @@ export abstract class BaseStrategy extends Strategy {
       return self.fail('Missing credentials', 400)
     }
     const tokenPayload = this.decodeToken(token)
-    function verified(err: Error, user: any, info: any) {
+    function verified(err?: Error, user?: any, info?: any) {
       if (err) {
         return self.error(err)
       }
