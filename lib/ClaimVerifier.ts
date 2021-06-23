@@ -22,7 +22,7 @@ export class ClaimVerifier {
               version: claimTypeVersion,
             })
           }
-          const issuedClaim = jwt.decode(issuedToken) as DecodedToken;
+          const issuedClaim = jwt.decode(issuedToken!) as DecodedToken;
           return this.verifyRole({
             issuer: issuedClaim.iss,
             namespace: claimType,

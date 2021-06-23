@@ -26,7 +26,7 @@ export interface IRole {
 export interface Claim {
   claimType?: string
   claimTypeVersion?: string
-  issuedToken?: string
+  issuedToken?: string,
   iss?: string
 }
 
