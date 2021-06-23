@@ -199,7 +199,7 @@ export class LoginStrategy extends BaseStrategy {
    *
    * @returns {string} encoded claim
    */
-  extractToken(req: Request): string {
+  extractToken(req: Request): string | null {
     return (
       lookup(req.body, this.claimField) || lookup(req.query, this.claimField)
     )
