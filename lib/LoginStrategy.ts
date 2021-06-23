@@ -28,7 +28,7 @@ interface LoginStrategyOptions extends StrategyOptions {
   claimField?: string
   rpcUrl: string
   cacheServerUrl?: string
-  privateKey: string
+  privateKey?: string
   numberOfBlocksBack?: number
   ensResolverAddress?: string
   didContractAddress?: string
@@ -43,7 +43,7 @@ export class LoginStrategy extends BaseStrategy {
   private readonly jwtSecret?: string | Buffer
   private readonly jwtSignOptions?: jwt.SignOptions
   private readonly provider: providers.JsonRpcProvider
-  private readonly cacheServerClient: CacheServerClient
+  private readonly cacheServerClient!: CacheServerClient
   private readonly numberOfBlocksBack: number
   private readonly ensResolver: PublicResolver
   private readonly didResolver: Resolver
@@ -99,9 +99,9 @@ export class LoginStrategy extends BaseStrategy {
     this.ipfsStore = new DidStore(ipfsUrl)
     this.numberOfBlocksBack = numberOfBlocksBack
     this.jwtSecret = jwtSecret
-    this.acceptedRoles = acceptedRoles && new Set(acceptedRoles)
+    this.acceptedRoles = acceptedRoles! && new Set(acceptedRoles)
     this.jwtSignOptions = jwtSignOptions
-    this.privateKey = privateKey
+    this.privateKey = privateKey!
   }
   /**
    * @description verifies issuer signature, then check that claim issued
