@@ -28,7 +28,7 @@ interface LoginStrategyOptions extends StrategyOptions {
   claimField?: string
   rpcUrl: string
   cacheServerUrl?: string
-  privateKey?: string
+  privateKey: string
   numberOfBlocksBack?: number
   ensResolverAddress?: string
   didContractAddress?: string
