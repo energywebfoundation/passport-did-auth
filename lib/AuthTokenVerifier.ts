@@ -23,7 +23,7 @@ export class AuthTokenVerifier {
    *
    * @returns {string} issuer DID or null
    */
-    public async verify(token: string, issuerDID: string): Promise<string> {
+    public async verify(token: string, issuerDID: string): Promise<string | null> {
 
         if (await this.isAuthorized(token))
             return issuerDID
