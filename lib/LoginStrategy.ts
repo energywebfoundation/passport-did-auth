@@ -189,7 +189,7 @@ export class LoginStrategy extends BaseStrategy {
    * @param options
    */
   encodeToken(data: any) {
-    return jwt.sign(data, this.jwtSecret, this.jwtSignOptions)
+    return jwt.sign(data, this.jwtSecret!, this.jwtSignOptions)
   }
 
   /**
@@ -205,7 +205,7 @@ export class LoginStrategy extends BaseStrategy {
     )
   }
 
-  async getRoleDefinition(namespace: string) {
+  async getRoleDefinition(namespace: string){
     if (this.cacheServerClient) {
       return this.cacheServerClient.getRoleDefinition({ namespace })
     }
