@@ -122,7 +122,7 @@ export class LoginStrategy extends BaseStrategy {
 
     if (!did) {
       console.log('Not Verified')
-      return done(null, null, 'Not Verified')
+      return done(undefined, null, 'Not Verified')
     }
 
     const [, , address] = did.split(':')
@@ -134,7 +134,7 @@ export class LoginStrategy extends BaseStrategy {
         latestBlock - this.numberOfBlocksBack >= payload.claimData.blockNumber
       ) {
         console.log('Claim outdated')
-        return done(null, null, 'Claim outdated')
+        return done(undefined, null, 'Claim outdated')
       }
     } catch (err) {
       console.log('Provider err', err)
@@ -162,7 +162,7 @@ export class LoginStrategy extends BaseStrategy {
           return this.acceptedRoles.has(namespace)
         })
       ) {
-        return done(null, null, 'User does not have an accepted role.')
+        return done(undefined, null, 'User does not have an accepted role.')
       }
       const user = {
         did: payload.iss,
@@ -170,9 +170,9 @@ export class LoginStrategy extends BaseStrategy {
       }
       if (this.jwtSecret) {
         const jwtToken = this.encodeToken(user)
-        return done(null, jwtToken)
+        return done(undefined, jwtToken)
       }
-      return done(null, user)
+      return done(undefined, user)
     } catch (err) {
       console.log(err)
       return done(err)
