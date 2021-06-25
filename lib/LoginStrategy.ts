@@ -205,7 +205,7 @@ export class LoginStrategy extends BaseStrategy {
     )
   }
 
-  async getRoleDefinition(namespace: string){
+  async getRoleDefinition(namespace: string) {
     if (this.cacheServerClient) {
       return this.cacheServerClient.getRoleDefinition({ namespace })
     }

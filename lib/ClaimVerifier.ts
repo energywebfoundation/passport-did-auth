@@ -9,7 +9,7 @@ export class ClaimVerifier {
     private readonly getUserClaims: (did: string) => Promise<Claim[]>) {
   }
 
-  public async getVerifiedRoles(): Promise<({ name: any; namespace: string })[]> {
+  public async getVerifiedRoles(): Promise<{ name: any; namespace: string }[]> {
     const roles = await Promise.all(
       this.claims.map(
         async ({ claimType, claimTypeVersion, iss, issuedToken }) => {
