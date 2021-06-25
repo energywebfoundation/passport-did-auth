@@ -9,7 +9,7 @@ export class ClaimVerifier {
     private readonly getUserClaims: (did: string) => Promise<Claim[]>) {
   }
 
-  public async getVerifiedRoles(): Promise<{ name: any; namespace: string }[]> {
+  public async getVerifiedRoles(): Promise<({ name: any; namespace: string })[]> {
     const roles = await Promise.all(
       this.claims.map(
         async ({ claimType, claimTypeVersion, iss, issuedToken }) => {
@@ -33,7 +33,7 @@ export class ClaimVerifier {
     )
     const filteredRoles = roles.filter(Boolean)
     const uniqueRoles = [...new Set(filteredRoles)]
-    return uniqueRoles;
+    return uniqueRoles as [];
   }
 
   /**
@@ -51,7 +51,7 @@ export class ClaimVerifier {
   }): Promise<{
     name: string;
     namespace: string;
-  } | null> {
+  } | null > {
     const role = await this.getRoleDefinition(namespace)
     if (!role) {
       return null

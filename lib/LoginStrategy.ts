@@ -211,9 +211,8 @@ export class LoginStrategy extends BaseStrategy {
     }
     const namespaceHash = namehash(namespace)
     const definition = await this.ensResolver.text(namespaceHash, 'metadata')
-    if (definition) {
-      return JSON.parse(definition) as IRoleDefinition
-    }
+  
+    return JSON.parse(definition) as IRoleDefinition
   }
 
   async getUserClaims(did: string) {
