@@ -22,6 +22,7 @@
 
 * [addFailedRequest](cacheserverclient.md#addfailedrequest)
 * [createLoginTokenHeadersAndPayload](cacheserverclient.md#createlogintokenheadersandpayload)
+* [getDidDocument](cacheserverclient.md#getdiddocument)
 * [getDidsWithAcceptedRole](cacheserverclient.md#getdidswithacceptedrole)
 * [getRoleDefinition](cacheserverclient.md#getroledefinition)
 * [getUserClaims](cacheserverclient.md#getuserclaims)
@@ -81,6 +82,20 @@ Name | Type |
 ------ | ------ |
 `encodedHeader` | string |
 `encodedPayload` | string |
+
+___
+
+### getDidDocument
+
+▸ **getDidDocument**(`did`: string): Promise\<IDIDDocument>
+
+#### Parameters:
+
+Name | Type |
+------ | ------ |
+`did` | string |
+
+**Returns:** Promise\<IDIDDocument>
 
 ___
 

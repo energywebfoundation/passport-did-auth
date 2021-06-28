@@ -8,11 +8,9 @@ import {
   VoltaAddress1056,
 } from '@ew-did-registry/did-ethr-resolver'
 
-import { lookup, namehash, verifyClaim } from './utils'
+import { lookup, namehash } from './utils'
 import {
   Claim,
-  DecodedToken,
-  IRole,
   IRoleDefinition,
   ITokenPayload,
 } from './LoginStrategy.types'
@@ -22,6 +20,7 @@ import { Methods } from '@ew-did-registry/did'
 import { DidStore } from '@ew-did-registry/did-ipfs-store'
 import { CacheServerClient } from './cacheServerClient'
 import { ClaimVerifier } from './ClaimVerifier'
+import { AuthTokenVerifier } from './AuthTokenVerifier'
 
 const { abi: abi1056 } = ethrReg
 
@@ -44,13 +43,15 @@ export class LoginStrategy extends BaseStrategy {
   private readonly jwtSecret?: string | Buffer
   private readonly jwtSignOptions?: jwt.SignOptions
   private readonly provider: providers.JsonRpcProvider
-  private readonly cacheServerClient: CacheServerClient
+  private readonly cacheServerClient!: CacheServerClient
   private readonly numberOfBlocksBack: number
   private readonly ensResolver: PublicResolver
   private readonly didResolver: Resolver
   private readonly ipfsStore: DidStore
   private readonly acceptedRoles: Set<string>
   private readonly strategyAddress?: string
+  private readonly privateKey: string
+
   constructor(
     {
       claimField = 'identityToken',
@@ -98,8 +99,9 @@ export class LoginStrategy extends BaseStrategy {
     this.ipfsStore = new DidStore(ipfsUrl)
     this.numberOfBlocksBack = numberOfBlocksBack
     this.jwtSecret = jwtSecret
-    this.acceptedRoles = acceptedRoles && new Set(acceptedRoles)
+    this.acceptedRoles = acceptedRoles! && new Set(acceptedRoles)
     this.jwtSignOptions = jwtSignOptions
+    this.privateKey = privateKey!
   }
   /**
    * @description verifies issuer signature, then check that claim issued
@@ -114,11 +116,13 @@ export class LoginStrategy extends BaseStrategy {
     payload: ITokenPayload,
     done: (err?: Error, user?: any, info?: any) => void
   ) {
-    const did = verifyClaim(token, payload)
+    const didDocument = await this.cacheServerClient?.getDidDocument(payload.iss) ?? await this.didResolver.read(payload.iss)
+    const authenticationClaimVerifier = new AuthTokenVerifier(this.privateKey, didDocument)
+    const did = await authenticationClaimVerifier.verify(token, payload.iss)
 
     if (!did) {
       console.log('Not Verified')
-      return done(null, null, 'Not Verified')
+      return done(undefined, null, 'Not Verified')
     }
 
     const [, , address] = did.split(':')
@@ -130,7 +134,7 @@ export class LoginStrategy extends BaseStrategy {
         latestBlock - this.numberOfBlocksBack >= payload.claimData.blockNumber
       ) {
         console.log('Claim outdated')
-        return done(null, null, 'Claim outdated')
+        return done(undefined, null, 'Claim outdated')
       }
     } catch (err) {
       console.log('Provider err', err)
@@ -158,7 +162,7 @@ export class LoginStrategy extends BaseStrategy {
           return this.acceptedRoles.has(namespace)
         })
       ) {
-        return done(null, null, 'User does not have an accepted role.')
+        return done(undefined, null, 'User does not have an accepted role.')
       }
       const user = {
         did: payload.iss,
@@ -166,9 +170,9 @@ export class LoginStrategy extends BaseStrategy {
       }
       if (this.jwtSecret) {
         const jwtToken = this.encodeToken(user)
-        return done(null, jwtToken)
+        return done(undefined, jwtToken)
       }
-      return done(null, user)
+      return done(undefined, user)
     } catch (err) {
       console.log(err)
       return done(err)
@@ -185,7 +189,7 @@ export class LoginStrategy extends BaseStrategy {
    * @param options
    */
   encodeToken(data: any) {
-    return jwt.sign(data, this.jwtSecret, this.jwtSignOptions)
+    return jwt.sign(data, this.jwtSecret!, this.jwtSignOptions)
   }
 
   /**
@@ -195,7 +199,7 @@ export class LoginStrategy extends BaseStrategy {
    *
    * @returns {string} encoded claim
    */
-  extractToken(req: Request): string {
+  extractToken(req: Request): string | null {
     return (
       lookup(req.body, this.claimField) || lookup(req.query, this.claimField)
     )
@@ -207,9 +211,8 @@ export class LoginStrategy extends BaseStrategy {
     }
     const namespaceHash = namehash(namespace)
     const definition = await this.ensResolver.text(namespaceHash, 'metadata')
-    if (definition) {
-      return JSON.parse(definition) as IRoleDefinition
-    }
+  
+    return JSON.parse(definition) as IRoleDefinition
   }
 
   async getUserClaims(did: string) {

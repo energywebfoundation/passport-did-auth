@@ -22,7 +22,7 @@ export class ClaimVerifier {
               version: claimTypeVersion,
             })
           }
-          const issuedClaim = jwt.decode(issuedToken) as DecodedToken;
+          const issuedClaim = jwt.decode(issuedToken!) as DecodedToken;
           return this.verifyRole({
             issuer: issuedClaim.iss,
             namespace: claimType,
@@ -33,7 +33,7 @@ export class ClaimVerifier {
     )
     const filteredRoles = roles.filter(Boolean)
     const uniqueRoles = [...new Set(filteredRoles)]
-    return uniqueRoles;
+    return uniqueRoles as [];
   }
 
   /**
@@ -51,7 +51,7 @@ export class ClaimVerifier {
   }): Promise<{
     name: string;
     namespace: string;
-  }> {
+  } | null > {
     const role = await this.getRoleDefinition(namespace)
     if (!role) {
       return null

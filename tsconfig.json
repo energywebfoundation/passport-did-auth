@@ -12,6 +12,7 @@
     "outDir": "./dist",
     "rootDir": ".",
     "skipLibCheck": true,
+    "strict": true,
     "esModuleInterop": true
   },
   "include": ["lib/**/*", "ethers", "index.ts"],

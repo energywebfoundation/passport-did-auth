@@ -8,6 +8,7 @@
 
 ### Classes
 
+* [AuthTokenVerifier](classes/authtokenverifier.md)
 * [BaseStrategy](classes/basestrategy.md)
 * [CacheServerClient](classes/cacheserverclient.md)
 * [ClaimVerifier](classes/claimverifier.md)
@@ -35,7 +36,6 @@
 * [labelhash](README.md#labelhash)
 * [lookup](README.md#lookup)
 * [namehash](README.md#namehash)
-* [verifyClaim](README.md#verifyclaim)
 
 ## Variables
 
@@ -117,20 +117,5 @@ ___
 Name | Type |
 ------ | ------ |
 `inputName` | string |
-
-**Returns:** string
-
-___
-
-### verifyClaim
-
-▸ `Const`**verifyClaim**(`token`: string, `__namedParameters`: { iss: string  }): string
-
-#### Parameters:
-
-Name | Type |
------- | ------ |
-`token` | string |
-`__namedParameters` | { iss: string  } |
 
 **Returns:** string

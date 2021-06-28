@@ -5,6 +5,7 @@ import { JsonRpcProvider } from 'ethers/providers'
 import { arrayify, keccak256 } from 'ethers/utils'
 import { Claim, IRole } from './LoginStrategy.types'
 import { Policy } from 'cockatiel'
+import { IDIDDocument } from '@ew-did-registry/did-resolver-interface'
 
 export class CacheServerClient {
   private readonly signer: Signer
@@ -92,7 +93,7 @@ export class CacheServerClient {
       response &&
       response.status === 401 &&
       config &&
-      config.url.indexOf('/login') === -1
+      config.url?.indexOf('/login') === -1
     ) {
       try {
         const retryOriginalRequest = new Promise((resolve) => {
@@ -155,6 +156,13 @@ export class CacheServerClient {
   async getDidsWithAcceptedRole(role: string) {
     const { data } = await this.httpClient.get<string[]>(
       `/claim/did/${role}?accepted=true`
+    )
+    return data
+  }
+
+  async getDidDocument(did: string) {
+    const { data } = await this.httpClient.get<IDIDDocument>(
+      `/DID/${did}?includeClaims=true`
     )
     return data
   }
