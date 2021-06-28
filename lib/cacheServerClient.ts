@@ -93,7 +93,7 @@ export class CacheServerClient {
       response &&
       response.status === 401 &&
       config &&
-      config.url.indexOf('/login') === -1
+      config.url?.indexOf('/login') === -1
     ) {
       try {
         const retryOriginalRequest = new Promise((resolve) => {
