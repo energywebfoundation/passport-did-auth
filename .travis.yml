@@ -17,7 +17,7 @@ install:
 script:
   - npm run build
   - npm run test
-  - npm build:api_docs
+  - npm run build:api_docs
 
 deploy:
   - provider: script
