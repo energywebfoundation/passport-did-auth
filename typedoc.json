@@ -1,11 +1,9 @@
 {
-  "inputFiles": ["lib/"],
+  "entryPoints": ["lib/"],
   "out": ["docs/api"],
-  "mode": "file",
   "disableSources": true,
   "excludePrivate": true,
   "excludeProtected": true,
   "excludeExternals": true,
-  "excludeNotExported": true,
   "readme": "none"
 }

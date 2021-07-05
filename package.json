@@ -13,7 +13,7 @@
     "build:ts": "tsc",
     "build:contracts": "npm run build:typechain:resolver",
     "build:typechain:resolver": "typechain --target ethers-v4 --outDir ethers './node_modules/@ensdomains/resolver/build/contracts/PublicResolver.json'",
-    "build:api_docs": "rm -rf docs/api && typedoc",
+    "build:api_docs": "rm -rf docs/api && typedoc --plugin typedoc-plugin-markdown --hideBreadcrumbs true",
     "test": "jest",
     "lint": "eslint -c .eslintrc.js --ext .ts lib test"
   },
@@ -58,11 +58,17 @@
     "babel-jest": "^26.6.3",
     "eslint": "^7.20.0",
     "eslint-config-prettier": "^7.2.0",
+    "husky": "^4.3.8",
     "jest": "^26.6.3",
     "semantic-release": "^17.4.4",
     "ts-node": "^9.1.1",
     "typechain": "^3.0.0",
     "typedoc": "^0.21.0",
     "typedoc-plugin-markdown": "^3.0.11"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "rm -rf docs/api && typedoc --plugin typedoc-plugin-markdown --hideBreadcrumbs true && git add -A ."
+    }
   }
 }
