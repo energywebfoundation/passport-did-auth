@@ -2,9 +2,9 @@ name: Deploy
 
 on:
   push:
-    branches: [ 'DOI-887_*', 'master' ]
+    branches: [ 'develop', 'master' ]
   pull_request:
-    branches: [ 'DOI-887_*' ]
+    branches: [ 'develop' ]
 
 jobs:
   cancel-previous:
@@ -47,7 +47,7 @@ jobs:
         run: npm run test
 
       - name: Deploy on develop branch
-        if: github.ref == 'refs/heads/DOI-887_migrate_passport_did_to_GH'
+        if: github.ref == 'refs/heads/develop'
         run: npx semantic-release
 
       - name: Deploy on master branch
