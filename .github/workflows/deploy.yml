@@ -4,7 +4,7 @@ on:
   push:
     branches: [ 'develop', 'master' ]
   pull_request:
-    branches: [ 'develop' ]
+    branches: [ 'develop', 'master' ]
 
 jobs:
   cancel-previous:
@@ -52,4 +52,8 @@ jobs:
 
       - name: Deploy on master branch
         if: github.ref == 'refs/heads/master'
-        run: npx semantic-release
+        run: |
+          npx semantic-release
+          git checkout develop
+          git merge origin/master
+          git push origin develop
