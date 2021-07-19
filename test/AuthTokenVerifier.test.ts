@@ -1,6 +1,5 @@
 import assert from 'assert';
 import { JWT } from '@ew-did-registry/jwt';
-import { ClaimData } from './claim-creation/ClaimData';
 import { AuthTokenVerifier } from '../lib/AuthTokenVerifier';
 import {
   firstKeys,
@@ -12,7 +11,6 @@ import {
 import { JwtPayload } from '@ew-did-registry/jwt/dist/sign';
 
 let firstClaimToken: string;
-let claimData: ClaimData;
 let secondClaimToken: string;
 let firstSigner : JWT;
 let secondSigner : JWT;
@@ -26,9 +24,6 @@ const secondDID = `did:ethr:${secondKeys.getAddress()}`
 describe("Testing AuthTokenVerifier", () => {
 
   beforeAll(async () => {
-    claimData = {
-      claimType: "user.roles.example1.apps.john.iam.ewc",
-    }
     
     firstPayload = {
       claimType: "user.roles.example1.apps.john.iam.ewc",
