@@ -1,5 +1,8 @@
-# Node.js Passport strategy using decentralised identifiers
+<p align="center">
+  <img src="https://github.com/energywebfoundation/passport-did-auth/actions/workflows/deploy.yml/badge.svg" />
+</p>
 
+# Node.js Passport strategy using decentralised identifiers
 
 ## Getting Started
 
@@ -13,16 +16,19 @@ nodejs version 10+
 ```
 
 ### Building the Passport Strategy
+
 ```
 npm run build
 ```
 
 ### Example applications
+
 Example server applications which demonstrate the use of the passport strategy can be found in [this repository](https://github.com/energywebfoundation/iam-client-examples).
 The repository also contains client examples which leverage the [iam-client-lib](https://github.com/energywebfoundation/iam-client-lib/) to interact with the server applications.
 
 ## Active Maintainers
- - [Mani H.](https://github.com/manihagh>)
- - [Daniel Wojno](https://github.com/dwojno>)
- - [Dmitry Fesenko](https://github.com/JGiter)
- - [John Henderson](https://github.com/jrhender)
+
+- [Mani H.](https://github.com/manihagh>)
+- [Daniel Wojno](https://github.com/dwojno>)
+- [Dmitry Fesenko](https://github.com/JGiter)
+- [John Henderson](https://github.com/jrhender)
