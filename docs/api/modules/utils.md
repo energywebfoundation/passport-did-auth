@@ -68,7 +68,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `obj` | `Object` |
+| `obj` | `Record`<`string`, `unknown`\> \| `string` |
 | `field` | `string` |
 
 #### Returns

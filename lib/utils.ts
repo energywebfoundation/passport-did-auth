@@ -1,11 +1,7 @@
-import { arrayify, hashMessage, keccak256, recoverAddress } from 'ethers/utils'
-import base64url from 'base64url'
-import { normalize } from 'eth-ens-namehash'
-import { ITokenPayload } from './LoginStrategy.types'
+import { normalize } from 'eth-ens-namehash';
+import { keccak_256 as sha3 } from 'js-sha3';
 
-const sha3 = require('js-sha3').keccak_256
-
-export function decodeLabelhash(hash: string) {
+export function decodeLabelhash(hash: string) : string {
   if (!(hash.startsWith('[') && hash.endsWith(']'))) {
     throw Error(
       'Expected encoded labelhash to start and end with square brackets'
@@ -19,11 +15,11 @@ export function decodeLabelhash(hash: string) {
   return `${hash.slice(1, -1)}`
 }
 
-export function isEncodedLabelhash(hash: string) {
+export function isEncodedLabelhash(hash: string) : boolean {
   return hash.startsWith('[') && hash.endsWith(']') && hash.length === 66
 }
 
-export function namehash(inputName: string) {
+export function namehash(inputName: string) : string {
   let node = ''
   for (let i = 0; i < 32; i++) {
     node += '00'
@@ -47,13 +43,13 @@ export function namehash(inputName: string) {
   return '0x' + node
 }
 
-export function labelhash(unnormalizedLabelOrLabelhash: string) {
+export function labelhash(unnormalizedLabelOrLabelhash: string) : string {
   return isEncodedLabelhash(unnormalizedLabelOrLabelhash)
     ? '0x' + decodeLabelhash(unnormalizedLabelOrLabelhash)
     : '0x' + sha3(normalize(unnormalizedLabelOrLabelhash))
 }
 
-export function lookup(obj: {}, field: string): string | null {
+export function lookup(obj: Record<string, unknown> | string, field: string): string | null {
   if (!obj) {
     return null
   }
@@ -64,7 +60,7 @@ export function lookup(obj: {}, field: string): string | null {
       return null
     }
     if (typeof prop !== 'object') {
-      return prop
+      return prop as string | null
     }
     obj = prop
   }

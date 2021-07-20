@@ -3,7 +3,7 @@ import base64url from 'base64url'
 import { Signer, Wallet } from 'ethers'
 import { JsonRpcProvider } from 'ethers/providers'
 import { arrayify, keccak256 } from 'ethers/utils'
-import { Claim, IRole } from './LoginStrategy.types'
+import { Claim, IRole, IRoleDefinition } from './LoginStrategy.types'
 import { Policy } from 'cockatiel'
 import { IDIDDocument } from '@ew-did-registry/did-resolver-interface'
 
@@ -12,7 +12,7 @@ export class CacheServerClient {
   private readonly httpClient: AxiosInstance
   private readonly provider: JsonRpcProvider
   private failedRequests: Array<(token: string) => void> = []
-  private isAlreadyFetchingAccessToken: boolean = false
+  private isAlreadyFetchingAccessToken = false
   public readonly address: string
   constructor({
     url,
@@ -36,7 +36,7 @@ export class CacheServerClient {
     this.handleUnauthorized)
   }
 
-  async login() {
+  async login() : Promise<string>{
     const retry = Policy.handleAll().retry().attempts(10).delay(2000)
     retry.onFailure(({ reason }) => {
       console.log(
@@ -76,17 +76,17 @@ export class CacheServerClient {
     return token
   }
 
-  handleSuccessfulReLogin(token: string) {
+  handleSuccessfulReLogin(token: string) : void {
     this.failedRequests = this.failedRequests.filter((callback) =>
       callback(token)
     )
   }
 
-  addFailedRequest(callback: (token: string) => void) {
+  addFailedRequest(callback: (token: string) => void) : void {
     this.failedRequests.push(callback)
   }
 
-  handleUnauthorized = async (error: AxiosError) => {
+  handleUnauthorized = async (error: AxiosError):  Promise<unknown> => {
     const { config, response } = error
     const originalRequest = config
     if (
@@ -122,7 +122,7 @@ export class CacheServerClient {
   }: {
     address: string
     blockNumber: number
-  }) {
+  }) : { encodedHeader: string, encodedPayload: string } {
     const header = {
       alg: 'ES256',
       typ: 'JWT',
@@ -141,26 +141,26 @@ export class CacheServerClient {
     return { encodedHeader, encodedPayload }
   }
 
-  async getRoleDefinition({ namespace }: { namespace: string }) {
+  async getRoleDefinition({ namespace }: { namespace: string }) : Promise<IRoleDefinition> {
     const { data } = await this.httpClient.get<IRole>(`/role/${namespace}`)
     return data.definition
   }
 
-  async getUserClaims({ did }: { did: string }) {
+  async getUserClaims({ did }: { did: string }) : Promise<Claim[]> {
     const { data } = await this.httpClient.get<{ service: Claim[] }>(
       `/DID/${did}?includeClaims=true`
     )
     return data.service
   }
 
-  async getDidsWithAcceptedRole(role: string) {
+  async getDidsWithAcceptedRole(role: string): Promise<string[]> {
     const { data } = await this.httpClient.get<string[]>(
       `/claim/did/${role}?accepted=true`
     )
     return data
   }
 
-  async getDidDocument(did: string) {
+  async getDidDocument(did: string) : Promise<IDIDDocument> {
     const { data } = await this.httpClient.get<IDIDDocument>(
       `/DID/${did}?includeClaims=true`
     )

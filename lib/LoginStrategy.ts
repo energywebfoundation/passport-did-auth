@@ -67,6 +67,8 @@ export class LoginStrategy extends BaseStrategy {
       acceptedRoles,
       ...options
     }: LoginStrategyOptions,
+    
+    /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
     _nestJsCB?: VoidFunction // Added just for nestjs compatibility
   ) {
     super(options)
@@ -115,7 +117,7 @@ export class LoginStrategy extends BaseStrategy {
     token: string,
     payload: ITokenPayload,
     done: (err?: Error, user?: any, info?: any) => void
-  ) {
+  ): Promise<void> {
     const didDocument = await this.cacheServerClient?.getDidDocument(payload.iss) ?? await this.didResolver.read(payload.iss)
     const authenticationClaimVerifier = new AuthTokenVerifier(this.privateKey, didDocument)
     const did = await authenticationClaimVerifier.verify(token, payload.iss)
@@ -188,7 +190,7 @@ export class LoginStrategy extends BaseStrategy {
    * @param data payload to encode
    * @param options
    */
-  encodeToken(data: any) {
+  encodeToken(data: Record<string, unknown>) : string {
     return jwt.sign(data, this.jwtSecret!, this.jwtSignOptions)
   }
 
@@ -205,7 +207,7 @@ export class LoginStrategy extends BaseStrategy {
     )
   }
 
-  async getRoleDefinition(namespace: string) {
+  async getRoleDefinition(namespace: string) : Promise<any> {
     if (this.cacheServerClient) {
       return this.cacheServerClient.getRoleDefinition({ namespace })
     }
@@ -215,7 +217,7 @@ export class LoginStrategy extends BaseStrategy {
     return JSON.parse(definition) as IRoleDefinition
   }
 
-  async getUserClaims(did: string) {
+  async getUserClaims(did: string): Promise<Claim[]> {
     if (this.cacheServerClient) {
       return this.cacheServerClient.getUserClaims({ did })
     }

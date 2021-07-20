@@ -45,7 +45,7 @@
 
 ### authenticate
 
-▸ **authenticate**(`req`, `options`): `void`
+▸ **authenticate**(`req`): `void`
 
 **`description`** template method to authenticate DID
 
@@ -54,7 +54,6 @@
 | Name | Type |
 | :------ | :------ |
 | `req` | `Request`<`ParamsDictionary`, `any`, `any`, `ParsedQs`, `Record`<`string`, `any`\>\> |
-| `options` | `AuthenticateOptions` |
 
 #### Returns
 
@@ -103,7 +102,7 @@ ___
 
 | Name | Type | Description |
 | :------ | :------ | :------ |
-| `data` | `any` | payload to encode |
+| `data` | `Record`<`string`, `unknown`\> | payload to encode |
 
 #### Returns
 
@@ -137,7 +136,7 @@ ___
 
 ### getRoleDefinition
 
-▸ **getRoleDefinition**(`namespace`): `Promise`<[`IRoleDefinition`](../interfaces/loginstrategy_types.iroledefinition.md)\>
+▸ **getRoleDefinition**(`namespace`): `Promise`<`any`\>
 
 #### Parameters
 
@@ -147,7 +146,7 @@ ___
 
 #### Returns
 
-`Promise`<[`IRoleDefinition`](../interfaces/loginstrategy_types.iroledefinition.md)\>
+`Promise`<`any`\>
 
 ___
 
