@@ -1,3 +1,4 @@
+
 import { JWT } from '@ew-did-registry/jwt';
 import { Keys } from '@ew-did-registry/keys';
 import { IAuthentication, IDIDDocument, IPublicKey } from "@ew-did-registry/did-resolver-interface";

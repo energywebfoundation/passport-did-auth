@@ -49,7 +49,7 @@ Strategy.constructor
 
 ### authenticate
 
-▸ **authenticate**(`req`, `options`): `void`
+▸ **authenticate**(`req`): `void`
 
 **`description`** template method to authenticate DID
 
@@ -58,7 +58,6 @@ Strategy.constructor
 | Name | Type |
 | :------ | :------ |
 | `req` | `Request`<`ParamsDictionary`, `any`, `any`, `ParsedQs`, `Record`<`string`, `any`\>\> |
-| `options` | `AuthenticateOptions` |
 
 #### Returns
 
@@ -147,7 +146,7 @@ ___
 | Name | Type | Description |
 | :------ | :------ | :------ |
 | `token` | `string` | serialized claims |
-| `tokenPayload` | `any` | claim payload |
+| `tokenPayload` | `string` \| { [key: string]: `any`;  } | claim payload |
 | `done` | (`err?`: `Error`, `user?`: `any`, `info?`: `any`) => `any` |  |
 
 #### Returns
