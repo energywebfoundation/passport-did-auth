@@ -46,7 +46,7 @@ jobs:
       - name: Eslint validation
         run: npm run lint
 
-      - name: Test
+      - name: Npm Run Test
         run: npm run test
 
       - name: Deploy on develop branch
