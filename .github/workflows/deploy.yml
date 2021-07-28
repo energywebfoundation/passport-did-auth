@@ -31,8 +31,8 @@ jobs:
       - name: Configure Git
         run: |
           git reset --hard
-          git fetch origin master:master
-          git fetch origin develop:develop
+          git fetch -u origin master:master
+          git fetch -u origin develop:develop
 
       - name: Set npm credentials
         run: npm config set //registry.npmjs.org/:_authToken ${{ secrets.NPM_TOKEN }}
