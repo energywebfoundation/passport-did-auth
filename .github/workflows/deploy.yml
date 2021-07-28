@@ -35,7 +35,7 @@ jobs:
           git fetch origin develop:develop
 
       - name: Set npm credentials
-        run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" >> $HOME/.npmrc
+        run: npm config set //registry.npmjs.org/:_authToken ${{ secrets.NPM_TOKEN }}
 
       - name: Install package
         run: npm install
