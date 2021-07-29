@@ -51,18 +51,20 @@ jobs:
 
       - name: Deploy on develop branch
         if: github.ref == 'refs/heads/develop'
-        run: npx semantic-release
+        uses: codfish/semantic-release-action@v1
         env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Deploy on master branch
         if: github.ref == 'refs/heads/master'
+        uses: codfish/semantic-release-action@v1
         env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Merge to master branch
         run: |
-          npx semantic-release
           git checkout develop
           git merge origin/master
           git push origin develop
