@@ -1,17 +1,17 @@
 # Interface: IRoleDefinition
 
-[LoginStrategy.types](../modules/loginstrategy_types.md).IRoleDefinition
+[LoginStrategy.types](../modules/LoginStrategy_types.md).IRoleDefinition
 
 ## Table of contents
 
 ### Properties
 
-- [fields](loginstrategy_types.iroledefinition.md#fields)
-- [issuer](loginstrategy_types.iroledefinition.md#issuer)
-- [metadata](loginstrategy_types.iroledefinition.md#metadata)
-- [roleName](loginstrategy_types.iroledefinition.md#rolename)
-- [roleType](loginstrategy_types.iroledefinition.md#roletype)
-- [version](loginstrategy_types.iroledefinition.md#version)
+- [fields](LoginStrategy_types.IRoleDefinition.md#fields)
+- [issuer](LoginStrategy_types.IRoleDefinition.md#issuer)
+- [metadata](LoginStrategy_types.IRoleDefinition.md#metadata)
+- [roleName](LoginStrategy_types.IRoleDefinition.md#rolename)
+- [roleType](LoginStrategy_types.IRoleDefinition.md#roletype)
+- [version](LoginStrategy_types.IRoleDefinition.md#version)
 
 ## Properties
 

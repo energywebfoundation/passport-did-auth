@@ -1,6 +1,6 @@
 # Class: BaseStrategy
 
-[BaseStrategy](../modules/basestrategy.md).BaseStrategy
+[BaseStrategy](../modules/BaseStrategy.md).BaseStrategy
 
 **`abstract`**
 
@@ -13,21 +13,21 @@ Subclasses should define their token extraction and validation logic
 
   ↳ **`BaseStrategy`**
 
-  ↳↳ [`LoginStrategy`](loginstrategy.loginstrategy-1.md)
+  ↳↳ [`LoginStrategy`](LoginStrategy.LoginStrategy-1.md)
 
 ## Table of contents
 
 ### Constructors
 
-- [constructor](basestrategy.basestrategy-1.md#constructor)
+- [constructor](BaseStrategy.BaseStrategy-1.md#constructor)
 
 ### Methods
 
-- [authenticate](basestrategy.basestrategy-1.md#authenticate)
-- [decodeToken](basestrategy.basestrategy-1.md#decodetoken)
-- [extractToken](basestrategy.basestrategy-1.md#extracttoken)
-- [getUserClaims](basestrategy.basestrategy-1.md#getuserclaims)
-- [validate](basestrategy.basestrategy-1.md#validate)
+- [authenticate](BaseStrategy.BaseStrategy-1.md#authenticate)
+- [decodeToken](BaseStrategy.BaseStrategy-1.md#decodetoken)
+- [extractToken](BaseStrategy.BaseStrategy-1.md#extracttoken)
+- [getUserClaims](BaseStrategy.BaseStrategy-1.md#getuserclaims)
+- [validate](BaseStrategy.BaseStrategy-1.md#validate)
 
 ## Constructors
 
@@ -39,7 +39,7 @@ Subclasses should define their token extraction and validation logic
 
 | Name | Type |
 | :------ | :------ |
-| `__namedParameters` | [`StrategyOptions`](../interfaces/basestrategy.strategyoptions.md) |
+| `__namedParameters` | [`StrategyOptions`](../interfaces/BaseStrategy.StrategyOptions.md) |
 
 #### Overrides
 
@@ -115,7 +115,7 @@ ___
 
 ### getUserClaims
 
-▸ `Abstract` **getUserClaims**(`did`): `Promise`<[`Claim`](../interfaces/loginstrategy_types.claim.md)[]\>
+▸ `Abstract` **getUserClaims**(`did`): `Promise`<[`Claim`](../interfaces/LoginStrategy_types.Claim.md)[]\>
 
 **`abstract`**
 
@@ -129,7 +129,7 @@ ___
 
 #### Returns
 
-`Promise`<[`Claim`](../interfaces/loginstrategy_types.claim.md)[]\>
+`Promise`<[`Claim`](../interfaces/LoginStrategy_types.Claim.md)[]\>
 
 ___
 

@@ -1,17 +1,17 @@
 # Class: ClaimVerifier
 
-[ClaimVerifier](../modules/claimverifier.md).ClaimVerifier
+[ClaimVerifier](../modules/ClaimVerifier.md).ClaimVerifier
 
 ## Table of contents
 
 ### Constructors
 
-- [constructor](claimverifier.claimverifier-1.md#constructor)
+- [constructor](ClaimVerifier.ClaimVerifier-1.md#constructor)
 
 ### Methods
 
-- [getVerifiedRoles](claimverifier.claimverifier-1.md#getverifiedroles)
-- [verifyRole](claimverifier.claimverifier-1.md#verifyrole)
+- [getVerifiedRoles](ClaimVerifier.ClaimVerifier-1.md#getverifiedroles)
+- [verifyRole](ClaimVerifier.ClaimVerifier-1.md#verifyrole)
 
 ## Constructors
 
@@ -23,9 +23,9 @@
 
 | Name | Type |
 | :------ | :------ |
-| `claims` | [`Claim`](../interfaces/loginstrategy_types.claim.md)[] |
-| `getRoleDefinition` | (`namespace`: `string`) => `Promise`<[`IRoleDefinition`](../interfaces/loginstrategy_types.iroledefinition.md)\> |
-| `getUserClaims` | (`did`: `string`) => `Promise`<[`Claim`](../interfaces/loginstrategy_types.claim.md)[]\> |
+| `claims` | [`Claim`](../interfaces/LoginStrategy_types.Claim.md)[] |
+| `getRoleDefinition` | (`namespace`: `string`) => `Promise`<[`IRoleDefinition`](../interfaces/LoginStrategy_types.IRoleDefinition.md)\> |
+| `getUserClaims` | (`did`: `string`) => `Promise`<[`Claim`](../interfaces/LoginStrategy_types.Claim.md)[]\> |
 
 ## Methods
 

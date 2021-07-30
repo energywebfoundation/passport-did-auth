@@ -1,16 +1,16 @@
 # Class: AuthTokenVerifier
 
-[AuthTokenVerifier](../modules/authtokenverifier.md).AuthTokenVerifier
+[AuthTokenVerifier](../modules/AuthTokenVerifier.md).AuthTokenVerifier
 
 ## Table of contents
 
 ### Constructors
 
-- [constructor](authtokenverifier.authtokenverifier-1.md#constructor)
+- [constructor](AuthTokenVerifier.AuthTokenVerifier-1.md#constructor)
 
 ### Methods
 
-- [verify](authtokenverifier.authtokenverifier-1.md#verify)
+- [verify](AuthTokenVerifier.AuthTokenVerifier-1.md#verify)
 
 ## Constructors
 

@@ -1,12 +1,12 @@
 # Interface: StrategyOptions
 
-[BaseStrategy](../modules/basestrategy.md).StrategyOptions
+[BaseStrategy](../modules/BaseStrategy.md).StrategyOptions
 
 ## Table of contents
 
 ### Properties
 
-- [name](basestrategy.strategyoptions.md#name)
+- [name](BaseStrategy.StrategyOptions.md#name)
 
 ## Properties
 

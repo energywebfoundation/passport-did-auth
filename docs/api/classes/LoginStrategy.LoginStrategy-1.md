@@ -1,10 +1,10 @@
 # Class: LoginStrategy
 
-[LoginStrategy](../modules/loginstrategy.md).LoginStrategy
+[LoginStrategy](../modules/LoginStrategy.md).LoginStrategy
 
 ## Hierarchy
 
-- [`BaseStrategy`](basestrategy.basestrategy-1.md)
+- [`BaseStrategy`](BaseStrategy.BaseStrategy-1.md)
 
   ↳ **`LoginStrategy`**
 
@@ -12,17 +12,17 @@
 
 ### Constructors
 
-- [constructor](loginstrategy.loginstrategy-1.md#constructor)
+- [constructor](LoginStrategy.LoginStrategy-1.md#constructor)
 
 ### Methods
 
-- [authenticate](loginstrategy.loginstrategy-1.md#authenticate)
-- [decodeToken](loginstrategy.loginstrategy-1.md#decodetoken)
-- [encodeToken](loginstrategy.loginstrategy-1.md#encodetoken)
-- [extractToken](loginstrategy.loginstrategy-1.md#extracttoken)
-- [getRoleDefinition](loginstrategy.loginstrategy-1.md#getroledefinition)
-- [getUserClaims](loginstrategy.loginstrategy-1.md#getuserclaims)
-- [validate](loginstrategy.loginstrategy-1.md#validate)
+- [authenticate](LoginStrategy.LoginStrategy-1.md#authenticate)
+- [decodeToken](LoginStrategy.LoginStrategy-1.md#decodetoken)
+- [encodeToken](LoginStrategy.LoginStrategy-1.md#encodetoken)
+- [extractToken](LoginStrategy.LoginStrategy-1.md#extracttoken)
+- [getRoleDefinition](LoginStrategy.LoginStrategy-1.md#getroledefinition)
+- [getUserClaims](LoginStrategy.LoginStrategy-1.md#getuserclaims)
+- [validate](LoginStrategy.LoginStrategy-1.md#validate)
 
 ## Constructors
 
@@ -39,7 +39,7 @@
 
 #### Overrides
 
-[BaseStrategy](basestrategy.basestrategy-1.md).[constructor](basestrategy.basestrategy-1.md#constructor)
+[BaseStrategy](BaseStrategy.BaseStrategy-1.md).[constructor](BaseStrategy.BaseStrategy-1.md#constructor)
 
 ## Methods
 
@@ -61,7 +61,7 @@
 
 #### Inherited from
 
-[BaseStrategy](basestrategy.basestrategy-1.md).[authenticate](basestrategy.basestrategy-1.md#authenticate)
+[BaseStrategy](BaseStrategy.BaseStrategy-1.md).[authenticate](BaseStrategy.BaseStrategy-1.md#authenticate)
 
 ___
 
@@ -90,7 +90,7 @@ decoded payload fields
 
 #### Overrides
 
-[BaseStrategy](basestrategy.basestrategy-1.md).[decodeToken](basestrategy.basestrategy-1.md#decodetoken)
+[BaseStrategy](BaseStrategy.BaseStrategy-1.md).[decodeToken](BaseStrategy.BaseStrategy-1.md#decodetoken)
 
 ___
 
@@ -130,7 +130,7 @@ encoded claim
 
 #### Overrides
 
-[BaseStrategy](basestrategy.basestrategy-1.md).[extractToken](basestrategy.basestrategy-1.md#extracttoken)
+[BaseStrategy](BaseStrategy.BaseStrategy-1.md).[extractToken](BaseStrategy.BaseStrategy-1.md#extracttoken)
 
 ___
 
@@ -152,7 +152,7 @@ ___
 
 ### getUserClaims
 
-▸ **getUserClaims**(`did`): `Promise`<[`Claim`](../interfaces/loginstrategy_types.claim.md)[]\>
+▸ **getUserClaims**(`did`): `Promise`<[`Claim`](../interfaces/LoginStrategy_types.Claim.md)[]\>
 
 #### Parameters
 
@@ -162,11 +162,11 @@ ___
 
 #### Returns
 
-`Promise`<[`Claim`](../interfaces/loginstrategy_types.claim.md)[]\>
+`Promise`<[`Claim`](../interfaces/LoginStrategy_types.Claim.md)[]\>
 
 #### Overrides
 
-[BaseStrategy](basestrategy.basestrategy-1.md).[getUserClaims](basestrategy.basestrategy-1.md#getuserclaims)
+[BaseStrategy](BaseStrategy.BaseStrategy-1.md).[getUserClaims](BaseStrategy.BaseStrategy-1.md#getuserclaims)
 
 ___
 
@@ -183,7 +183,7 @@ least one role
 | Name | Type |
 | :------ | :------ |
 | `token` | `string` |
-| `payload` | [`ITokenPayload`](../interfaces/loginstrategy_types.itokenpayload.md) |
+| `payload` | [`ITokenPayload`](../interfaces/LoginStrategy_types.ITokenPayload.md) |
 | `done` | (`err?`: `Error`, `user?`: `any`, `info?`: `any`) => `void` |
 
 #### Returns
@@ -192,4 +192,4 @@ least one role
 
 #### Overrides
 
-[BaseStrategy](basestrategy.basestrategy-1.md).[validate](basestrategy.basestrategy-1.md#validate)
+[BaseStrategy](BaseStrategy.BaseStrategy-1.md).[validate](BaseStrategy.BaseStrategy-1.md#validate)
