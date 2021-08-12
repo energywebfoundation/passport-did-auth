@@ -6,10 +6,12 @@ updates:
   # Keep npm dependencies up to date
   - package-ecosystem: "npm"
     directory: "/"
-    # Check the npm registry for updates at 2am UTC
+    # Check the npm registry for updates at 2pm UTC
     schedule:
       interval: "daily"
-      #time: "02:00"
+      time: "14:00"
+    target-branch:
+      - "feature/PDA-1/Fix_dependency_vulnerability"
     reviewers:
       - "knzeng-e"
       - "jrhender"
