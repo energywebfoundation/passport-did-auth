@@ -1,28 +1,28 @@
 # Class: CacheServerClient
 
-[cacheServerClient](../modules/cacheserverclient.md).CacheServerClient
+[cacheServerClient](../modules/cacheServerClient.md).CacheServerClient
 
 ## Table of contents
 
 ### Constructors
 
-- [constructor](cacheserverclient.cacheserverclient-1.md#constructor)
+- [constructor](cacheServerClient.CacheServerClient.md#constructor)
 
 ### Properties
 
-- [address](cacheserverclient.cacheserverclient-1.md#address)
+- [address](cacheServerClient.CacheServerClient.md#address)
 
 ### Methods
 
-- [addFailedRequest](cacheserverclient.cacheserverclient-1.md#addfailedrequest)
-- [createLoginTokenHeadersAndPayload](cacheserverclient.cacheserverclient-1.md#createlogintokenheadersandpayload)
-- [getDidDocument](cacheserverclient.cacheserverclient-1.md#getdiddocument)
-- [getDidsWithAcceptedRole](cacheserverclient.cacheserverclient-1.md#getdidswithacceptedrole)
-- [getRoleDefinition](cacheserverclient.cacheserverclient-1.md#getroledefinition)
-- [getUserClaims](cacheserverclient.cacheserverclient-1.md#getuserclaims)
-- [handleSuccessfulReLogin](cacheserverclient.cacheserverclient-1.md#handlesuccessfulrelogin)
-- [handleUnauthorized](cacheserverclient.cacheserverclient-1.md#handleunauthorized)
-- [login](cacheserverclient.cacheserverclient-1.md#login)
+- [addFailedRequest](cacheServerClient.CacheServerClient.md#addfailedrequest)
+- [createLoginTokenHeadersAndPayload](cacheServerClient.CacheServerClient.md#createlogintokenheadersandpayload)
+- [getDidDocument](cacheServerClient.CacheServerClient.md#getdiddocument)
+- [getDidsWithAcceptedRole](cacheServerClient.CacheServerClient.md#getdidswithacceptedrole)
+- [getRoleDefinition](cacheServerClient.CacheServerClient.md#getroledefinition)
+- [getUserClaims](cacheServerClient.CacheServerClient.md#getuserclaims)
+- [handleSuccessfulReLogin](cacheServerClient.CacheServerClient.md#handlesuccessfulrelogin)
+- [handleUnauthorized](cacheServerClient.CacheServerClient.md#handleunauthorized)
+- [login](cacheServerClient.CacheServerClient.md#login)
 
 ## Constructors
 
@@ -120,7 +120,7 @@ ___
 
 ### getRoleDefinition
 
-▸ **getRoleDefinition**(`__namedParameters`): `Promise`<[`IRoleDefinition`](../interfaces/loginstrategy_types.iroledefinition.md)\>
+▸ **getRoleDefinition**(`__namedParameters`): `Promise`<[`IRoleDefinition`](../interfaces/LoginStrategy_types.IRoleDefinition.md)\>
 
 #### Parameters
 
@@ -131,13 +131,13 @@ ___
 
 #### Returns
 
-`Promise`<[`IRoleDefinition`](../interfaces/loginstrategy_types.iroledefinition.md)\>
+`Promise`<[`IRoleDefinition`](../interfaces/LoginStrategy_types.IRoleDefinition.md)\>
 
 ___
 
 ### getUserClaims
 
-▸ **getUserClaims**(`__namedParameters`): `Promise`<[`Claim`](../interfaces/loginstrategy_types.claim.md)[]\>
+▸ **getUserClaims**(`__namedParameters`): `Promise`<[`Claim`](../interfaces/LoginStrategy_types.Claim.md)[]\>
 
 #### Parameters
 
@@ -148,7 +148,7 @@ ___
 
 #### Returns
 
-`Promise`<[`Claim`](../interfaces/loginstrategy_types.claim.md)[]\>
+`Promise`<[`Claim`](../interfaces/LoginStrategy_types.Claim.md)[]\>
 
 ___
 

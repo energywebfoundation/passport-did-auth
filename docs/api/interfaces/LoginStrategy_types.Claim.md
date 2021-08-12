@@ -1,15 +1,15 @@
 # Interface: Claim
 
-[LoginStrategy.types](../modules/loginstrategy_types.md).Claim
+[LoginStrategy.types](../modules/LoginStrategy_types.md).Claim
 
 ## Table of contents
 
 ### Properties
 
-- [claimType](loginstrategy_types.claim.md#claimtype)
-- [claimTypeVersion](loginstrategy_types.claim.md#claimtypeversion)
-- [iss](loginstrategy_types.claim.md#iss)
-- [issuedToken](loginstrategy_types.claim.md#issuedtoken)
+- [claimType](LoginStrategy_types.Claim.md#claimtype)
+- [claimTypeVersion](LoginStrategy_types.Claim.md#claimtypeversion)
+- [iss](LoginStrategy_types.Claim.md#iss)
+- [issuedToken](LoginStrategy_types.Claim.md#issuedtoken)
 
 ## Properties
 

@@ -4,10 +4,10 @@
 
 ### Modules
 
-- [AuthTokenVerifier](modules/authtokenverifier.md)
-- [BaseStrategy](modules/basestrategy.md)
-- [ClaimVerifier](modules/claimverifier.md)
-- [LoginStrategy](modules/loginstrategy.md)
-- [LoginStrategy.types](modules/loginstrategy_types.md)
-- [cacheServerClient](modules/cacheserverclient.md)
+- [AuthTokenVerifier](modules/AuthTokenVerifier.md)
+- [BaseStrategy](modules/BaseStrategy.md)
+- [ClaimVerifier](modules/ClaimVerifier.md)
+- [LoginStrategy](modules/LoginStrategy.md)
+- [LoginStrategy.types](modules/LoginStrategy_types.md)
+- [cacheServerClient](modules/cacheServerClient.md)
 - [utils](modules/utils.md)
