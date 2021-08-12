@@ -10,8 +10,7 @@ updates:
     schedule:
       interval: "daily"
       time: "14:00"
-    target-branch:
-      - "feature/PDA-1/Fix_dependency_vulnerability"
+    target-branch: ["feature/PDA-1/Fix_dependency_vulnerability"]
     reviewers:
       - "knzeng-e"
       - "jrhender"
