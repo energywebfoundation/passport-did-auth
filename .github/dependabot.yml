@@ -9,8 +9,8 @@ updates:
     # Check the npm registry for updates at 2pm UTC
     schedule:
       interval: "daily"
-      time: "14:00"
-    target-branch: "feature/PDA-1/Fix_dependency_vulnerability"
+      time: "7:00"
+    target-branch: "develop"
     reviewers:
       - "knzeng-e"
       - "jrhender"
