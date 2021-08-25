@@ -14,7 +14,7 @@ import {
   IRoleDefinition,
   ITokenPayload,
 } from './LoginStrategy.types'
-import { PublicResolverFactory } from '../ethers/PublicResolverFactory'
+import { PublicResolver__factory } from '../ethers/factories/PublicResolver__factory'
 import { PublicResolver } from '../ethers/PublicResolver'
 import { Methods } from '@ew-did-registry/did'
 import { DidStore } from '@ew-did-registry/did-ipfs-store'
@@ -74,7 +74,7 @@ export class LoginStrategy extends BaseStrategy {
     super(options)
     this.claimField = claimField
     this.provider = new providers.JsonRpcProvider(rpcUrl)
-    this.ensResolver = PublicResolverFactory.connect(
+    this.ensResolver = PublicResolver__factory.connect(
       ensResolverAddress,
       this.provider
     )
