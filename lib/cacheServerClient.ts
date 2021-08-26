@@ -1,8 +1,11 @@
 import axios, { AxiosError, AxiosInstance, AxiosResponse } from 'axios'
 import base64url from 'base64url'
-import { Signer, Wallet } from 'ethers'
-import { JsonRpcProvider } from 'ethers/providers'
-import { arrayify, keccak256 } from 'ethers/utils'
+import {
+  Signer,
+  Wallet,
+  utils,
+  providers,
+} from 'ethers'
 import { Claim, IRole, IRoleDefinition } from './LoginStrategy.types'
 import { Policy } from 'cockatiel'
 import { IDIDDocument } from '@ew-did-registry/did-resolver-interface'
@@ -10,7 +13,7 @@ import { IDIDDocument } from '@ew-did-registry/did-resolver-interface'
 export class CacheServerClient {
   private readonly signer: Signer
   private readonly httpClient: AxiosInstance
-  private readonly provider: JsonRpcProvider
+  private readonly provider: providers.JsonRpcProvider
   private failedRequests: Array<(token: string) => void> = []
   private isAlreadyFetchingAccessToken = false
   public readonly address: string
@@ -21,7 +24,7 @@ export class CacheServerClient {
   }: {
     url: string
     privateKey: string
-    provider: JsonRpcProvider
+    provider: providers.JsonRpcProvider
   }) {
     const wallet = new Wallet(privateKey, provider)
     this.address = wallet.address
@@ -55,6 +58,10 @@ export class CacheServerClient {
         this.provider.getBlockNumber(),
       ])
 
+      const {
+        arrayify,
+        keccak256,
+      } = utils
       const {
         encodedHeader,
         encodedPayload,
