@@ -139,8 +139,9 @@ export class LoginStrategy extends BaseStrategy {
         return done(undefined, null, 'Claim outdated')
       }
     } catch (err) {
-      console.log('Provider err', err)
-      return done(err)
+      const error: Error = err as Error;
+      console.log('Provider err', error)
+      return done(error)
     }
 
     try {
@@ -176,8 +177,9 @@ export class LoginStrategy extends BaseStrategy {
       }
       return done(undefined, user)
     } catch (err) {
-      console.log(err)
-      return done(err)
+      const error: Error = err as Error;
+      console.log(error)
+      return done(error)
     }
   }
 
