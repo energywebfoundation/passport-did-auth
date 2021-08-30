@@ -29,7 +29,7 @@
   },
   "homepage": "https://github.com/energywebfoundation/passport-did-auth#readme",
   "dependencies": {
-    "@ensdomains/resolver": "^0.2.4",
+    "@ensdomains/resolver": "^0.3.1",
     "@ethersproject/providers": "^5.4.4",
     "@ew-did-registry/claims": "^0.5.2-alpha.62.0",
     "@ew-did-registry/did": "^0.5.2-alpha.62.0",
