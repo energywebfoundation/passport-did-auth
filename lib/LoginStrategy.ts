@@ -24,7 +24,7 @@ import { AuthTokenVerifier } from './AuthTokenVerifier'
 
 const { abi: abi1056 } = ethrReg
 
-interface LoginStrategyOptions extends StrategyOptions {
+export interface LoginStrategyOptions extends StrategyOptions {
   claimField?: string
   rpcUrl: string
   cacheServerUrl?: string
