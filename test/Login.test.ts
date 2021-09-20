@@ -56,6 +56,7 @@ export const createIdentityProofWithDelegate = async (secp256k1PrivateKey: strin
         payload: payload
     };
 }
+jest.setTimeout(600000)
 
 beforeAll(async () => {
     await deployDidRegistry();
