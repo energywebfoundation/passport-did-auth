@@ -28,6 +28,11 @@ interface LoginStrategyOptions extends StrategyOptions {
   claimField?: string
   rpcUrl: string
   cacheServerUrl?: string
+  /** 
+   * Provides the version string to be appended to the cacheServerUrl.
+   * For example: https://volta-identitycache.energyweb.org/v{cacheServerVersion}
+   */
+  cacheServerVersion?: string
   privateKey?: string
   numberOfBlocksBack?: number
   ensResolverAddress?: string
@@ -57,6 +62,7 @@ export class LoginStrategy extends BaseStrategy {
       claimField = 'identityToken',
       rpcUrl,
       cacheServerUrl,
+      cacheServerVersion,
       privateKey,
       numberOfBlocksBack = 4,
       jwtSecret,
@@ -82,6 +88,9 @@ export class LoginStrategy extends BaseStrategy {
       throw new Error(
         'You need to provide privateKey of an accepted account to login to cache server'
       )
+    }
+    if (cacheServerUrl && cacheServerVersion) {
+      cacheServerUrl = `${cacheServerUrl}/${cacheServerVersion}`
     }
     if (cacheServerUrl && privateKey) {
       this.cacheServerClient = new CacheServerClient({
