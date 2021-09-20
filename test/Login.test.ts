@@ -5,7 +5,7 @@ import {
     ContractFactory,
 } from "ethers";
 
-import request from 'supertest';
+import { server } from './testUtils/server';
 
 import {
     abi as didContractAbi,
@@ -17,20 +17,15 @@ import {
     setCacheClientOptions,
 } from 'iam-client-lib';
 
-import express from 'express';
-import passport from 'passport';
-import { LoginStrategy, LoginStrategyOptions } from '../lib/LoginStrategy';
+import request from 'supertest';
 
-import dotenv from 'dotenv';
 import { JWT } from "@ew-did-registry/jwt";
 
-dotenv.config()
 
 let didContract: Contract;
 
 const GANACHE_PORT = 8544;
 const rpcUrl = `http://localhost:${GANACHE_PORT}`;
-const server = express();
 
 const provider = new providers.JsonRpcProvider(rpcUrl);
 const deployer = provider.getSigner(0);
@@ -41,39 +36,31 @@ const deployDidRegistry = async (): Promise<void> => {
     didContract = await didContractFactory.deploy();
 };
 
-const loginStrategyOptions : LoginStrategyOptions = {
-    jwtSecret: process.env.PRIVATE_PEM,
-    jwtSignOptions: {
-      algorithm: 'RS256',
-    },
-    name: 'login',
-    rpcUrl: process.env.RPC_URL || 'https://volta-rpc.energyweb.org/',
-    cacheServerUrl: process.env.CACHE_SERVER_URL || 'https://identitycache-dev.energyweb.org/',
-    acceptedRoles: process.env.ACCEPTED_ROLES ? process.env.ACCEPTED_ROLES.split(',') : [],
-    privateKey: 'eab5e5ccb983fad7bf7f5cb6b475a7aea95eff0c6523291b0c0ae38b5855459c',
-  }
-
-const createIdentityProofWithDelegate = async (secp256k1PrivateKey: string, rpcUrl: string, identityProofDid: string): Promise<string> => {
+export const createIdentityProofWithDelegate = async (secp256k1PrivateKey: string, rpcUrl: string, identityProofDid: string) => {
     const provider = new providers.JsonRpcProvider(rpcUrl);
     const wallet = new Wallet(secp256k1PrivateKey, provider);
 
-    const blockNumber = (await provider.getBlockNumber()).toString();
+    const blockNumber = (await provider.getBlockNumber());
 
-    const payload: { iss: string; claimData: { blockNumber: string } } = {
+    const payload: { iss: string; claimData: { blockNumber: number }; sub: string } = {
         iss: identityProofDid,
         claimData: {
             blockNumber,
         },
+        sub: identityProofDid
     };
     const jwt = new JWT(wallet);
-    const identityToken = jwt.sign(payload);
-    return identityToken;
+    const identityToken = await jwt.sign(payload);
+    return { 
+        token: identityToken,
+        payload: payload
+    };
 }
 
 beforeAll(async () => {
     await deployDidRegistry();
     const { chainId } = await provider.getNetwork();
-
+    
     setChainConfig(chainId, {
         rpcUrl,
         didContractAddress: didContract.address,
@@ -81,16 +68,21 @@ beforeAll(async () => {
     setCacheClientOptions(chainId, { url: "" });
 })
 
-test('Basic login', async () => {
+it('Can Log in',  async () => {
     const userAddress = new Wallet(userPrivKey).address;
     const did = `did:ethr:${userAddress}`;
-    const idendityToken = await createIdentityProofWithDelegate(userPrivKey, rpcUrl, did);
-    console.log("token >> ", idendityToken);
-    request(server).post('/login', idendityToken).expect(400);
-    const loginStrategy = new LoginStrategy(loginStrategyOptions);
-    
-    passport.authenticate(loginStrategy, (req, res) => {
-        console.log("Authentication: ", req.user);
-    })
-
-})
+    //const idendity = await createIdentityProofWithDelegate(userPrivKey, rpcUrl, did);
+    const idendity = {
+        token: "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiIiLCJjbGFpbURhdGEiOnsiYmxvY2tOdW1iZXIiOjMyMTM5fSwic3ViIjoiIiwiaWF0IjoxNjMyMTUxNzAyMTUzfQ.MHg0MjMwZjdlZTcwOGQ2MzA3Yjk3ZWJkN2RhNGNkN2QzM2QyNjI1ZjM0MGUyNzhmODY1NGUwMDc1MTBjY2RiYTVjMWFhNWJlMGQ1NGI1YWViNWNmOGUwZWI4ZDg5YmNjNmI4MTAzYmFiZjdlOTJlMDQzNjhjMWEzYTMxYTNkMDY2YjFj",
+        payload: {
+            iss: 'did:ethr:0xC5fdf4076b8F3A5357c5E395ab970B5B54098Fef',
+            claimData: { blockNumber: 32139 },
+            sub: 'did:ethr:0xC5fdf4076b8F3A5357c5E395ab970B5B54098Fef',
+            iat: 1632151702153
+          },
+    }
+    await request(server)
+        .post('/login')
+        .send({identity: idendity})
+        .expect(200);
+});
