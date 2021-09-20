@@ -204,9 +204,13 @@ export class LoginStrategy extends BaseStrategy {
    * @returns {string} encoded claim
    */
   extractToken(req: Request): string | null {
-    return (
-      lookup(req.body, this.claimField) || lookup(req.query, this.claimField)
-    )
+    if (req.body.identity)
+      return (
+        lookup(req.body.identity, this.claimField) || lookup(req.query, this.claimField)
+      );
+      return (
+        lookup(req.body, this.claimField) || lookup(req.query, this.claimField)
+      );
   }
 
   async getRoleDefinition(namespace: string) : Promise<any> {
