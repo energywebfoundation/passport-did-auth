@@ -1,9 +1,6 @@
 import passport from 'passport';
 import {Strategy, ExtractJwt} from 'passport-jwt';
-import dotenv from 'dotenv';
 import { LoginStrategyOptions, LoginStrategy } from '../../lib/LoginStrategy';
-
-dotenv.config({path: '/home/th0t-nz1ng/Coding/energyweb/passport-did-auth/test/.env'});
 
 const LOGIN_STRATEGY = 'login'
 const private_pem_secret =  `-----BEGIN RSA PRIVATE KEY-----
@@ -44,19 +41,6 @@ AYbNmwbyp463E9KMjrbNb0IASujkwvWtfA76yp9epXlJ3FyiUJt95PXlvP26zfuJ
 hQIDAQAB
 -----END PUBLIC KEY-----`
 
-const loginStrategyOptions : LoginStrategyOptions = {
-  claimField: "token",
-  jwtSecret: private_pem_secret,
-  jwtSignOptions: {
-      algorithm: 'RS256',
-  },
-  name: 'login',
-  rpcUrl: process.env.RPC_URL || 'https://volta-rpc.energyweb.org/',
-  cacheServerUrl: process.env.CACHE_SERVER_URL || 'https://identitycache-dev.energyweb.org/',
-  acceptedRoles: process.env.ACCEPTED_ROLES ? process.env.ACCEPTED_ROLES.split(',') : [],
-  privateKey: 'eab5e5ccb983fad7bf7f5cb6b475a7aea95eff0c6523291b0c0ae38b5855459c',
-}
-
 const jwtOptions = {
     secretOrKey: public_pem,
     algorithms: ['RS256'],
@@ -77,21 +61,25 @@ const jwtOptions = {
       ]),
 }
 
-export const preparePassport = () => {
-    
-    const loginStrategy = new LoginStrategy(loginStrategyOptions);
-    
-    passport.use(loginStrategy);
-    passport.use(new Strategy(jwtOptions, (_payload, _done) => {
-        return _done(null, _payload);
-    }));
-    passport.serializeUser((_user, done) => {
-        done(null, _user);
-    });
-    passport.deserializeUser(function (user, done) {
-        done(null, user);
-    });
+export const preparePassport = (didRegistryAddress : string) => {
+  const loginStrategyOptions : LoginStrategyOptions = {
+    jwtSecret: private_pem_secret,
+    name: LOGIN_STRATEGY,
+    rpcUrl: `http://localhost:8544`,
+    didContractAddress: didRegistryAddress
+  }
+  const loginStrategy = new LoginStrategy(loginStrategyOptions);
+  
+  passport.use(loginStrategy);
+  passport.use(new Strategy(jwtOptions, (_payload, _done) => {
+      return _done(null, _payload);
+  }));
+  passport.serializeUser((_user, done) => {
+      done(null, _user);
+  });
+  passport.deserializeUser(function (user, done) {
+      done(null, user);
+  });
 
   return { passport, LOGIN_STRATEGY, loginStrategy };
-
 }

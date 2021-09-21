@@ -9,6 +9,7 @@
   ],
   "scripts": {
     "build": "rm -rf dist && rm -rf ethers && npm run build:contracts && npm run build:ts",
+    "ganache": "ganache-cli -m \"candy maple cake sugar pudding cream honey rich smooth crumble sweet treat\" --port 8544 --accounts 20 --networkId=9 --gasLimit=10000000",
     "prepare": "npm run build",
     "build:ts": "tsc",
     "build:contracts": "npm run build:typechain:resolver",
@@ -44,6 +45,7 @@
     "cockatiel": "^2.0.1",
     "eth-ens-namehash": "^2.0.8",
     "ethers": "^5.4.5",
+    "ganache-cli": "^6.12.2",
     "js-sha3": "^0.8.0",
     "jsonwebtoken": "^8.5.1",
     "passport": "^0.4.1",
