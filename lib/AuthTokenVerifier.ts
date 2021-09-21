@@ -47,7 +47,10 @@ export class AuthTokenVerifier {
 
         const validKeys = await this.filterValidKeys(authenticationPubkeys, async (pubKeyField) => {
             try {
-                const publickey = pubKeyField["publicKeyHex"]?.split('x')[1]
+                console.log(pubKeyField)
+                const parts = pubKeyField["publicKeyHex"]?.split('x')
+                const publickey = parts.length == 2 ? parts[1] : parts[0]
+                console.log(publickey)
                 const decodedClaim = await jwtSigner.verify(claimedToken, publickey);
                 return decodedClaim !== undefined;
             }
