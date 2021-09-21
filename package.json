@@ -8,13 +8,21 @@
     "/dist"
   ],
   "scripts": {
-    "build": "rm -rf dist && rm -rf ethers && npm run build:contracts && npm run build:ts",
     "ganache": "ganache-cli -m \"candy maple cake sugar pudding cream honey rich smooth crumble sweet treat\" --port 8544 --accounts 20 --networkId=9 --gasLimit=10000000",
     "prepare": "npm run build",
-    "build:ts": "tsc",
-    "build:contracts": "npm run build:typechain:resolver",
-    "build:typechain:resolver": "typechain --target ethers-v5 --out-dir ethers './node_modules/@ensdomains/resolver/build/contracts/PublicResolver.json'",
+    "build": "rm -rf dist && rm -rf ethers && npm run build:contracts && npm run build:ts",
     "build:api_docs": "rm -rf docs/api && typedoc --plugin typedoc-plugin-markdown --hideBreadcrumbs true",
+    "build:ts": "tsc",
+    "build:contracts": "npm run build:typechain:ens && npm run build:typechain:did && npm run build:typechain:roles",
+    "build:typechain:ens": "typechain --target ethers-v5 --out-dir ethers \"./node_modules/@ensdomains/ens/build/contracts/ENSRegistry.json\"",
+    "build:typechain:did": "npm run build:typechain:offerableIdentity && npm run build:typechain:identityManager",
+    "build:typechain:roles": " npm run build:typechain:claimManager && npm run build:typechain:roledefinitionresolver && npm run build:typechain:domainnotifier && npm run build:typechain:publicresolver",
+    "build:typechain:offerableIdentity": "typechain --target ethers-v5 --out-dir ethers \"./node_modules/@ew-did-registry/proxyidentity/build/contracts/OfferableIdentity.json\"",
+    "build:typechain:identityManager": "typechain --target ethers-v5 --out-dir ethers \"./node_modules/@ew-did-registry/proxyidentity/build/contracts/IdentityManager.json\"",
+    "build:typechain:claimManager": "typechain --target ethers-v5 --out-dir ethers \"./node_modules/@energyweb/iam-contracts/dist/contracts/ClaimManager.json\"",
+    "build:typechain:roledefinitionresolver": "typechain --target ethers-v5 --out-dir ethers \"./node_modules/@energyweb/iam-contracts/dist/contracts/RoleDefinitionResolver.json\"",
+    "build:typechain:domainnotifier": "typechain --target ethers-v5 --out-dir ethers \"./node_modules/@energyweb/iam-contracts/dist/contracts/DomainNotifier.json\"",
+    "build:typechain:publicresolver": "typechain --target ethers-v5 --out-dir ethers \"./node_modules/@ensdomains/ens-contracts/build/contracts/PublicResolver.json\"",
     "test": "jest --watchAll",
     "lint": "eslint -c .eslintrc.js --ext .ts lib test"
   },
@@ -30,6 +38,7 @@
   },
   "homepage": "https://github.com/energywebfoundation/passport-did-auth#readme",
   "dependencies": {
+    "@energyweb/iam-contracts": "^3.1.0",
     "@ensdomains/resolver": "^0.3.1",
     "@ethersproject/providers": "^5.4.4",
     "@ew-did-registry/claims": "^0.5.2-alpha.62.0",
