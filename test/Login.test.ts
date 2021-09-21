@@ -20,6 +20,8 @@ import {
 import request from 'supertest';
 
 import { JWT } from "@ew-did-registry/jwt";
+import { LoginStrategy, LoginStrategyOptions } from "../lib/LoginStrategy";
+import { LOGIN_STRATEGY, private_pem_secret } from "./testUtils/preparePassport";
 
 let didContract: Contract;
 
@@ -44,15 +46,13 @@ export const createIdentityProofWithDelegate = async (secp256k1PrivateKey: strin
 
     const blockNumber = (await provider.getBlockNumber());
 
-    const payload: { iss: string; claimData: { blockNumber: number }; sub: string } = {
-        iss: identityProofDid,
+    const payload = {
         claimData: {
             blockNumber,
         },
-        sub: identityProofDid
     };
     const jwt = new JWT(wallet);
-    const identityToken = await jwt.sign(payload);
+    const identityToken = await jwt.sign(payload, { issuer: identityProofDid, subject: identityProofDid });
     return { 
         token: identityToken,
         payload: payload
@@ -89,9 +89,18 @@ it('Can Log in',  async () => {
     //       },
     // }
     //const identityToken = await iam.createIdentityProof();
+    const loginStrategyOptions : LoginStrategyOptions = {
+        jwtSecret: private_pem_secret,
+        name: LOGIN_STRATEGY,
+        rpcUrl: `http://localhost:8544`,
+        didContractAddress: didContract.address
+    }
+    const loginStrategy = new LoginStrategy(loginStrategyOptions)
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    await loginStrategy.validate(identityToken.token, identityToken.payload, ()=>{})
 
-    await request(getServer(didContract.address))
-        .post('/login')
-        .send({identity: identityToken})
-        .expect(200);
+    // await request(getServer(didContract.address))
+    //     .post('/login')
+    //     .send({identity: identityToken})
+    //     .expect(200);
 });

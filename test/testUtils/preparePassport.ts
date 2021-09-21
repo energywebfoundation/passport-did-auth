@@ -2,8 +2,8 @@ import passport from 'passport';
 import {Strategy, ExtractJwt} from 'passport-jwt';
 import { LoginStrategyOptions, LoginStrategy } from '../../lib/LoginStrategy';
 
-const LOGIN_STRATEGY = 'login'
-const private_pem_secret =  `-----BEGIN RSA PRIVATE KEY-----
+export const LOGIN_STRATEGY = 'login'
+export const private_pem_secret =  `-----BEGIN RSA PRIVATE KEY-----
 MIIEpAIBAAKCAQEA0Ir9KTl66IzS5pQclFnvpP8+eTWwiVtqONPUn17359cpfLAS
 b4OcRPkBfoBu9ecLnsYl+dfvyOxGI0risdDCiRHpSOrXhbfUhvYZXDSrpO4lFk10
 UE35d//YawCs3GEJ1KEdyYvafFGjhzkn4rqh26YlTguLkNce6oxGh0axkcxSm2pd
