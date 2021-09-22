@@ -25,7 +25,6 @@ export class AuthTokenVerifier {
    * @returns {string} issuer DID or null
    */
     public async verify(token: string, issuerDID: string): Promise<string | null> {
-
         if (await this.isAuthorized(token))
             return issuerDID
         return null
@@ -42,7 +41,7 @@ export class AuthTokenVerifier {
         
         //get all authentication public keys
         const authenticationPubkeys = this.didDocument.publicKey.filter(pubkey => {
-            return this.isAuthenticated(pubkey, this.didDocument.authentication)
+            return this.isAuthenticationKey(pubkey, this.didDocument.authentication)
         })
 
         const validKeys = await this.filterValidKeys(authenticationPubkeys, async (pubKeyField) => {
@@ -67,11 +66,19 @@ export class AuthTokenVerifier {
         return authenticatedKey.filter((_key, index) => results[index]);
     }
 
-    private isAuthenticated = (publicKey: IPublicKey, authFieldDocument: (string | IAuthentication)[]) => {
-        if (authFieldDocument.length === 0 && publicKey !== undefined)
+    /**
+     * The authentication token should be signed by an "authentication" key of the DID (https://www.w3.org/TR/did-core/#authentication)
+     * There are two ways to determine an authentication key.
+     * 1. The publicKey's type is "sigAuth"
+     * 2. The publicKey's id is in the authentication array of the DID document
+     * @param publicKey The publicKey to test
+     * @param documentAuthField The authentication array of the DID document
+     * @returns where or not the key is an authentication key
+     */
+    private isAuthenticationKey = (publicKey: IPublicKey, documentAuthField: (string | IAuthentication)[]) => {
+        if (documentAuthField.length === 0 && publicKey !== undefined)
             return this.isSigAuth(publicKey["type"])
-        const authenticationKeys = authFieldDocument.map(auth => {
-
+        const authenticationKeys = documentAuthField.map(auth => {
             return (this.areLinked(auth["publicKey"], publicKey["id"]))
         })
         return authenticationKeys.includes(true);
