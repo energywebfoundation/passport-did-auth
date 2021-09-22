@@ -43,7 +43,6 @@ export class LoginStrategy extends BaseStrategy {
   private readonly jwtSecret?: string | Buffer
   private readonly jwtSignOptions?: jwt.SignOptions
   private readonly provider: providers.JsonRpcProvider
-  private readonly cacheServerClient!: CacheServerClient
   private readonly numberOfBlocksBack: number
   private readonly ensResolver: PublicResolver
   private readonly didResolver: Resolver
@@ -51,6 +50,7 @@ export class LoginStrategy extends BaseStrategy {
   private readonly acceptedRoles: Set<string>
   private readonly strategyAddress?: string
   private readonly privateKey: string
+  private cacheServerClient?: CacheServerClient
 
   constructor(
     {
@@ -84,13 +84,8 @@ export class LoginStrategy extends BaseStrategy {
       )
     }
     if (cacheServerUrl && privateKey) {
-      this.cacheServerClient = new CacheServerClient({
-        privateKey,
-        provider: this.provider,
-        url: cacheServerUrl,
-      })
-      this.strategyAddress = this.cacheServerClient.address
-      this.cacheServerClient.login()
+      this.strategyAddress = cacheServerUrl;
+      this.initCacheServer(privateKey, cacheServerUrl);
     }
     const registrySetting = {
       abi: abi1056,
@@ -105,6 +100,17 @@ export class LoginStrategy extends BaseStrategy {
     this.jwtSignOptions = jwtSignOptions
     this.privateKey = privateKey!
   }
+
+  private async initCacheServer(privateKey: string, cacheServerUrl: string) {
+    const cacheServerClientInstance = new CacheServerClient({
+      privateKey,
+      provider: this.provider,
+      url: cacheServerUrl,
+    });
+    await cacheServerClientInstance.login();
+    this.cacheServerClient = cacheServerClientInstance;
+  }
+
   /**
    * @description verifies issuer signature, then check that claim issued
    * no latter then `this.numberOfBlocksBack` and user has enrolled with at
