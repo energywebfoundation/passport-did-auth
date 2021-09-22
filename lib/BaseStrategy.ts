@@ -74,7 +74,7 @@ export abstract class BaseStrategy extends Strategy {
         return this.error(err)
       }
       if (!user) {
-        return self.fail(info)
+        return this.fail(info)
       }
       this.success(user, info)
     }
