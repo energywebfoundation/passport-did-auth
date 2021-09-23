@@ -18,7 +18,6 @@ import request from 'supertest';
 
 import { JWT } from "@ew-did-registry/jwt";
 import { Keys } from "@ew-did-registry/keys";
-import { LOGIN_STRATEGY, private_pem_secret } from "./testUtils/preparePassport";
 import { assetsManager, claimManager, deployClaimManager, deployDidRegistry, deployEns, deployIdentityManager, didContract, domainNotifer, ensRegistry, ensResolver } from "./setup_contracts";
 import { assert } from "chai";
 
@@ -81,8 +80,6 @@ it('Can Log in',  async () => {
 
     // Create a key
     const assetKeys = new Keys();
-    console.log("Asset pubkey", assetKeys.publicKey);
-    console.log("Before update DidDoc: ", await iam.getDidDocument())
 
     // Add new key to asset's DID Document
     const assetDid = `did:ethr:${assetAddress}`;
@@ -106,7 +103,6 @@ it('Can Log in',  async () => {
         assetDid
     );
     const identityToken = token;
-    console.log("IdentityToken >> ", identityToken);
 
     const server = getServer(didContract.address);
     const connection = server.listen(3333, () => {
