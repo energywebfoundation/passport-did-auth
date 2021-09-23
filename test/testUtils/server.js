@@ -16,8 +16,8 @@ export const getServer = (didRegistryAddress) => {
     return res.send({ token: req.user });
   });
 
-  server.listen(3333, () => {
-    console.log("App is ready and listening on port 3333");
-  });
+  // server.listen(3333, () => {
+  //   console.log("App is ready and listening on port 3333");
+  // });
   return server
 }

@@ -24,8 +24,8 @@
     "build:typechain:roledefinitionresolver": "typechain --target ethers-v5 --out-dir ethers \"./node_modules/@energyweb/iam-contracts/dist/contracts/RoleDefinitionResolver.json\"",
     "build:typechain:domainnotifier": "typechain --target ethers-v5 --out-dir ethers \"./node_modules/@energyweb/iam-contracts/dist/contracts/DomainNotifier.json\"",
     "build:typechain:publicresolver": "typechain --target ethers-v5 --out-dir ethers \"./node_modules/@ensdomains/ens-contracts/build/contracts/PublicResolver.json\"",
-    "test": "npm run start-rpc -- \"jest\"",
-    "test:watch": "npm run start-rpc -- \"jest --watchAll\"",
+    "test": "npm run start-rpc -- \"jest --detectOpenHandles\"",
+    "test:watch": "npm run start-rpc -- \"jest --watchAll --detectOpenHandles\"",
     "lint": "eslint -c .eslintrc.js --ext .ts lib test"
   },
   "repository": {

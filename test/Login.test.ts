@@ -108,10 +108,15 @@ it('Can Log in',  async () => {
     const identityToken = token;
     console.log("IdentityToken >> ", identityToken);
 
-    await request(getServer(didContract.address))
+    const server = getServer(didContract.address);
+    const connection = server.listen(3333, () => {
+        console.log("App is ready and listening on port 3333");
+      });
+    await request(server)
         .post('/login')
         .send({identityToken})
         .expect(200)
         // TODO: expect jwt token
         // TODO: ensure that test ends afterwards
+    connection.close()
 });
