@@ -2,8 +2,7 @@ import {
   VoltaAddress1056,
   ethrReg,
   Operator,
-  IdentityOwner,
-  EwPrivateKeySigner,
+  EwSigner,
 } from '@ew-did-registry/did-ethr-resolver';
 import { ClaimsUser, } from "@ew-did-registry/claims";
 import {
@@ -33,17 +32,16 @@ const didStore = new DidStore("http://not-used.org");
 
 export class ClaimsUserFactory {
   static create(keys: Keys): ClaimsUser {
-    const privateKeySigner = new EwPrivateKeySigner(keys.privateKey, providerSettings);
-    const owner = IdentityOwner.fromPrivateKeySigner(privateKeySigner);
+    const privateKeySigner = EwSigner.fromPrivateKey(keys.privateKey, providerSettings);
     // Ignoring error that "Type 'RegistrySettings' is not assignable to type 'IResolverSettings'"
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     const operator: IOperator = new Operator(
-      owner,
+      privateKeySigner,
       { address: registrySettings.address },
     );
     const did = `did:ethr:${keys.getAddress()}`;
     const didDocument = new DIDDocumentFull(did, operator);
-    return new ClaimsUser(owner, didDocument, didStore);
+    return new ClaimsUser(privateKeySigner, didDocument, didStore);
   }
 }

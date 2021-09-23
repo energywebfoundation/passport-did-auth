@@ -25,7 +25,6 @@ export class AuthTokenVerifier {
    * @returns {string} issuer DID or null
    */
     public async verify(token: string, issuerDID: string): Promise<string | null> {
-
         if (await this.isAuthorized(token))
             return issuerDID
         return null
@@ -33,21 +32,24 @@ export class AuthTokenVerifier {
 
     private isAuthorized = async (claimedToken: string): Promise<boolean> => {
         //read publickey field in DID document
-        const didPubKey = this.didDocument.publicKey
-        if (didPubKey.length === 0)
-        return false
+        const didPubKeys = this.didDocument.publicKey
+        if (didPubKeys.length === 0)
+            return false
         
         const keys = new Keys({ privateKey: this.privateKey })
         const jwtSigner = new JWT(keys)
         
         //get all authentication public keys
-        const authenticationPubkeys = this.didDocument.publicKey.filter(pubkey => {
-            return this.isAuthenticated(pubkey, this.didDocument.authentication)
+        const authenticationPubkeys = didPubKeys.filter(pubkey => {
+            return this.isAuthenticationKey(pubkey, this.didDocument.authentication)
         })
 
         const validKeys = await this.filterValidKeys(authenticationPubkeys, async (pubKeyField) => {
             try {
-                const publickey = pubKeyField["publicKeyHex"]?.split('x')[1]
+                console.log(pubKeyField)
+                const parts = pubKeyField["publicKeyHex"]?.split('x')
+                const publickey = parts.length == 2 ? parts[1] : parts[0]
+                console.log(publickey)
                 const decodedClaim = await jwtSigner.verify(claimedToken, publickey);
                 return decodedClaim !== undefined;
             }
@@ -64,24 +66,30 @@ export class AuthTokenVerifier {
         return authenticatedKey.filter((_key, index) => results[index]);
     }
 
-    private isAuthenticated = (publicKey: IPublicKey, authFieldDocument: (string | IAuthentication)[]) => {
-        if (authFieldDocument.length === 0 && publicKey !== undefined)
+    /**
+     * The authentication token should be signed by an "authentication" key of the DID (https://www.w3.org/TR/did-core/#authentication)
+     * There are two ways to determine an authentication key.
+     * 1. The publicKey's type is "sigAuth"
+     * 2. The publicKey's id is in the authentication array of the DID document
+     * @param publicKey The publicKey to test
+     * @param documentAuthField The authentication array of the DID document
+     * @returns whether or not the key is an authentication key
+     */
+    private isAuthenticationKey = (publicKey: IPublicKey, documentAuthField: (string | IAuthentication)[]) => {
+        if (documentAuthField.length === 0 && publicKey !== undefined)
             return this.isSigAuth(publicKey["type"])
-        const authenticationKeys = authFieldDocument.map(auth => {
-
+        const authenticationKeys = documentAuthField.map(auth => {
             return (this.areLinked(auth["publicKey"], publicKey["id"]))
         })
         return authenticationKeys.includes(true);
     }
 
-    //used to compare ids in DID Since the referenced pubkey id differs slighty from the auth reference Id
+    //used to check if publicKey field in authentication refers to the publicKey ID in publicKey field
     private areLinked = (authId: string, pubKeyID: string) => {
         if (authId === pubKeyID)
             return true
-        if (authId.includes("#")) {
-            const [idRef, typeRef] = authId.split("#")
-            return `${idRef}#key-${typeRef}` === pubKeyID
-        }
+        if (authId.includes("#"))
+            return pubKeyID.split("#")[0] == authId.split("#")[0]
         return false
     }
 
