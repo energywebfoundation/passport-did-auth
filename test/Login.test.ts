@@ -1,5 +1,4 @@
 import {
-    utils,
     Wallet,
     providers,
 } from "ethers";
@@ -19,7 +18,6 @@ import request from 'supertest';
 
 import { JWT } from "@ew-did-registry/jwt";
 import { Keys } from "@ew-did-registry/keys";
-import { LoginStrategy, LoginStrategyOptions } from "../lib/LoginStrategy";
 import { LOGIN_STRATEGY, private_pem_secret } from "./testUtils/preparePassport";
 import { assetsManager, claimManager, deployClaimManager, deployDidRegistry, deployEns, deployIdentityManager, didContract, domainNotifer, ensRegistry, ensResolver } from "./setup_contracts";
 import { assert } from "chai";
@@ -71,25 +69,22 @@ beforeAll(async () => {
         claimManagerAddress: claimManager.address,
         domainNotifierAddress: domainNotifer.address
     });
-    // setCacheClientOptions(chainId, { url: "" });
     iam = new IAM({privateKey: userPrivKey, rpcUrl});
     await iam.initializeConnection({initCacheServer: false})
 })
 
 it('Can Log in',  async () => {
-    // TODO: instead of createIdentityProof (or need another test)
-    // Create an asset , ....
-
+    // Register an asset
     const assetAddress = await iam.registerAsset();
     assert.exists(assetAddress);
     console.log("Asset created at address ", assetAddress);
 
-    //create a key
+    // Create a key
     const assetKeys = new Keys();
     console.log("Asset pubkey", assetKeys.publicKey);
     console.log("Before update DidDoc: ", await iam.getDidDocument())
 
-    //add to asset
+    // Add new key to asset's DID Document
     const assetDid = `did:ethr:${assetAddress}`;
     const isDIdDocUpdated = await iam.updateDidDocument({
         didAttribute: DIDAttribute.PublicKey,
@@ -104,15 +99,14 @@ it('Can Log in',  async () => {
     assert.isTrue(isDIdDocUpdated, "The asset has not been added to document");
     console.log("After update DidDoc: ", await iam.getDidDocument());
     
-    //create IdentityProofWithDelegate
-
+    // TODO: replace with static function in iam-client-lib
     const {token , } = await createIdentityProofWithDelegate(
         assetKeys.privateKey,
         rpcUrl,
         assetDid
-        );
-        const identityToken = token;
-        console.log("IdentityToken >> ", identityToken);
+    );
+    const identityToken = token;
+    console.log("IdentityToken >> ", identityToken);
 
     await request(getServer(didContract.address))
         .post('/login')
