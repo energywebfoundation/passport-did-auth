@@ -18,6 +18,7 @@ import request from 'supertest';
 
 import { JWT } from "@ew-did-registry/jwt";
 import { Keys } from "@ew-did-registry/keys";
+
 import {
     assetsManager,
     claimManager,
@@ -121,3 +122,4 @@ it('Can Log in',  async () => {
     expect(response.body.token).toBeDefined;
     connection.close()
 });
+
