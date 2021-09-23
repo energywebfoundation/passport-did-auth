@@ -51,14 +51,3 @@ export const deployIdentityManager = async (): Promise<void> => {
 export const deployClaimManager = async (): Promise<void> => {
     claimManager = await new ClaimManager__factory(deployer).deploy(didContract.address, ensRegistry.address);
 };
-
-export const replenish = async (acc: string, amount: BigNumber | string = "3.0") => {
-    if (typeof amount === "string") {
-        amount = parseEther(amount);
-    }
-    const faucet = provider.getSigner(2);
-    await faucet.sendTransaction({
-        to: acc,
-        value: amount,
-    });
-};
