@@ -84,7 +84,7 @@ beforeAll(async () => {
     await iam.initializeConnection({initCacheServer: false})
 })
 
-it('Can Log in',  async () => {
+it('Verifies asset authentication',  async () => {
     // Register an asset
     const assetAddress = await iam.registerAsset();
     assert.exists(assetAddress);
