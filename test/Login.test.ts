@@ -112,11 +112,8 @@ it('Can Log in',  async () => {
     const connection = server.listen(3333, () => {
         console.log("App is ready and listening on port 3333");
       });
-    await request(server)
-        .post('/login')
-        .send({identityToken})
-        .expect(200)
-        // TODO: expect jwt token
-        // TODO: ensure that test ends afterwards
+    const response = await request(server).post('/login').send({identityToken})
+    expect(response.statusCode).toBe(200);
+    expect(response.body.token).toBeDefined;
     connection.close()
 });
