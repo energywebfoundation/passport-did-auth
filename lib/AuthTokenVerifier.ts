@@ -73,7 +73,7 @@ export class AuthTokenVerifier {
      * 2. The publicKey's id is in the authentication array of the DID document
      * @param publicKey The publicKey to test
      * @param documentAuthField The authentication array of the DID document
-     * @returns where or not the key is an authentication key
+     * @returns whether or not the key is an authentication key
      */
     private isAuthenticationKey = (publicKey: IPublicKey, documentAuthField: (string | IAuthentication)[]) => {
         if (documentAuthField.length === 0 && publicKey !== undefined)
