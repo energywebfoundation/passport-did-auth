@@ -18,7 +18,19 @@ import request from 'supertest';
 
 import { JWT } from "@ew-did-registry/jwt";
 import { Keys } from "@ew-did-registry/keys";
-import { assetsManager, claimManager, deployClaimManager, deployDidRegistry, deployEns, deployIdentityManager, didContract, domainNotifer, ensRegistry, ensResolver } from "./setup_contracts";
+
+import {
+    assetsManager,
+    claimManager,
+    deployClaimManager,
+    deployDidRegistry,
+    deployEns,
+    deployIdentityManager,
+    didContract,
+    domainNotifer,
+    ensRegistry,
+    ensResolver,
+} from "./setup_contracts";
 import { assert } from "chai";
 
 const GANACHE_PORT = 8544;
@@ -76,7 +88,6 @@ it('Can Log in',  async () => {
     // Register an asset
     const assetAddress = await iam.registerAsset();
     assert.exists(assetAddress);
-    console.log("Asset created at address ", assetAddress);
 
     // Create a key
     const assetKeys = new Keys();
@@ -94,7 +105,6 @@ it('Can Log in',  async () => {
         },
     });
     assert.isTrue(isDIdDocUpdated, "The asset has not been added to document");
-    console.log("After update DidDoc: ", await iam.getDidDocument());
     
     // TODO: replace with static function in iam-client-lib
     const {token , } = await createIdentityProofWithDelegate(
@@ -103,16 +113,13 @@ it('Can Log in',  async () => {
         assetDid
     );
     const identityToken = token;
-
     const server = getServer(didContract.address);
-    const connection = server.listen(3333, () => {
-        console.log("App is ready and listening on port 3333");
+    const connection = server.listen(4242, () => {
+        console.log("Test Server is ready and listening on port 4242");
       });
-    await request(server)
-        .post('/login')
-        .send({identityToken})
-        .expect(200)
-        // TODO: expect jwt token
-        // TODO: ensure that test ends afterwards
+    const response = await request(server).post('/login').send({identityToken})
+    expect(response.statusCode).toBe(200);
+    expect(response.body.token).toBeDefined;
     connection.close()
 });
+
