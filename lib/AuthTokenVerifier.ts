@@ -84,14 +84,12 @@ export class AuthTokenVerifier {
         return authenticationKeys.includes(true);
     }
 
-    //used to compare ids in DID Since the referenced pubkey id differs slighty from the auth reference Id
+    //used to check if publicKey field in authentication refers to the publicKey ID in publicKey field
     private areLinked = (authId: string, pubKeyID: string) => {
         if (authId === pubKeyID)
             return true
-        if (authId.includes("#")) {
-            const [idRef, typeRef] = authId.split("#")
-            return `${idRef}#key-${typeRef}` === pubKeyID
-        }
+        if (authId.includes("#"))
+            return pubKeyID.split("#")[0] == authId.split("#")[0]
         return false
     }
 
