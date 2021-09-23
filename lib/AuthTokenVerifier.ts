@@ -32,15 +32,15 @@ export class AuthTokenVerifier {
 
     private isAuthorized = async (claimedToken: string): Promise<boolean> => {
         //read publickey field in DID document
-        const didPubKey = this.didDocument.publicKey
-        if (didPubKey.length === 0)
-        return false
+        const didPubKeys = this.didDocument.publicKey
+        if (didPubKeys.length === 0)
+            return false
         
         const keys = new Keys({ privateKey: this.privateKey })
         const jwtSigner = new JWT(keys)
         
         //get all authentication public keys
-        const authenticationPubkeys = this.didDocument.publicKey.filter(pubkey => {
+        const authenticationPubkeys = didPubKeys.filter(pubkey => {
             return this.isAuthenticationKey(pubkey, this.didDocument.authentication)
         })
 
