@@ -15,9 +15,5 @@ export const getServer = (didRegistryAddress) => {
   server.post("/login", passport.authenticate(LOGIN_STRATEGY), async (req, res) => {
     return res.send({ token: req.user });
   });
-
-  // server.listen(3333, () => {
-  //   console.log("App is ready and listening on port 3333");
-  // });
   return server
 }
