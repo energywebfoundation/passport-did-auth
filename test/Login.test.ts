@@ -86,10 +86,9 @@ it('Can Log in',  async () => {
 
     //create a key
     const assetKeys = new Keys();
-    //const assetWallet = new Wallet(assetKeys.privateKey);
-    
-    //const pubKey = utils.computePublicKey(assetWallet.publicKey, true);
     console.log("Asset pubkey", assetKeys.publicKey);
+    console.log("Before update DidDoc: ", await iam.getDidDocument())
+
     //add to asset
     const assetDid = `did:ethr:${assetAddress}`;
     const isDIdDocUpdated = await iam.updateDidDocument({
@@ -99,11 +98,11 @@ it('Can Log in',  async () => {
             algo: Algorithms.Secp256k1,
             encoding: Encoding.HEX,
             type: PubKeyType.SignatureAuthentication2018,
-            value: { tag: "key-owner", publicKey: `${assetKeys.publicKey}` },
-            //value: { tag: "key-owner", publicKey: `${assetKeys.publicKey}` },
+            value: { tag: "key-1", publicKey: `0x${assetKeys.publicKey}` },
         },
     });
     assert.isTrue(isDIdDocUpdated, "The asset has not been added to document");
+    console.log("After update DidDoc: ", await iam.getDidDocument());
     
     //create IdentityProofWithDelegate
 
@@ -112,14 +111,13 @@ it('Can Log in',  async () => {
         rpcUrl,
         assetDid
         );
-        // const identityToken = await iam.createIdentityProof();
         const identityToken = token;
         console.log("IdentityToken >> ", identityToken);
 
     await request(getServer(didContract.address))
         .post('/login')
         .send({identityToken})
-        .expect(200);
+        .expect(200)
         // TODO: expect jwt token
         // TODO: ensure that test ends afterwards
 });
