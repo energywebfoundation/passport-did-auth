@@ -33,8 +33,9 @@ export class AuthTokenVerifier {
     private isAuthorized = async (claimedToken: string): Promise<boolean> => {
         //read publickey field in DID document
         const didPubKeys = this.didDocument.publicKey
-        if (didPubKeys.length === 0)
+        if (didPubKeys.length === 0) {
             return false
+        }
         
         const keys = new Keys({ privateKey: this.privateKey })
         const jwtSigner = new JWT(keys)
@@ -76,8 +77,9 @@ export class AuthTokenVerifier {
      * @returns whether or not the key is an authentication key
      */
     private isAuthenticationKey = (publicKey: IPublicKey, documentAuthField: (string | IAuthentication)[]) => {
-        if (documentAuthField.length === 0 && publicKey !== undefined)
+        if (documentAuthField.length === 0 && publicKey !== undefined) {
             return this.isSigAuth(publicKey["type"])
+        }
         const authenticationKeys = documentAuthField.map(auth => {
             return (this.areLinked(auth["publicKey"], publicKey["id"]))
         })
@@ -86,10 +88,12 @@ export class AuthTokenVerifier {
 
     //used to check if publicKey field in authentication refers to the publicKey ID in publicKey field
     private areLinked = (authId: string, pubKeyID: string) => {
-        if (authId === pubKeyID)
+        if (authId === pubKeyID) {
             return true
-        if (authId.includes("#"))
+        }
+        if (authId.includes("#")) {
             return pubKeyID.split("#")[0] == authId.split("#")[0]
+        }
         return false
     }
 
