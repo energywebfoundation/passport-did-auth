@@ -48,8 +48,8 @@ export class LoginStrategy extends BaseStrategy {
   private readonly didResolver: Resolver
   private readonly ipfsStore: DidStore
   private readonly acceptedRoles: Set<string>
-  private readonly strategyAddress?: string
   private readonly privateKey: string
+  private strategyAddress?: string
   private cacheServerClient?: CacheServerClient
 
   constructor(
@@ -84,7 +84,6 @@ export class LoginStrategy extends BaseStrategy {
       )
     }
     if (cacheServerUrl && privateKey) {
-      this.strategyAddress = cacheServerUrl;
       this.initCacheServer(privateKey, cacheServerUrl);
     }
     const registrySetting = {
@@ -107,6 +106,7 @@ export class LoginStrategy extends BaseStrategy {
       provider: this.provider,
       url: cacheServerUrl,
     });
+    this.strategyAddress = cacheServerClientInstance.address;
     await cacheServerClientInstance.login();
     this.cacheServerClient = cacheServerClientInstance;
   }
