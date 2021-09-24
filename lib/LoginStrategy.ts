@@ -49,8 +49,8 @@ export class LoginStrategy extends BaseStrategy {
   private readonly ipfsStore: DidStore
   private readonly acceptedRoles: Set<string>
   private readonly privateKey: string
-  private strategyAddress?: string
-  private cacheServerClient?: CacheServerClient
+  private readonly cacheServerClient?: CacheServerClient
+  private readonly cacheServerClientLoginPromise?: Promise<string>
 
   constructor(
     {
@@ -84,7 +84,12 @@ export class LoginStrategy extends BaseStrategy {
       )
     }
     if (cacheServerUrl && privateKey) {
-      this.initCacheServer(privateKey, cacheServerUrl);
+      this.cacheServerClient = new CacheServerClient({
+        privateKey,
+        provider: this.provider,
+        url: cacheServerUrl,
+      });
+      this.cacheServerClientLoginPromise = this.cacheServerClient.login();
     }
     const registrySetting = {
       abi: abi1056,
@@ -98,17 +103,6 @@ export class LoginStrategy extends BaseStrategy {
     this.acceptedRoles = acceptedRoles! && new Set(acceptedRoles)
     this.jwtSignOptions = jwtSignOptions
     this.privateKey = privateKey!
-  }
-
-  private async initCacheServer(privateKey: string, cacheServerUrl: string) {
-    const cacheServerClientInstance = new CacheServerClient({
-      privateKey,
-      provider: this.provider,
-      url: cacheServerUrl,
-    });
-    this.strategyAddress = cacheServerClientInstance.address;
-    await cacheServerClientInstance.login();
-    this.cacheServerClient = cacheServerClientInstance;
   }
 
   /**
@@ -159,7 +153,7 @@ export class LoginStrategy extends BaseStrategy {
          * Therefore, not getting userClaims
          * if address attempting to login is the address of the strategy
          */
-        this.strategyAddress === address ? [] : await this.getUserClaims(did)
+        this.cacheServerClient?.address === address ? [] : await this.getUserClaims(did)
       const verifier = new ClaimVerifier(roleClaims, this.getRoleDefinition.bind(this), this.getUserClaims.bind(this))
       const uniqueRoles = await verifier.getVerifiedRoles();
 
@@ -219,8 +213,17 @@ export class LoginStrategy extends BaseStrategy {
       );
   }
 
+  /**
+   * Checks the necessary initialization of cache-server has occured
+   * The pattern is described here: https://stackoverflow.com/a/49695053 
+   * @returns 
+   */
+  private async isCacheServerClientAvailable() {
+    return await this.cacheServerClientLoginPromise;
+  }
+
   async getRoleDefinition(namespace: string) : Promise<any> {
-    if (this.cacheServerClient) {
+    if (this.cacheServerClient && await this.isCacheServerClientAvailable()) {
       return this.cacheServerClient.getRoleDefinition({ namespace })
     }
     const namespaceHash = namehash(namespace)
@@ -230,7 +233,7 @@ export class LoginStrategy extends BaseStrategy {
   }
 
   async getUserClaims(did: string): Promise<Claim[]> {
-    if (this.cacheServerClient) {
+    if (this.cacheServerClient && await this.cacheServerClientLoginPromise) {
       return this.cacheServerClient.getUserClaims({ did })
     }
     const didDocument = await this.didResolver.read(did)
