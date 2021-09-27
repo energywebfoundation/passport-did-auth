@@ -48,9 +48,9 @@ export class LoginStrategy extends BaseStrategy {
   private readonly didResolver: Resolver
   private readonly ipfsStore: DidStore
   private readonly acceptedRoles: Set<string>
-  private readonly strategyAddress?: string
   private readonly privateKey: string
-  private cacheServerClient?: CacheServerClient
+  private readonly cacheServerClient?: CacheServerClient
+    private isCacheServerClientAvailable: boolean
 
   constructor(
     {
@@ -83,9 +83,14 @@ export class LoginStrategy extends BaseStrategy {
         'You need to provide privateKey of an accepted account to login to cache server'
       )
     }
+    this.isCacheServerClientAvailable = false;
     if (cacheServerUrl && privateKey) {
-      this.strategyAddress = cacheServerUrl;
-      this.initCacheServer(privateKey, cacheServerUrl);
+      this.cacheServerClient = new CacheServerClient({
+        privateKey,
+        provider: this.provider,
+        url: cacheServerUrl,
+      });
+      this.cacheServerClient.login().then(() => this.isCacheServerClientAvailable = true);
     }
     const registrySetting = {
       abi: abi1056,
@@ -101,19 +106,9 @@ export class LoginStrategy extends BaseStrategy {
     this.privateKey = privateKey!
   }
 
-  private async initCacheServer(privateKey: string, cacheServerUrl: string) {
-    const cacheServerClientInstance = new CacheServerClient({
-      privateKey,
-      provider: this.provider,
-      url: cacheServerUrl,
-    });
-    await cacheServerClientInstance.login();
-    this.cacheServerClient = cacheServerClientInstance;
-  }
-
   /**
    * @description verifies issuer signature, then check that claim issued
-   * no latter then `this.numberOfBlocksBack` and user has enrolled with at
+   * no later then `this.numberOfBlocksBack` and user has enrolled with at
    * least one role
    * @param token
    * @param payload
@@ -124,7 +119,7 @@ export class LoginStrategy extends BaseStrategy {
     payload: ITokenPayload,
     done: (err?: Error, user?: any, info?: any) => void
   ): Promise<void> {
-    const didDocument = await this.cacheServerClient?.getDidDocument(payload.iss) ?? await this.didResolver.read(payload.iss)
+    const didDocument = this.isCacheServerClientAvailable && this.cacheServerClient ? await this.cacheServerClient.getDidDocument(payload.iss) : await this.didResolver.read(payload.iss)
     const authenticationClaimVerifier = new AuthTokenVerifier(this.privateKey, didDocument)
     const did = await authenticationClaimVerifier.verify(token, payload.iss)
 
@@ -159,7 +154,7 @@ export class LoginStrategy extends BaseStrategy {
          * Therefore, not getting userClaims
          * if address attempting to login is the address of the strategy
          */
-        this.strategyAddress === address ? [] : await this.getUserClaims(did)
+        this.cacheServerClient?.address === address ? [] : await this.getUserClaims(did)
       const verifier = new ClaimVerifier(roleClaims, this.getRoleDefinition.bind(this), this.getUserClaims.bind(this))
       const uniqueRoles = await verifier.getVerifiedRoles();
 
@@ -220,7 +215,7 @@ export class LoginStrategy extends BaseStrategy {
   }
 
   async getRoleDefinition(namespace: string) : Promise<any> {
-    if (this.cacheServerClient) {
+    if (this.cacheServerClient && this.isCacheServerClientAvailable) {
       return this.cacheServerClient.getRoleDefinition({ namespace })
     }
     const namespaceHash = namehash(namespace)
@@ -230,7 +225,7 @@ export class LoginStrategy extends BaseStrategy {
   }
 
   async getUserClaims(did: string): Promise<Claim[]> {
-    if (this.cacheServerClient) {
+    if (this.cacheServerClient && this.isCacheServerClientAvailable) {
       return this.cacheServerClient.getUserClaims({ did })
     }
     const didDocument = await this.didResolver.read(did)
