@@ -50,7 +50,7 @@ export class LoginStrategy extends BaseStrategy {
   private readonly acceptedRoles: Set<string>
   private readonly privateKey: string
   private readonly cacheServerClient?: CacheServerClient
-  private readonly cacheServerClientLoginPromise?: Promise<string>
+    private isCacheServerClientAvailable: boolean
 
   constructor(
     {
@@ -83,13 +83,14 @@ export class LoginStrategy extends BaseStrategy {
         'You need to provide privateKey of an accepted account to login to cache server'
       )
     }
+    this.isCacheServerClientAvailable = false;
     if (cacheServerUrl && privateKey) {
       this.cacheServerClient = new CacheServerClient({
         privateKey,
         provider: this.provider,
         url: cacheServerUrl,
       });
-      this.cacheServerClientLoginPromise = this.cacheServerClient.login();
+      this.cacheServerClient.login().then(() => this.isCacheServerClientAvailable = true);
     }
     const registrySetting = {
       abi: abi1056,
@@ -107,7 +108,7 @@ export class LoginStrategy extends BaseStrategy {
 
   /**
    * @description verifies issuer signature, then check that claim issued
-   * no latter then `this.numberOfBlocksBack` and user has enrolled with at
+   * no later then `this.numberOfBlocksBack` and user has enrolled with at
    * least one role
    * @param token
    * @param payload
@@ -118,7 +119,7 @@ export class LoginStrategy extends BaseStrategy {
     payload: ITokenPayload,
     done: (err?: Error, user?: any, info?: any) => void
   ): Promise<void> {
-    const didDocument = await this.cacheServerClient?.getDidDocument(payload.iss) ?? await this.didResolver.read(payload.iss)
+    const didDocument = this.isCacheServerClientAvailable && this.cacheServerClient ? await this.cacheServerClient.getDidDocument(payload.iss) : await this.didResolver.read(payload.iss)
     const authenticationClaimVerifier = new AuthTokenVerifier(this.privateKey, didDocument)
     const did = await authenticationClaimVerifier.verify(token, payload.iss)
 
@@ -213,17 +214,8 @@ export class LoginStrategy extends BaseStrategy {
       );
   }
 
-  /**
-   * Checks the necessary initialization of cache-server has occured
-   * The pattern is described here: https://stackoverflow.com/a/49695053 
-   * @returns 
-   */
-  private async isCacheServerClientAvailable() {
-    return await this.cacheServerClientLoginPromise;
-  }
-
   async getRoleDefinition(namespace: string) : Promise<any> {
-    if (this.cacheServerClient && await this.isCacheServerClientAvailable()) {
+    if (this.cacheServerClient && this.isCacheServerClientAvailable) {
       return this.cacheServerClient.getRoleDefinition({ namespace })
     }
     const namespaceHash = namehash(namespace)
@@ -233,7 +225,7 @@ export class LoginStrategy extends BaseStrategy {
   }
 
   async getUserClaims(did: string): Promise<Claim[]> {
-    if (this.cacheServerClient && await this.cacheServerClientLoginPromise) {
+    if (this.cacheServerClient && this.isCacheServerClientAvailable) {
       return this.cacheServerClient.getUserClaims({ did })
     }
     const didDocument = await this.didResolver.read(did)
