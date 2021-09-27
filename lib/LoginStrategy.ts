@@ -50,7 +50,6 @@ export class LoginStrategy extends BaseStrategy {
   private readonly acceptedRoles: Set<string>
   private readonly privateKey: string
   private readonly cacheServerClient?: CacheServerClient
-    private isCacheServerClientAvailable: boolean
 
   constructor(
     {
@@ -83,14 +82,13 @@ export class LoginStrategy extends BaseStrategy {
         'You need to provide privateKey of an accepted account to login to cache server'
       )
     }
-    this.isCacheServerClientAvailable = false;
     if (cacheServerUrl && privateKey) {
       this.cacheServerClient = new CacheServerClient({
         privateKey,
         provider: this.provider,
         url: cacheServerUrl,
       });
-      this.cacheServerClient.login().then(() => this.isCacheServerClientAvailable = true);
+      this.cacheServerClient.login()
     }
     const registrySetting = {
       abi: abi1056,
@@ -119,7 +117,9 @@ export class LoginStrategy extends BaseStrategy {
     payload: ITokenPayload,
     done: (err?: Error, user?: any, info?: any) => void
   ): Promise<void> {
-    const didDocument = this.isCacheServerClientAvailable && this.cacheServerClient ? await this.cacheServerClient.getDidDocument(payload.iss) : await this.didResolver.read(payload.iss)
+    const didDocument = this.cacheServerClient?.isAvailable 
+      ? await this.cacheServerClient.getDidDocument(payload.iss)
+      :  await this.didResolver.read(payload.iss)
     const authenticationClaimVerifier = new AuthTokenVerifier(this.privateKey, didDocument)
     const did = await authenticationClaimVerifier.verify(token, payload.iss)
 
@@ -215,7 +215,7 @@ export class LoginStrategy extends BaseStrategy {
   }
 
   async getRoleDefinition(namespace: string) : Promise<any> {
-    if (this.cacheServerClient && this.isCacheServerClientAvailable) {
+    if (this.cacheServerClient?.isAvailable) {
       return this.cacheServerClient.getRoleDefinition({ namespace })
     }
     const namespaceHash = namehash(namespace)
@@ -225,7 +225,7 @@ export class LoginStrategy extends BaseStrategy {
   }
 
   async getUserClaims(did: string): Promise<Claim[]> {
-    if (this.cacheServerClient && this.isCacheServerClientAvailable) {
+    if (this.cacheServerClient?.isAvailable) {
       return this.cacheServerClient.getUserClaims({ did })
     }
     const didDocument = await this.didResolver.read(did)

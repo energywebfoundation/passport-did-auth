@@ -16,7 +16,13 @@ export class CacheServerClient {
   private readonly provider: providers.JsonRpcProvider
   private failedRequests: Array<(token: string) => void> = []
   private isAlreadyFetchingAccessToken = false
+  private _isAvailable = false;
+
   public readonly address: string
+  public get isAvailable(): boolean {
+    return this._isAvailable;
+  }
+
   constructor({
     url,
     privateKey,
@@ -77,6 +83,7 @@ export class CacheServerClient {
       this.httpClient.defaults.headers.common[
         'Authorization'
       ] = `Bearer ${data.token}`
+      this._isAvailable = true
 
       return data.token
     })
@@ -103,6 +110,7 @@ export class CacheServerClient {
       config.url?.indexOf('/login') === -1
     ) {
       try {
+        this._isAvailable = false
         const retryOriginalRequest = new Promise((resolve) => {
           this.addFailedRequest((token) => {
             originalRequest.headers.Authorization = 'Bearer ' + token
