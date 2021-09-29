@@ -1,4 +1,4 @@
-import passport from 'passport';
+import passport, { PassportStatic } from 'passport';
 import {Strategy, ExtractJwt} from 'passport-jwt';
 import { LoginStrategyOptions, LoginStrategy } from '../../lib/LoginStrategy';
 
@@ -61,7 +61,12 @@ const jwtOptions = {
       ]),
 }
 
-export const preparePassport = (didRegistryAddress : string) => {
+export const preparePassport = (didRegistryAddress : string) : Partial<{
+  passport: PassportStatic;
+  LOGIN_STRATEGY: string;
+  loginStrategy: LoginStrategy;
+
+}> => {
   const loginStrategyOptions : LoginStrategyOptions = {
     jwtSecret: private_pem_secret,
     name: LOGIN_STRATEGY,
