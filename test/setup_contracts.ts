@@ -3,7 +3,7 @@ import type { DomainNotifier } from "../ethers/DomainNotifier";
 import { RoleDefinitionResolver__factory } from "../ethers/factories/RoleDefinitionResolver__factory";
 import type { RoleDefinitionResolver } from "../ethers/RoleDefinitionResolver";
 import { abi as didContractAbi, bytecode as didContractBytecode } from "./testUtils/ERC1056.json";
-import { ContractFactory, Contract, providers, utils, BigNumber } from "ethers";
+import { ContractFactory, Contract, providers } from "ethers";
 import { ENSRegistry } from "../ethers/ENSRegistry";
 import { ENSRegistry__factory } from "../ethers/factories/ENSRegistry__factory";
 import { IdentityManager__factory } from "../ethers/factories/IdentityManager__factory";
@@ -13,7 +13,6 @@ import { ClaimManager__factory } from "../ethers/factories/ClaimManager__factory
 import { ClaimManager } from "../ethers/ClaimManager";
 
 const { JsonRpcProvider } = providers;
-const { parseEther } = utils;
 
 const GANACHE_PORT = 8544;
 export const rpcUrl = `http://localhost:${GANACHE_PORT}`;
