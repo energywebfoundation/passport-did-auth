@@ -4,17 +4,8 @@ import { Keys } from '@ew-did-registry/keys';
 import { IAuthentication, IDIDDocument, IPublicKey } from "@ew-did-registry/did-resolver-interface";
 
 export class AuthTokenVerifier {
-
-    private readonly privateKey: string
-    private readonly didDocument: IDIDDocument
-
-    constructor(
-        private readonly _privateKey: string,
-        private readonly _didDocument: IDIDDocument
-    ) {
-        this.didDocument = _didDocument,
-        this.privateKey = _privateKey
-    }
+  private _jwt = new JWT(new Keys());
+  constructor(private readonly _didDocument: IDIDDocument) {}
 
     /**
    * @description checks a token was signed by the issuer DID or a valid authentication delegate of the issuer
