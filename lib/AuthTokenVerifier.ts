@@ -67,14 +67,11 @@ export class AuthTokenVerifier {
      * @param documentAuthField The authentication array of the DID document
      * @returns whether or not the key is an authentication key
      */
-    private isAuthenticationKey = (publicKey: IPublicKey, documentAuthField: (string | IAuthentication)[]) => {
-        if (documentAuthField.length === 0 && publicKey !== undefined) {
-            return this.isSigAuth(publicKey["type"])
-        }
-        const authenticationKeys = documentAuthField.map(auth => {
-            return (this.areLinked(auth["publicKey"], publicKey["id"]))
-        })
-        return authenticationKeys.includes(true);
+    if (this.isSigAuth(publicKey.type)) {
+      return true;
+    }
+    if (documentAuthField.length === 0) {
+      return false;
     }
 
     //used to check if publicKey field in authentication refers to the publicKey ID in publicKey field
