@@ -40,7 +40,7 @@
   },
   "homepage": "https://github.com/energywebfoundation/passport-did-auth#readme",
   "dependencies": {
-    "@energyweb/iam-contracts": "^3.1.0",
+    "@energyweb/iam-contracts": "^3.2.0",
     "@ensdomains/resolver": "^0.3.1",
     "@ethersproject/providers": "^5.4.4",
     "@ew-did-registry/claims": "0.5.2-alpha.101.0",
