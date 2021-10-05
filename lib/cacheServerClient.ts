@@ -8,7 +8,7 @@ import {
 } from 'ethers'
 import { Claim, IRole, IRoleDefinition } from './LoginStrategy.types'
 import { Policy } from 'cockatiel'
-import { IDIDDocument } from '@ew-did-registry/did-resolver-interface'
+import { IDIDDocument, IServiceEndpoint } from '@ew-did-registry/did-resolver-interface'
 
 export class CacheServerClient {
   private readonly signer: Signer
@@ -161,11 +161,9 @@ export class CacheServerClient {
     return data.definition
   }
 
-  async getUserClaims({ did }: { did: string }) : Promise<Claim[]> {
-    const { data } = await this.httpClient.get<{ service: Claim[] }>(
-      `/DID/${did}?includeClaims=true`
-    )
-    return data.service
+  async getUserClaims({ did }: { did: string }) : Promise<IServiceEndpoint[]> {
+    const didDocument = await this.getDidDocument(did);
+    return didDocument.service
   }
 
   async getDidsWithAcceptedRole(role: string): Promise<string[]> {
