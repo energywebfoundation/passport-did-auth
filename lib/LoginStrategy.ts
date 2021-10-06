@@ -120,8 +120,8 @@ export class LoginStrategy extends BaseStrategy {
     const didDocument = this.cacheServerClient?.isAvailable 
       ? await this.cacheServerClient.getDidDocument(payload.iss)
       :  await this.didResolver.read(payload.iss)
-    const authenticationClaimVerifier = new AuthTokenVerifier(this.privateKey, didDocument)
-    const did = await authenticationClaimVerifier.verify(token, payload.iss)
+    const authenticationClaimVerifier = new AuthTokenVerifier(didDocument)
+    const did = await authenticationClaimVerifier.verify(token)
 
     if (!did) {
       console.log('Not Verified')
