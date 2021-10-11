@@ -48,7 +48,7 @@
     "@ew-did-registry/did-document": "0.5.2-alpha.101.0",
     "@ew-did-registry/did-ethr-resolver": "0.5.2-alpha.101.0",
     "@ew-did-registry/did-ipfs-store": "0.6.0",
-    "@ew-did-registry/did-resolver-interface": "0.5.2-alpha.101.0",
+    "@ew-did-registry/did-resolver-interface": "0.6.0",
     "@ew-did-registry/jwt": "0.6.0",
     "@ew-did-registry/keys": "0.5.2-alpha.101.0",
     "axios": "^0.21.1",
