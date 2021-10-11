@@ -44,7 +44,7 @@
     "@ensdomains/resolver": "^0.3.1",
     "@ethersproject/providers": "^5.4.4",
     "@ew-did-registry/claims": "0.5.2-alpha.101.0",
-    "@ew-did-registry/did": "0.5.2-alpha.101.0",
+    "@ew-did-registry/did": "0.6.0",
     "@ew-did-registry/did-document": "0.5.2-alpha.101.0",
     "@ew-did-registry/did-ethr-resolver": "0.5.2-alpha.101.0",
     "@ew-did-registry/did-ipfs-store": "0.6.0",
