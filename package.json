@@ -50,7 +50,7 @@
     "@ew-did-registry/did-ipfs-store": "0.6.0",
     "@ew-did-registry/did-resolver-interface": "0.6.0",
     "@ew-did-registry/jwt": "0.6.0",
-    "@ew-did-registry/keys": "0.5.2-alpha.101.0",
+    "@ew-did-registry/keys": "0.6.0",
     "axios": "^0.22.0",
     "base64url": "^3.0.1",
     "cockatiel": "^2.0.1",
