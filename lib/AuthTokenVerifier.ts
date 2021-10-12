@@ -30,7 +30,7 @@ export class AuthTokenVerifier {
   }
 
   /**
-   * @description Determines if a token was signed with an Ethereum signature by the address in the id of the DID Document
+   * @description Determines if a token was signed with an Ethereum signature by the address referenced by the id of the DID Document
    * Note that JWT-compliant signatures can't be used to recover an ethereum 
    */
   private async isIdentity(token: string) {
