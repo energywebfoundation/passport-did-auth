@@ -31,7 +31,7 @@ export class AuthTokenVerifier {
 
   /**
    * @description Determines if a token was signed with an Ethereum signature by the address in the id of the DID Document
-   * Not that JWT-compliant signatures can't be used to recover an ethereum 
+   * Note that JWT-compliant signatures can't be used to recover an ethereum 
    */
   private async isIdentity(token: string) {
     const [encodedHeader, encodedPayload, encodedSignature] = token.split(".");
