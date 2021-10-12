@@ -42,21 +42,6 @@ const provider = new providers.JsonRpcProvider(rpcUrl);
 // ganache with "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat" mnemonic
 const userPrivKey = '0xc87509a1c067bbde78beb793e6fa76530b6382a4c0241e5e4a9ec0a0f44dc0d3';
 
-export const createIdentityProofWithDelegate = async (secp256k1PrivateKey: string, rpcUrl: string, identityProofDid: string) : Promise<string> => {
-    const provider = new providers.JsonRpcProvider(rpcUrl);
-    const wallet = new Wallet(secp256k1PrivateKey, provider);
-
-    const blockNumber = (await provider.getBlockNumber());
-
-    const payload = {
-        claimData: {
-            blockNumber,
-        },
-    };
-    const jwt = new JWT(wallet);
-    const identityToken = await jwt.sign(payload, { issuer: identityProofDid, subject: identityProofDid });
-    return identityToken;
-}
 jest.setTimeout(84000);
 
 let iam: IAM;
@@ -103,8 +88,7 @@ it('Verifies asset authentication',  async () => {
     });
     assert.isTrue(isDIdDocUpdated, "The asset has not been added to document");
     
-    // TODO: replace with static function in iam-client-lib
-    const token = await createIdentityProofWithDelegate(
+    const token = await iam.createDelegateProof(
         assetKeys.privateKey,
         rpcUrl,
         assetDid
