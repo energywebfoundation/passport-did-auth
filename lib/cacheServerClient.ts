@@ -45,7 +45,7 @@ export class CacheServerClient {
     this.handleUnauthorized)
   }
 
-  async login() : Promise<string>{
+  async login() : Promise<string >{
     const retry = Policy.handleAll().retry().attempts(10).delay(2000)
     retry.onFailure(({ reason }) => {
       console.log(
@@ -77,17 +77,17 @@ export class CacheServerClient {
       ).toString('hex')}`
       const sig = await this.signer.signMessage(arrayify(keccak256(msg)))
       const encodedSignature = base64url(sig)
-      const { data } = await this.httpClient.post<{ token: string }>('/login', {
+      const data = await this.httpClient.post<{ identityToken: string }>('/login', {
         identityToken: `${encodedHeader}.${encodedPayload}.${encodedSignature}`,
-      })
-      this.httpClient.defaults.headers.common[
+      }) as Partial<{token : string }>
+      this!.httpClient!.defaults!.headers!.common[
         'Authorization'
       ] = `Bearer ${data.token}`
       this._isAvailable = true
 
       return data.token
     })
-    return token
+    return token as string
   }
 
   handleSuccessfulReLogin(token: string) : void {
@@ -113,7 +113,7 @@ export class CacheServerClient {
         this._isAvailable = false
         const retryOriginalRequest = new Promise((resolve) => {
           this.addFailedRequest((token) => {
-            originalRequest.headers.Authorization = 'Bearer ' + token
+            originalRequest!.headers!.Authorization = 'Bearer ' + token
             resolve(axios(originalRequest))
           })
         })
