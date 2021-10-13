@@ -1,0 +1,16 @@
+# dependabot.yml file with
+# customized schedule for version updates
+
+version: 2
+updates:
+  # Keep npm dependencies up to date
+  - package-ecosystem: "npm"
+    directory: "/"
+    # Check the npm registry for updates at 2pm UTC
+    schedule:
+      interval: "daily"
+      time: "01:00"
+    target-branch: "develop"
+    reviewers:
+      - "knzeng-e"
+      - "jrhender"

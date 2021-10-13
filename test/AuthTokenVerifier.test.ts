@@ -1,105 +1,158 @@
-import assert from 'assert';
-import { JWT } from '@ew-did-registry/jwt';
-import { ClaimData } from './claim-creation/ClaimData';
-import { AuthTokenVerifier } from '../lib/AuthTokenVerifier';
+import assert from "assert";
+import { Wallet, utils } from "ethers";
 import {
-  firstKeys,
-  secondKeys, 
-  firstDocument,
-  secondDocument, 
-  emptyAuthenticationDocument,
-} from './TestDidDocuments';
-import { JwtPayload } from '@ew-did-registry/jwt/dist/sign';
+  createSignWithEthersSigner,
+  createSignWithKeys,
+} from "@ew-did-registry/jwt/dist/sign";
+import { AuthTokenVerifier } from "../lib/AuthTokenVerifier";
+import { mockDocument } from "./TestDidDocuments";
+import { Methods } from "@ew-did-registry/did";
+import { Keys } from "@ew-did-registry/keys";
+import {
+  IAuthentication,
+  IPublicKey,
+  PubKeyType,
+} from "@ew-did-registry/did-resolver-interface";
 
-let firstClaimToken: string;
-let claimData: ClaimData;
-let secondClaimToken: string;
-let firstSigner : JWT;
-let secondSigner : JWT;
-let firstPayload: JwtPayload;
-let secondPayload: JwtPayload;
-let tokenAuthenticationVerifier: AuthTokenVerifier
+const { computePublicKey } = utils;
 
-const issuerDID = `did:ethr:${firstKeys.getAddress()}`
-const secondDID = `did:ethr:${secondKeys.getAddress()}`
+const payload = {
+  claimType: "user.roles.example1.apps.john.iam.ewc",
+  claimData: {
+    blockNumber: 42,
+    text: "In EWC we trust",
+  },
+};
+const identity = Wallet.createRandom();
 
-describe("Testing AuthTokenVerifier", () => {
+const createEthersClaim = async (delegate?: Wallet) => {
+  if (!delegate) {
+    delegate = identity;
+  }
+  const DID = `did:${Methods.Erc1056}:${identity.address}`;
+  return createSignWithEthersSigner(delegate)({
+    ...payload,
+    iss: DID,
+  });
+};
+const createJwtClaim = async (delegate?: Wallet) => {
+  if (!delegate) {
+    delegate = identity;
+  }
+  const DID = `did:${Methods.Erc1056}:${identity.address}`;
+  return createSignWithKeys(
+    new Keys({ privateKey: delegate.privateKey.slice(2) })
+  )(payload, { issuer: DID, algorithm: "ES256" });
+};
 
-  beforeAll(async () => {
-    claimData = {
-      claimType: "user.roles.example1.apps.john.iam.ewc",
-    }
-    
-    firstPayload = {
-      claimType: "user.roles.example1.apps.john.iam.ewc",
-      claimData: {
-        blockNumber: 42,
-        text: 'In EWC we trust'
-      },
-      iss: issuerDID,
-      sub: secondDID
-    }
+describe("AuthTokenVerifier", () => {
+  let verifier: AuthTokenVerifier;
+  let claim: string;
 
-    secondPayload = {
-      claimType: "user.roles.example1.apps.john.iam.ewc",
-      claimData: {
-        blockNumber: 42,
-        text: 'In EWC we trust'
-      },
-      iss: secondDID,
-      sub: secondDID
-    }
+  describe("Authenticate as identity", () => {
+    it("should authenticate with empty document", async () => {
+      claim = await createEthersClaim(identity);
+      const document = mockDocument(identity, {
+        withOwnerKey: false,
+      });
+      verifier = new AuthTokenVerifier(document);
+      const did = await verifier.verify(claim);
 
-    firstSigner = new JWT(firstKeys);
-    secondSigner = new JWT(secondKeys)
-    firstClaimToken = await firstSigner.sign(firstPayload, { algorithm: 'ES256' });
-    secondClaimToken = await secondSigner.sign(secondPayload, { algorithm: 'ES256' });
-  })
+      assert.strictEqual(did, document.id);
+    });
 
-  it("Checks if basic signing verification works", async () => {
-    const testSignature = await secondSigner.sign('Initial signed content', { algorithm: 'ES256' })
-    const secondPubKey = secondKeys.publicKey
-    const decoded = await secondSigner.verify(testSignature, secondPubKey)
-    
-    assert.strictEqual(decoded, 'Initial signed content')
-  })
+    it("should not authenticate with other identity document", async () => {
+      claim = await createEthersClaim(identity);
+      const document = mockDocument(Wallet.createRandom(), {
+        withOwnerKey: false,
+      });
+      verifier = new AuthTokenVerifier(document);
+      const did = await verifier.verify(claim);
 
-  it("should authenticate first DID with first Claim issuer", async () => {
-    
-    tokenAuthenticationVerifier = new AuthTokenVerifier(firstKeys.privateKey, firstDocument);
-    const did = await tokenAuthenticationVerifier.verify(firstClaimToken, firstPayload.iss)
+      assert.strictEqual(did, null);
+    });
+  });
 
-    assert.strictEqual(did, issuerDID)
-  })
+  describe("Authenticate as delegate", () => {
+    let createClaim;
+    const delegateTests = () => {
+      it("sigAuth delegate should be authenticated", async () => {
+        const delegate = Wallet.createRandom();
+        const document = mockDocument(identity);
+        document.publicKey.push({
+          id: `did:${Methods.Erc1056}:${delegate.address}#${PubKeyType.SignatureAuthentication2018}`,
+          type: PubKeyType.SignatureAuthentication2018,
+          publicKeyHex: computePublicKey(delegate.publicKey, true),
+        } as IPublicKey);
+        verifier = new AuthTokenVerifier(document);
+        claim = await createClaim(delegate);
+        const did = await verifier.verify(claim);
 
-  it("should reject the second DID authentication with first Claim issuer", async () => {
-    
-    tokenAuthenticationVerifier = new AuthTokenVerifier(firstKeys.privateKey, firstDocument);
-    const did = await tokenAuthenticationVerifier.verify(secondClaimToken, firstPayload.iss)
+        assert.strictEqual(did, document.id);
+      });
 
-    assert.strictEqual(did, null)
-  })
+      it("authentication delegate should be authenticated", async () => {
+        const delegate = Wallet.createRandom();
+        const document = mockDocument(identity);
+        document.publicKey.push({
+          id: `did:${Methods.Erc1056}:${delegate.address}#${PubKeyType.VerificationKey2018}`,
+          type: PubKeyType.VerificationKey2018,
+          publicKeyHex: computePublicKey(delegate.publicKey, true),
+        } as IPublicKey);
+        document.authentication.push({
+          publicKey: `did:${Methods.Erc1056}:${delegate.address}#delegate`,
+        } as IAuthentication);
+        verifier = new AuthTokenVerifier(document);
+        claim = await createClaim(delegate);
+        const did = await verifier.verify(claim);
 
-  it("should reject first DID with second Claim issuer", async () => {
-    tokenAuthenticationVerifier = new AuthTokenVerifier(secondKeys.privateKey, secondDocument);
-    const did = await tokenAuthenticationVerifier.verify(firstClaimToken, secondPayload.iss)
-    
-    assert.strictEqual(did, null)
-  })
+        assert.strictEqual(did, document.id);
+      });
 
-  it("should authenticate second DID with second Claim issuer", async () => {
-    
-    tokenAuthenticationVerifier = new AuthTokenVerifier(secondKeys.privateKey, secondDocument);
-    const did = await tokenAuthenticationVerifier.verify(secondClaimToken, secondPayload.iss)
-    
-    assert.strictEqual(did, secondDID)
-  })
+      it("should reject authentication with mismatching DID doc", async () => {
+        const delegate = Wallet.createRandom();
+        const document = mockDocument(identity);
+        verifier = new AuthTokenVerifier(document);
+        claim = await createClaim(delegate);
+        const did = await verifier.verify(claim);
 
-  it("should authenticate sigAuth on empty authentication DID", async () => {
-    
-    tokenAuthenticationVerifier = new AuthTokenVerifier(secondKeys.privateKey, emptyAuthenticationDocument);
-    const did = await tokenAuthenticationVerifier.verify(secondClaimToken, secondPayload.iss)
-    
-    assert.strictEqual(did, secondDID)
-  })
-})
+        assert.strictEqual(did, null);
+      });
+    };
+
+    describe("With Ethers signature", () => {
+      beforeAll(() => {
+        createClaim = createEthersClaim;
+      });
+      delegateTests();
+    });
+
+    describe("With Json web signature", () => {
+      beforeAll(() => {
+        createClaim = createJwtClaim;
+      });
+      delegateTests();
+    });
+
+    //   it("should reject the second DID authentication with first Claim issuer", async () => {
+    //     verifier = new AuthTokenVerifier(firstDocument);
+    //     const did = await verifier.verify(secondClaim);
+
+    //     assert.strictEqual(did, null);
+    //   });
+
+    //   it("should reject first DID with second Claim issuer", async () => {
+    //     verifier = new AuthTokenVerifier(secondDocument);
+    //     const did = await verifier.verify(firstClaim);
+
+    //     assert.strictEqual(did, null);
+    //   });
+
+    //   it("should authenticate second DID with second Claim issuer", async () => {
+    //     verifier = new AuthTokenVerifier(secondDocument);
+    //     const did = await verifier.verify(secondClaim);
+
+    //     assert.strictEqual(did, secondDID);
+    //   });
+  });
+});

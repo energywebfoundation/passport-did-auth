@@ -14,7 +14,7 @@ import {
   IRoleDefinition,
   ITokenPayload,
 } from './LoginStrategy.types'
-import { PublicResolverFactory } from '../ethers/PublicResolverFactory'
+import { PublicResolver__factory } from '../ethers/factories/PublicResolver__factory'
 import { PublicResolver } from '../ethers/PublicResolver'
 import { Methods } from '@ew-did-registry/did'
 import { DidStore } from '@ew-did-registry/did-ipfs-store'
@@ -24,7 +24,7 @@ import { AuthTokenVerifier } from './AuthTokenVerifier'
 
 const { abi: abi1056 } = ethrReg
 
-interface LoginStrategyOptions extends StrategyOptions {
+export interface LoginStrategyOptions extends StrategyOptions {
   claimField?: string
   rpcUrl: string
   cacheServerUrl?: string
@@ -43,14 +43,13 @@ export class LoginStrategy extends BaseStrategy {
   private readonly jwtSecret?: string | Buffer
   private readonly jwtSignOptions?: jwt.SignOptions
   private readonly provider: providers.JsonRpcProvider
-  private readonly cacheServerClient!: CacheServerClient
   private readonly numberOfBlocksBack: number
   private readonly ensResolver: PublicResolver
   private readonly didResolver: Resolver
   private readonly ipfsStore: DidStore
   private readonly acceptedRoles: Set<string>
-  private readonly strategyAddress?: string
   private readonly privateKey: string
+  private readonly cacheServerClient?: CacheServerClient
 
   constructor(
     {
@@ -67,12 +66,14 @@ export class LoginStrategy extends BaseStrategy {
       acceptedRoles,
       ...options
     }: LoginStrategyOptions,
+    
+    /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
     _nestJsCB?: VoidFunction // Added just for nestjs compatibility
   ) {
     super(options)
     this.claimField = claimField
     this.provider = new providers.JsonRpcProvider(rpcUrl)
-    this.ensResolver = PublicResolverFactory.connect(
+    this.ensResolver = PublicResolver__factory.connect(
       ensResolverAddress,
       this.provider
     )
@@ -86,8 +87,7 @@ export class LoginStrategy extends BaseStrategy {
         privateKey,
         provider: this.provider,
         url: cacheServerUrl,
-      })
-      this.strategyAddress = this.cacheServerClient.address
+      });
       this.cacheServerClient.login()
     }
     const registrySetting = {
@@ -103,9 +103,10 @@ export class LoginStrategy extends BaseStrategy {
     this.jwtSignOptions = jwtSignOptions
     this.privateKey = privateKey!
   }
+
   /**
    * @description verifies issuer signature, then check that claim issued
-   * no latter then `this.numberOfBlocksBack` and user has enrolled with at
+   * no later then `this.numberOfBlocksBack` and user has enrolled with at
    * least one role
    * @param token
    * @param payload
@@ -115,10 +116,12 @@ export class LoginStrategy extends BaseStrategy {
     token: string,
     payload: ITokenPayload,
     done: (err?: Error, user?: any, info?: any) => void
-  ) {
-    const didDocument = await this.cacheServerClient?.getDidDocument(payload.iss) ?? await this.didResolver.read(payload.iss)
-    const authenticationClaimVerifier = new AuthTokenVerifier(this.privateKey, didDocument)
-    const did = await authenticationClaimVerifier.verify(token, payload.iss)
+  ): Promise<void> {
+    const didDocument = this.cacheServerClient?.isAvailable 
+      ? await this.cacheServerClient.getDidDocument(payload.iss)
+      :  await this.didResolver.read(payload.iss)
+    const authenticationClaimVerifier = new AuthTokenVerifier(didDocument)
+    const did = await authenticationClaimVerifier.verify(token)
 
     if (!did) {
       console.log('Not Verified')
@@ -137,8 +140,9 @@ export class LoginStrategy extends BaseStrategy {
         return done(undefined, null, 'Claim outdated')
       }
     } catch (err) {
-      console.log('Provider err', err)
-      return done(err)
+      const error: Error = err as Error;
+      console.log('Provider err', error)
+      return done(error)
     }
 
     try {
@@ -150,7 +154,7 @@ export class LoginStrategy extends BaseStrategy {
          * Therefore, not getting userClaims
          * if address attempting to login is the address of the strategy
          */
-        this.strategyAddress === address ? [] : await this.getUserClaims(did)
+        this.cacheServerClient?.address === address ? [] : await this.getUserClaims(did)
       const verifier = new ClaimVerifier(roleClaims, this.getRoleDefinition.bind(this), this.getUserClaims.bind(this))
       const uniqueRoles = await verifier.getVerifiedRoles();
 
@@ -174,8 +178,9 @@ export class LoginStrategy extends BaseStrategy {
       }
       return done(undefined, user)
     } catch (err) {
-      console.log(err)
-      return done(err)
+      const error: Error = err as Error;
+      console.log(error)
+      return done(error)
     }
   }
 
@@ -188,7 +193,7 @@ export class LoginStrategy extends BaseStrategy {
    * @param data payload to encode
    * @param options
    */
-  encodeToken(data: any) {
+  encodeToken(data: Record<string, unknown>) : string {
     return jwt.sign(data, this.jwtSecret!, this.jwtSignOptions)
   }
 
@@ -200,13 +205,17 @@ export class LoginStrategy extends BaseStrategy {
    * @returns {string} encoded claim
    */
   extractToken(req: Request): string | null {
-    return (
-      lookup(req.body, this.claimField) || lookup(req.query, this.claimField)
-    )
+    if (req.body.identity)
+      return (
+        lookup(req.body.identity, this.claimField) || lookup(req.query, this.claimField)
+      );
+      return (
+        lookup(req.body, this.claimField) || lookup(req.query, this.claimField)
+      );
   }
 
-  async getRoleDefinition(namespace: string) {
-    if (this.cacheServerClient) {
+  async getRoleDefinition(namespace: string) : Promise<any> {
+    if (this.cacheServerClient?.isAvailable) {
       return this.cacheServerClient.getRoleDefinition({ namespace })
     }
     const namespaceHash = namehash(namespace)
@@ -215,8 +224,8 @@ export class LoginStrategy extends BaseStrategy {
     return JSON.parse(definition) as IRoleDefinition
   }
 
-  async getUserClaims(did: string) {
-    if (this.cacheServerClient) {
+  async getUserClaims(did: string): Promise<Claim[]> {
+    if (this.cacheServerClient?.isAvailable) {
       return this.cacheServerClient.getUserClaims({ did })
     }
     const didDocument = await this.didResolver.read(did)

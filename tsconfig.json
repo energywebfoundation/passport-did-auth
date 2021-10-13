@@ -16,5 +16,5 @@
     "esModuleInterop": true
   },
   "include": ["lib/**/*", "ethers", "index.ts"],
-  "exclude": ["node_modules", "**/*.spec.ts"]
+  "exclude": ["node_modules", "**/*.spec.ts"],
 }

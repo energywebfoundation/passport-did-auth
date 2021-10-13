@@ -1,4 +1,4 @@
-import { AuthenticateOptions, Strategy } from 'passport'
+import { Strategy } from 'passport'
 import { Request } from 'express'
 import { inherits } from 'util'
 import { Claim } from './LoginStrategy.types'
@@ -22,7 +22,7 @@ export abstract class BaseStrategy extends Strategy {
    */
   abstract validate(
     token: string,
-    tokenPayload: any,
+    tokenPayload: string | { [key: string]: any; },
     done: (err?: Error, user?: any, info?: any) => any
   ): void
   /**
@@ -63,21 +63,20 @@ export abstract class BaseStrategy extends Strategy {
    * @param req
    * @param options
    */
-  authenticate(req: Request, options: AuthenticateOptions) {
-    const self = this
+  authenticate(req: Request) : void{
     const token = this.extractToken(req)
     if (!token) {
-      return self.fail('Missing credentials', 400)
+      return this.fail('Missing credentials', 400)
     }
     const tokenPayload = this.decodeToken(token)
-    function verified(err?: Error, user?: any, info?: any) {
+    const verified = (err?: Error, user?: any, info?: any) => {
       if (err) {
-        return self.error(err)
+        return this.error(err)
       }
       if (!user) {
-        return self.fail(info)
+        return this.fail(info)
       }
-      self.success(user, info)
+      this.success(user, info)
     }
     this.validate(token, tokenPayload, verified)
   }
