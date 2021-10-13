@@ -4,6 +4,7 @@ import {
 } from "ethers";
 
 import { getServer } from './testUtils/server';
+import { preparePassport } from './testUtils/preparePassport';
 
 import {
     setChainConfig,
@@ -41,6 +42,8 @@ const provider = new providers.JsonRpcProvider(rpcUrl);
 // funded private key for 0x627306090abaB3A6e1400e9345bC60c78a8BEf57
 // ganache with "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat" mnemonic
 const userPrivKey = '0xc87509a1c067bbde78beb793e6fa76530b6382a4c0241e5e4a9ec0a0f44dc0d3';
+const userAddress = '0x627306090abaB3A6e1400e9345bC60c78a8BEf57';
+const userDid = `did:ethr:${userAddress}`;
 
 jest.setTimeout(84000);
 
@@ -102,5 +105,45 @@ it('Verifies asset authentication',  async () => {
     expect(response.statusCode).toBe(200);
     expect(response.body.token).toBeDefined;
     connection.close()
+});
+
+it("Should authenticate issuer signature", async () => {
+    const { loginStrategy } = preparePassport(didContract.address);
+    const token = await iam.createIdentityProof();
+    const payload = {
+        iss: userDid,
+        claimData: {
+            blockNumber: 4242,
+        },
+        sub: '',
+    }
+    
+    await loginStrategy.validate(token, payload, (err, user, infos) => {
+        const jwt = new JWT(new Keys({privateKey: userPrivKey}));
+        const decodedIdentity = jwt.decode(token) as { [key: string]: string | object; };
+        const decodedVerifiedUser = jwt.decode(user) as { [key: string]: string | object; }
+        console.log("Decoded Token", decodedIdentity);
+        console.log("Verified issuer", decodedVerifiedUser);
+        console.log("IsAuthenticated", user);
+        console.log("Infos >> ", infos)
+        expect(decodedVerifiedUser.did).toBe(decodedIdentity.did);
+    });
+});
+
+it("Should reject invalid issuer", async () => {
+    const { loginStrategy } = preparePassport(didContract.address);
+    const token = await iam.createIdentityProof();
+    const payload = {
+        iss: 'did:ethr:0x52b5C04ae802A8B7f193c94e33c7F6F12465F96B',
+        claimData: {
+            blockNumber: 0,
+        },
+        sub: '',
+    }
+    
+    const consoleListenner = jest.spyOn(console, 'log')
+    await loginStrategy.validate(token, payload, (err, user, infos) => {
+        expect(consoleListenner).toBeCalledWith('Not Verified')
+    });
 });
 
