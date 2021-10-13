@@ -29,7 +29,7 @@ export abstract class BaseStrategy extends Strategy {
    * @abstract
    * @description extracts token from request
    *
-   * @param req object than encapsules request to protected endpoint
+   * @param req object that encapsules request to protected endpoint
    * @returns encoded token
    */
   abstract extractToken(req: Request): string | null
