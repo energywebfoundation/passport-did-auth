@@ -45,9 +45,14 @@ const userPrivKey = '0xc87509a1c067bbde78beb793e6fa76530b6382a4c0241e5e4a9ec0a0f
 const userAddress = '0x627306090abaB3A6e1400e9345bC60c78a8BEf57';
 const userDid = `did:ethr:${userAddress}`;
 
+const secondPrivKey = 'ae6ae8e5ccbfb04590405997ee2d52d2b330726137b875053c36d94e974d162f';
+const secondAddress = '0xf17f52151EbEF6C7334FAD080c5704D77216b732';
+const seconDid = `did:ethr:${secondAddress}`
+
 jest.setTimeout(84000);
 
 let iam: IAM;
+let secondIam: IAM
 
 beforeAll(async () => {
     await deployDidRegistry();
@@ -134,9 +139,28 @@ it("Should reject invalid issuer", async () => {
     const { loginStrategy } = preparePassport(didContract.address);
     const token = await iam.createIdentityProof();
     const payload = {
-        iss: 'did:ethr:0x52b5C04ae802A8B7f193c94e33c7F6F12465F96B',
+        iss: seconDid,
         claimData: {
-            blockNumber: 0,
+            blockNumber: 4242,
+        },
+        sub: '',
+    }
+    
+    const consoleListenner = jest.spyOn(console, 'log')
+    await loginStrategy.validate(token, payload, (err, user, infos) => {
+        expect(consoleListenner).toBeCalledWith('Not Verified')
+    });
+});
+
+it("Should reject invalid token", async () => {
+    secondIam = new IAM({privateKey: secondPrivKey, rpcUrl});
+    await secondIam.initializeConnection({initCacheServer: false});
+    const { loginStrategy } = preparePassport(didContract.address);
+    const token = await secondIam.createIdentityProof();
+    const payload = {
+        iss: userDid,
+        claimData: {
+            blockNumber: 4242,
         },
         sub: '',
     }
