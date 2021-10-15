@@ -76,7 +76,7 @@ export class ClaimVerifier {
 
     if (role.issuer?.issuerType === 'Role') {
       const issuerClaims = await this.getUserClaims(issuer)
-      const issuerRoles = issuerClaims.map((c) => c.claimType)
+      const issuerRoles = issuerClaims.map((claim) => claim.claimType)
       if (issuerRoles.includes(role.issuer.roleName)) {
         return {
           name: role.roleName,
