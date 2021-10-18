@@ -1,6 +1,6 @@
 import {Wallet} from 'ethers';
 import { ClaimsUser } from '@ew-did-registry/claims';
-import { IKeys, Keys } from '@ew-did-registry/keys';
+import { Keys } from '@ew-did-registry/keys';
 import assert from 'assert';
 import { ClaimVerifier } from '../lib/ClaimVerifier';
 import { Claim, IRoleDefinition } from '../lib/LoginStrategy.types';
@@ -80,7 +80,7 @@ const getUserClaims: (did: string) => Promise<Claim[]> = () => {
   return Promise.resolve(new Array<Claim>());
 }
 
-const getDidDocument = async (did: string) => {
+const getDidDocument = async () => {
   const identity = new Wallet(keys.privateKey);
   const didDocument = mockDocument(identity);
 
