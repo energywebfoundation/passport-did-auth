@@ -1,5 +1,4 @@
 import {
-    Wallet,
     providers,
 } from "ethers";
 
@@ -147,7 +146,7 @@ it("Should reject invalid issuer", async () => {
     }
     
     const consoleListenner = jest.spyOn(console, 'log')
-    await loginStrategy.validate(token, payload, (err, user, infos) => {
+    await loginStrategy.validate(token, payload, () => {
         expect(consoleListenner).toBeCalledWith('Not Verified')
     });
 });
@@ -166,7 +165,7 @@ it("Should reject invalid token", async () => {
     }
     
     const consoleListenner = jest.spyOn(console, 'log')
-    await loginStrategy.validate(token, payload, (err, user, infos) => {
+    await loginStrategy.validate(token, payload, () => {
         expect(consoleListenner).toBeCalledWith('Not Verified')
     });
 });
