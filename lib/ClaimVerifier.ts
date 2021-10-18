@@ -1,6 +1,5 @@
 import { Claim, DecodedToken, IRoleDefinition } from './LoginStrategy.types'
 import * as jwt from 'jsonwebtoken'
-import { IClaims } from '@ew-did-registry/claims'
 import { AuthTokenVerifier } from './AuthTokenVerifier';
 import { IDIDDocument } from '@ew-did-registry/did-resolver-interface';
 
@@ -97,7 +96,7 @@ export class ClaimVerifier {
     return null
   }
   
-  private async verifySignature(issuer: string, issuerClaims: Claim[]) : Promise<Boolean>{
+  private async verifySignature(issuer: string, issuerClaims: Claim[]) : Promise<boolean>{
     const didDocument = await this.getDidDocument(issuer);
     const authenticationClaimVerifier = new AuthTokenVerifier(didDocument);
     issuerClaims.map(async (claim) => {
