@@ -100,7 +100,7 @@ export class ClaimVerifier {
     const didDocument = await this.getDidDocument(issuer);
     const authenticationClaimVerifier = new AuthTokenVerifier(didDocument);
     issuerClaims.map(async (claim) => {
-      if (claim.iss && claim.iss !== issuer){
+      if (claim.iss !== issuer){
         return false
       }
       const claimToken = claim.issuedToken as string
