@@ -153,15 +153,14 @@ export class LoginStrategy extends BaseStrategy {
     }
 
     try {
-      const roleClaims =
-        /*
-         * getUserClaims attempts to retrieve claims from cache-server
-         * and so when the cache-server itself is using the LoginStrategy,
-         * this creates a login attempt loop.
-         * Therefore, not getting userClaims
-         * if address attempting to login is the address of the strategy
-         */
-        this.cacheServerClient?.address === address ? [] : await this.getUserClaims(did)
+      /*
+      * getUserClaims attempts to retrieve claims from cache-server
+      * and so when the cache-server itself is using the LoginStrategy,
+      * this creates a login attempt loop.
+      * Therefore, not getting userClaims
+      * if address attempting to login is the address of the strategy
+      */
+      const roleClaims = this.cacheServerClient?.address === address ? [] : await this.getUserClaims(did)
       const verifier = new ClaimVerifier(
         roleClaims,
         this.getRoleDefinition.bind(this),
