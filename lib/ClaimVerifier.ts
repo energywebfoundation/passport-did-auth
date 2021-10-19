@@ -41,7 +41,7 @@ export class ClaimVerifier {
   }
 
   /**
-   * @description checks that role which corresponds to `namespace` is owned by the `issuer`
+   * @description checks that the `issuer` has the required role specified by the `namespace`
    * @param param0
    */
   async verifyRole({
