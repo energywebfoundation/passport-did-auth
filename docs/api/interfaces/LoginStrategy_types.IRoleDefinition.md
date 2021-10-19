@@ -61,8 +61,8 @@ issuer : {
 ...
 issuer : {
     did : [
-        did:ethr:0xC3571714248588C6E19cDECe2778B75341b2c288,
-        did:ethr:0x96339b0B2CBAE8F0E0d416e03c32d57c596B1d90,
+        `did:ethr:0xC3571714248588C6E19cDECe2778B75341b2c288`,
+        `did:ethr:0x96339b0B2CBAE8F0E0d416e03c32d57c596B1d90`,
     ],
     issuerType : "DID",
     roleName : ... ,
