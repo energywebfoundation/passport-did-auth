@@ -10,7 +10,7 @@ export class ClaimVerifier {
     private readonly getRoleDefinition: (namespace: string) => Promise<IRoleDefinition>,
     private readonly getUserClaims: (did: string) => Promise<Claim[]>,
     private readonly getDidDocument: (did: string) => Promise<IDIDDocument>,
-    ) {
+  ) {
   }
 
   public async getVerifiedRoles(): Promise<{ name: any; namespace: string }[]> {
@@ -34,11 +34,11 @@ export class ClaimVerifier {
           })
         }
       )
-    )
-    const filteredRoles = roles.filter(Boolean)
-    const uniqueRoles = [...new Set(filteredRoles)]
+    );
+    const filteredRoles = roles.filter(Boolean);
+    const uniqueRoles = [...new Set(filteredRoles)];
     return uniqueRoles as [];
-  }
+  };
 
   /**
    * @description checks that the `issuer` has the required role specified by the `namespace`
@@ -55,20 +55,20 @@ export class ClaimVerifier {
   }): Promise<{
     name: string;
     namespace: string;
-  } | null > {
-    const role = await this.getRoleDefinition(namespace)
+  } | null> {
+    const role = await this.getRoleDefinition(namespace);
     if (!role) {
-      return null
+      return null;
     }
 
     if (version && role.version !== version) {
-      return null
+      return null;
     }
 
     const issuerClaims = await this.getUserClaims(issuer);
-    const areClaimsValid = await this.verifySignature(issuer, issuerClaims)
-    if (!areClaimsValid){
-      return null
+    const areClaimsValid = await this.verifySignature(issuer, issuerClaims);
+    if (!areClaimsValid) {
+      return null;
     }
     if (role.issuer?.issuerType === 'DID') {
 
@@ -79,9 +79,9 @@ export class ClaimVerifier {
         return {
           name: role.roleName,
           namespace,
-        }
+        };
       }
-      return null
+      return null;
     }
 
     if (role.issuer?.issuerType === 'Role') {
@@ -90,26 +90,29 @@ export class ClaimVerifier {
         return {
           name: role.roleName,
           namespace,
-        }
+        };
       }
     }
-    return null
-  }
-  
-  private async verifySignature(issuer: string, issuerClaims: Claim[]) : Promise<boolean>{
+    return null;
+  };
+
+  private async verifySignature(issuer: string, issuerClaims: Claim[]): Promise<boolean> {
     const didDocument = await this.getDidDocument(issuer);
     const authenticationClaimVerifier = new AuthTokenVerifier(didDocument);
-    issuerClaims.map(async (claim) => {
-      if (claim.iss !== issuer){
-        return false
-      }
-      const claimToken = claim.issuedToken as string
-      const verifiedIssuer = await authenticationClaimVerifier.verify(claimToken)
-      if (verifiedIssuer !== issuer){
-        return false
-      }
-    })
-    return true
-  }
+    const checks = await Promise.all(
+      issuerClaims.map(async (claim) => {
+        if (claim.iss !== issuer) {
+          return false;
+        }
+        const claimToken = claim.issuedToken as string
+        const verifiedIssuer = await authenticationClaimVerifier.verify(claimToken)
+        if (verifiedIssuer !== issuer) {
+          return false;
+        }
+        return true;
+      })
+    );
+    return checks.includes(true);
+  };
 
 }
