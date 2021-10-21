@@ -122,14 +122,10 @@ it("Should authenticate issuer signature", async () => {
         sub: '',
     }
     
-    await loginStrategy.validate(token, payload, (err, user, infos) => {
+    await loginStrategy.validate(token, payload, (err, user) => {
         const jwt = new JWT(new Keys({privateKey: userPrivKey}));
         const decodedIdentity = jwt.decode(token) as { [key: string]: string | object; };
         const decodedVerifiedUser = jwt.decode(user) as { [key: string]: string | object; }
-        console.log("Decoded Token", decodedIdentity);
-        console.log("Verified issuer", decodedVerifiedUser);
-        console.log("IsAuthenticated", user);
-        console.log("Infos >> ", infos)
         expect(decodedVerifiedUser.did).toBe(decodedIdentity.did);
     });
 });
