@@ -65,72 +65,49 @@ describe("ClaimVerifier", () => {
   });
 
   it('should verify Role-type claim', async () => {
-    const verifier = new ClaimVerifier(claims, getTypeRoleDefinition(secondDID), getUserClaims, getDidDocument)
+    const verifier = new ClaimVerifier(claims, getRoleDefinition(secondDID, "Role"), getUserClaims, getDidDocument)
     const verifiedRoles = await verifier.getVerifiedRoles();
     assert.strictEqual(verifiedRoles.length, 1);
   });
 
   it('should verify DID-type claim', async () => {
-    const verifier = new ClaimVerifier(claims, getDIDTypeRoleDefinition(issuerDID), getUserClaims, getDidDocument)
+    const verifier = new ClaimVerifier(claims, getRoleDefinition(issuerDID, "DID"), getUserClaims, getDidDocument)
     const verifiedRoles = await verifier.getVerifiedRoles();
     assert.strictEqual(verifiedRoles.length, 1);
   });
 
   it('should verify DID-type claim without iss field', async () => {
-    const verifier = new ClaimVerifier(claimsWithoutIssField, getDIDTypeRoleDefinition(issuerDID), getUserClaims, getDidDocument)
+    const verifier = new ClaimVerifier(claimsWithoutIssField, getRoleDefinition(issuerDID, "DID"), getUserClaims, getDidDocument)
     const verifiedRoles = await verifier.getVerifiedRoles();
     assert.strictEqual(verifiedRoles.length, 1);
   });
 
   it("should reject invalid DID-type claim", async () => {
-    const verifier = new ClaimVerifier(invalidClaims, getDIDTypeRoleDefinition(secondDID), getUserClaims, getDidDocument)
+    const verifier = new ClaimVerifier(invalidClaims, getRoleDefinition(secondDID, "DID"), getUserClaims, getDidDocument)
     const verifiedRoles = await verifier.getVerifiedRoles();
     assert.strictEqual(verifiedRoles.length, 0);
   });
 
   it('should filter out claim which does not match role definition issuer', async () => {
     const incorrectIssuerDID = "did:ethr:0x0xeBaD11b9b20Ec11F2FC44F99C21242f510B522b6";
-    const verifier = new ClaimVerifier(claims, getDIDTypeRoleDefinition(incorrectIssuerDID), getUserClaims, getDidDocument);
+    const verifier = new ClaimVerifier(claims, getRoleDefinition(incorrectIssuerDID, "DID"), getUserClaims, getDidDocument);
     const verifiedRoles = await verifier.getVerifiedRoles();
     assert.strictEqual(verifiedRoles.length, 0);
   });
 });
 
-const getDIDTypeRoleDefinition = (issuerDid: string) => {
+const getRoleDefinition = (issuerDid: string, issuerType: string) => {
   const roleDef: IRoleDefinition = {
     roleName: "user",
     issuer: {
-      issuerType: "DID",
-      did: [issuerDid],
-      roleName: "user",
-    },
-    fields: [
-      {
-        fieldType: "fieldType",
-        label: "labe",
-        validation: "validation",
-      }
-    ],
-    metadata: {},
-    roleType: "",
-    version: "",
-
-  };
-  return () => Promise.resolve(roleDef);
-}
-
-const getTypeRoleDefinition = (issuerDid: string) => {
-  const roleDef: IRoleDefinition = {
-    roleName: "user",
-    issuer: {
-      issuerType: "Role",
+      issuerType,
       did: [issuerDid],
       roleName: "user.roles.example1.apps.john.iam.ewc",
     },
     fields: [
       {
         fieldType: "fieldType",
-        label: "labe",
+        label: "label",
         validation: "validation",
       }
     ],
