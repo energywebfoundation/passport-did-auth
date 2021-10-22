@@ -1,9 +1,9 @@
 import {
-    Wallet,
     providers,
 } from "ethers";
 
 import { getServer } from './testUtils/server';
+import { preparePassport } from './testUtils/preparePassport';
 
 import {
     setChainConfig,
@@ -41,25 +41,17 @@ const provider = new providers.JsonRpcProvider(rpcUrl);
 // funded private key for 0x627306090abaB3A6e1400e9345bC60c78a8BEf57
 // ganache with "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat" mnemonic
 const userPrivKey = '0xc87509a1c067bbde78beb793e6fa76530b6382a4c0241e5e4a9ec0a0f44dc0d3';
+const userAddress = '0x627306090abaB3A6e1400e9345bC60c78a8BEf57';
+const userDid = `did:ethr:${userAddress}`;
 
-export const createIdentityProofWithDelegate = async (secp256k1PrivateKey: string, rpcUrl: string, identityProofDid: string) : Promise<string> => {
-    const provider = new providers.JsonRpcProvider(rpcUrl);
-    const wallet = new Wallet(secp256k1PrivateKey, provider);
+const secondPrivKey = 'ae6ae8e5ccbfb04590405997ee2d52d2b330726137b875053c36d94e974d162f';
+const secondAddress = '0xf17f52151EbEF6C7334FAD080c5704D77216b732';
+const seconDid = `did:ethr:${secondAddress}`
 
-    const blockNumber = (await provider.getBlockNumber());
-
-    const payload = {
-        claimData: {
-            blockNumber,
-        },
-    };
-    const jwt = new JWT(wallet);
-    const identityToken = await jwt.sign(payload, { issuer: identityProofDid, subject: identityProofDid });
-    return identityToken;
-}
 jest.setTimeout(84000);
 
 let iam: IAM;
+let secondIam: IAM
 
 beforeAll(async () => {
     await deployDidRegistry();
@@ -103,8 +95,7 @@ it('Verifies asset authentication',  async () => {
     });
     assert.isTrue(isDIdDocUpdated, "The asset has not been added to document");
     
-    // TODO: replace with static function in iam-client-lib
-    const token = await createIdentityProofWithDelegate(
+    const token = await iam.createDelegateProof(
         assetKeys.privateKey,
         rpcUrl,
         assetDid
@@ -118,5 +109,60 @@ it('Verifies asset authentication',  async () => {
     expect(response.statusCode).toBe(200);
     expect(response.body.token).toBeDefined;
     connection.close()
+});
+
+it("Should authenticate issuer signature", async () => {
+    const { loginStrategy } = preparePassport(didContract.address);
+    const token = await iam.createIdentityProof();
+    const payload = {
+        iss: userDid,
+        claimData: {
+            blockNumber: 4242,
+        },
+        sub: '',
+    }
+    
+    await loginStrategy.validate(token, payload, (err, user) => {
+        const jwt = new JWT(new Keys({privateKey: userPrivKey}));
+        const decodedIdentity = jwt.decode(token) as { [key: string]: string | object; };
+        const decodedVerifiedUser = jwt.decode(user) as { [key: string]: string | object; }
+        expect(decodedVerifiedUser.did).toBe(decodedIdentity.did);
+    });
+});
+
+it("Should reject invalid issuer", async () => {
+    const { loginStrategy } = preparePassport(didContract.address);
+    const token = await iam.createIdentityProof();
+    const payload = {
+        iss: seconDid,
+        claimData: {
+            blockNumber: 4242,
+        },
+        sub: '',
+    }
+    
+    const consoleListenner = jest.spyOn(console, 'log')
+    await loginStrategy.validate(token, payload, () => {
+        expect(consoleListenner).toBeCalledWith('Not Verified')
+    });
+});
+
+it("Should reject invalid token", async () => {
+    secondIam = new IAM({privateKey: secondPrivKey, rpcUrl});
+    await secondIam.initializeConnection({initCacheServer: false});
+    const { loginStrategy } = preparePassport(didContract.address);
+    const token = await secondIam.createIdentityProof();
+    const payload = {
+        iss: userDid,
+        claimData: {
+            blockNumber: 4242,
+        },
+        sub: '',
+    }
+    
+    const consoleListenner = jest.spyOn(console, 'log')
+    await loginStrategy.validate(token, payload, () => {
+        expect(consoleListenner).toBeCalledWith('Not Verified')
+    });
 });
 

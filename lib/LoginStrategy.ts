@@ -21,6 +21,7 @@ import { DidStore } from '@ew-did-registry/did-ipfs-store'
 import { CacheServerClient } from './cacheServerClient'
 import { ClaimVerifier } from './ClaimVerifier'
 import { AuthTokenVerifier } from './AuthTokenVerifier'
+import { IDIDDocument } from '@ew-did-registry/did-resolver-interface'
 
 const { abi: abi1056 } = ethrReg
 
@@ -104,6 +105,14 @@ export class LoginStrategy extends BaseStrategy {
     this.privateKey = privateKey!
   }
 
+  private async getDidDocument(did : string) : Promise<IDIDDocument> {
+    const _didDocument = this.cacheServerClient?.isAvailable 
+      ? await this.cacheServerClient.getDidDocument(did)
+      :  await this.didResolver.read(did)
+
+      return _didDocument
+  }
+
   /**
    * @description verifies issuer signature, then check that claim issued
    * no later then `this.numberOfBlocksBack` and user has enrolled with at
@@ -117,9 +126,7 @@ export class LoginStrategy extends BaseStrategy {
     payload: ITokenPayload,
     done: (err?: Error, user?: any, info?: any) => void
   ): Promise<void> {
-    const didDocument = this.cacheServerClient?.isAvailable 
-      ? await this.cacheServerClient.getDidDocument(payload.iss)
-      :  await this.didResolver.read(payload.iss)
+    const didDocument = await this.getDidDocument(payload.iss);
     const authenticationClaimVerifier = new AuthTokenVerifier(didDocument)
     const did = await authenticationClaimVerifier.verify(token)
 
@@ -146,16 +153,20 @@ export class LoginStrategy extends BaseStrategy {
     }
 
     try {
-      const roleClaims =
-        /*
-         * getUserClaims attempts to retrieve claims from cache-server
-         * and so when the cache-server itself is using the LoginStrategy,
-         * this creates a login attempt loop.
-         * Therefore, not getting userClaims
-         * if address attempting to login is the address of the strategy
-         */
-        this.cacheServerClient?.address === address ? [] : await this.getUserClaims(did)
-      const verifier = new ClaimVerifier(roleClaims, this.getRoleDefinition.bind(this), this.getUserClaims.bind(this))
+      /*
+      * getUserClaims attempts to retrieve claims from cache-server
+      * and so when the cache-server itself is using the LoginStrategy,
+      * this creates a login attempt loop.
+      * Therefore, not getting userClaims
+      * if address attempting to login is the address of the strategy
+      */
+      const roleClaims = this.cacheServerClient?.address === address ? [] : await this.getUserClaims(did)
+      const verifier = new ClaimVerifier(
+        roleClaims,
+        this.getRoleDefinition.bind(this),
+        this.getUserClaims.bind(this),
+        this.getDidDocument.bind(this),
+      )
       const uniqueRoles = await verifier.getVerifiedRoles();
 
       if (

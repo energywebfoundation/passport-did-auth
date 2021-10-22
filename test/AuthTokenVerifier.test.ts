@@ -133,26 +133,5 @@ describe("AuthTokenVerifier", () => {
       });
       delegateTests();
     });
-
-    //   it("should reject the second DID authentication with first Claim issuer", async () => {
-    //     verifier = new AuthTokenVerifier(firstDocument);
-    //     const did = await verifier.verify(secondClaim);
-
-    //     assert.strictEqual(did, null);
-    //   });
-
-    //   it("should reject first DID with second Claim issuer", async () => {
-    //     verifier = new AuthTokenVerifier(secondDocument);
-    //     const did = await verifier.verify(firstClaim);
-
-    //     assert.strictEqual(did, null);
-    //   });
-
-    //   it("should authenticate second DID with second Claim issuer", async () => {
-    //     verifier = new AuthTokenVerifier(secondDocument);
-    //     const did = await verifier.verify(secondClaim);
-
-    //     assert.strictEqual(did, secondDID);
-    //   });
   });
 });
