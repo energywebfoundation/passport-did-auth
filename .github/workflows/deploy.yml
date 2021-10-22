@@ -71,7 +71,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      - name: Merge to master branch
+      - name: Merge master branch into develop branch
         if: github.ref == 'refs/heads/master'
         run: |
           git checkout develop
