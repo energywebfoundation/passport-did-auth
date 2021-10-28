@@ -8,6 +8,7 @@ import {
 } from "@ew-did-registry/did-resolver-interface";
 import { utils } from "ethers";
 import base64url from "base64url";
+import * as jsonwebtoken from 'jsonwebtoken';
 
 const { arrayify, recoverAddress, keccak256, hashMessage } = utils;
 
@@ -27,6 +28,11 @@ export class AuthTokenVerifier {
       return this._didDocument.id;
     }
     return null;
+  }
+
+  private async p256verify(token: string, pubKey: string): Promise<boolean> {
+    const verif = jsonwebtoken.verify(token, pubKey, { algorithms: ['ES256'] });
+    return verif !== undefined;
   }
 
   /**
@@ -72,7 +78,7 @@ export class AuthTokenVerifier {
           const publickey = parts.length == 2 ? parts[1] : parts[0];
           const decodedClaim = await this._jwt.verify(token, publickey);
 
-          return decodedClaim !== undefined;
+          return (decodedClaim !== undefined || this.p256verify(token, publickey));
         } catch (error) {
           return false;
         }
