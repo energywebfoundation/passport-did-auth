@@ -1,5 +1,7 @@
 import assert from "assert";
-import { Wallet, utils } from "ethers";
+import { Wallet } from "ethers";
+import ECKey from 'ec-key';
+import jsonwebtoken from 'jsonwebtoken';
 import { JWT } from "@ew-did-registry/jwt";
 import { AuthTokenVerifier } from "../lib/AuthTokenVerifier";
 import { mockDocument } from "./TestDidDocuments";
@@ -11,8 +13,6 @@ import {
   PubKeyType,
 } from "@ew-did-registry/did-resolver-interface";
 
-const { computePublicKey } = utils;
-
 const payload = {
   claimType: "user.roles.example1.apps.john.iam.ewc",
   claimData: {
@@ -21,26 +21,25 @@ const payload = {
   },
 };
 const identity = Wallet.createRandom();
+const DID = `did:${Methods.Erc1056}:${identity.address}`;
 
-const createEthersClaim = async (delegate?: Wallet) => {
-  if (!delegate) {
-    delegate = identity;
+const createEIP191claim = async (signer?: Wallet | Keys) => {
+  if (!signer) {
+    signer = identity;
   }
-  const DID = `did:${Methods.Erc1056}:${identity.address}`;
-  return new JWT(delegate).sign({
+  return new JWT(signer).sign({
     ...payload,
     iss: DID,
   });
 };
-const createJwtClaim = async (delegate?: Wallet) => {
-  if (!delegate) {
-    delegate = identity;
-  }
-  const DID = `did:${Methods.Erc1056}:${identity.address}`;
-  return new JWT(
-    new Keys({ privateKey: delegate.privateKey.slice(2) })
-  ).sign(payload, { issuer: DID });
-};
+const createES256claim = async (signer) =>
+  jsonwebtoken
+    .sign(
+      payload,
+      signer.privKey.toString('pem'),
+      { algorithm: 'ES256', noTimestamp: true, issuer: DID }
+    );
+
 
 describe("AuthTokenVerifier", () => {
   let verifier: AuthTokenVerifier;
@@ -48,7 +47,7 @@ describe("AuthTokenVerifier", () => {
 
   describe("Authenticate as identity", () => {
     it("should authenticate with empty document", async () => {
-      claim = await createEthersClaim(identity);
+      claim = await createEIP191claim(identity);
       const document = mockDocument(identity, {
         withOwnerKey: false,
       });
@@ -59,7 +58,7 @@ describe("AuthTokenVerifier", () => {
     });
 
     it("should not authenticate with other identity document", async () => {
-      claim = await createEthersClaim(identity);
+      claim = await createEIP191claim(identity);
       const document = mockDocument(Wallet.createRandom(), {
         withOwnerKey: false,
       });
@@ -72,14 +71,15 @@ describe("AuthTokenVerifier", () => {
 
   describe("Authenticate as delegate", () => {
     let createClaim;
+    let delegate;
+
     const delegateTests = () => {
       it("sigAuth delegate should be authenticated", async () => {
-        const delegate = Wallet.createRandom();
         const document = mockDocument(identity);
         document.publicKey.push({
           id: `did:${Methods.Erc1056}:${delegate.address}#${PubKeyType.SignatureAuthentication2018}`,
           type: PubKeyType.SignatureAuthentication2018,
-          publicKeyHex: computePublicKey(delegate.publicKey, true),
+          publicKeyHex: delegate.publicKey,
         } as IPublicKey);
         verifier = new AuthTokenVerifier(document);
         claim = await createClaim(delegate);
@@ -89,12 +89,11 @@ describe("AuthTokenVerifier", () => {
       });
 
       it("authentication delegate should be authenticated", async () => {
-        const delegate = Wallet.createRandom();
         const document = mockDocument(identity);
         document.publicKey.push({
           id: `did:${Methods.Erc1056}:${delegate.address}#${PubKeyType.VerificationKey2018}`,
           type: PubKeyType.VerificationKey2018,
-          publicKeyHex: computePublicKey(delegate.publicKey, true),
+          publicKeyHex: delegate.publicKey,
         } as IPublicKey);
         document.authentication.push({
           publicKey: `did:${Methods.Erc1056}:${delegate.address}#delegate`,
@@ -107,7 +106,6 @@ describe("AuthTokenVerifier", () => {
       });
 
       it("should reject authentication with mismatching DID doc", async () => {
-        const delegate = Wallet.createRandom();
         const document = mockDocument(identity);
         verifier = new AuthTokenVerifier(document);
         claim = await createClaim(delegate);
@@ -117,18 +115,36 @@ describe("AuthTokenVerifier", () => {
       });
     };
 
-    describe("With Ethers signature", () => {
+    describe("With ethers.Signer", () => {
       beforeAll(() => {
-        createClaim = createEthersClaim;
+        delegate = Wallet.createRandom();
+        createClaim = createEIP191claim;
       });
       delegateTests();
     });
 
-    describe("With Json web signature", () => {
+    describe("With Keys signer", () => {
       beforeAll(() => {
-        createClaim = createJwtClaim;
+        delegate = new Keys();
+        createClaim = createEIP191claim;
       });
+      delegateTests();
+    });
+
+    describe.only("With P256 signer", () => {
+      beforeAll(() => {
+        createClaim = createES256claim;
+        const privKey = ECKey.createECKey('prime256v1');
+        const publicKey = `0x${privKey.publicCodePoint.toString('hex')}`;
+        delegate = {
+          privKey,
+          publicKey,
+          address: publicKey,
+        };
+      });
+
       delegateTests();
     });
   });
 });
+
