@@ -1,9 +1,6 @@
 import assert from "assert";
 import { Wallet, utils } from "ethers";
-import {
-  createSignWithEthersSigner,
-  createSignWithKeys,
-} from "@ew-did-registry/jwt/dist/sign";
+import { JWT } from "@ew-did-registry/jwt";
 import { AuthTokenVerifier } from "../lib/AuthTokenVerifier";
 import { mockDocument } from "./TestDidDocuments";
 import { Methods } from "@ew-did-registry/did";
@@ -30,7 +27,7 @@ const createEthersClaim = async (delegate?: Wallet) => {
     delegate = identity;
   }
   const DID = `did:${Methods.Erc1056}:${identity.address}`;
-  return createSignWithEthersSigner(delegate)({
+  return new JWT(delegate).sign({
     ...payload,
     iss: DID,
   });
@@ -40,9 +37,9 @@ const createJwtClaim = async (delegate?: Wallet) => {
     delegate = identity;
   }
   const DID = `did:${Methods.Erc1056}:${identity.address}`;
-  return createSignWithKeys(
+  return new JWT(
     new Keys({ privateKey: delegate.privateKey.slice(2) })
-  )(payload, { issuer: DID, algorithm: "ES256" });
+  ).sign(payload, { issuer: DID });
 };
 
 describe("AuthTokenVerifier", () => {
