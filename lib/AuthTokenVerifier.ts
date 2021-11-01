@@ -1,4 +1,4 @@
-import { JWT } from "@ew-did-registry/jwt";
+import { Algorithms, JWT } from "@ew-did-registry/jwt";
 import { Keys } from "@ew-did-registry/keys";
 import {
   IAuthentication,
@@ -70,7 +70,7 @@ export class AuthTokenVerifier {
         try {
           const parts = pubKeyField["publicKeyHex"]?.split("x");
           const publickey = parts.length == 2 ? parts[1] : parts[0];
-          const decodedClaim = await this._jwt.verify(token, publickey);
+          const decodedClaim = await this._jwt.verify(token, publickey, { algorithms: [Algorithms.ES256, Algorithms.EIP191] });
 
           return decodedClaim !== undefined;
         } catch (error) {
