@@ -131,7 +131,7 @@ describe("AuthTokenVerifier", () => {
       delegateTests();
     });
 
-    describe.only("With P256 signer", () => {
+    describe("With P256 signer", () => {
       beforeAll(() => {
         createClaim = createES256claim;
         const privKey = ECKey.createECKey('prime256v1');
