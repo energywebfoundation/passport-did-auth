@@ -10,5 +10,14 @@
       "channel": "canary"
     }
   ],
-  "repositoryUrl": "git@github.com:energywebfoundation/passport-did-auth.git"
+  "repositoryUrl": "git@github.com:energywebfoundation/passport-did-auth.git",
+  "plugins": [
+    "@semantic-release/npm",
+    [
+        "@semantic-release/git",
+        {
+            "assets": ["package.json", "docs/CHANGELOG.md"]
+        }
+    ]
+  ]
 }
