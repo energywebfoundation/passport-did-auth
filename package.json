@@ -68,6 +68,7 @@
     "@babel/core": "^7.12.10",
     "@babel/preset-env": "^7.12.11",
     "@babel/preset-typescript": "^7.12.7",
+    "@semantic-release/git": "^10.0.1",
     "@typechain/ethers-v5": "^7.0.1",
     "@types/jest": "^27.0.1",
     "@types/jsonwebtoken": "^8.5.0",
