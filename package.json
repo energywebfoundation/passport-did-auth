@@ -84,6 +84,7 @@
     "eslint-config-prettier": "^8.3.0",
     "eslint-module-utils": "^2.7.0",
     "eslint-plugin-import": "^2.25.1",
+    "eslint-plugin-prettier": "^4.0.0",
     "express": "^4.17.1",
     "husky": "^7.0.2",
     "iam-client-lib": "^3.1.0",
@@ -91,6 +92,7 @@
     "mocha": "^9.1.1",
     "morgan": "^1.10.0",
     "passport-jwt": "^4.0.0",
+    "prettier": "^2.4.1",
     "run-with-testrpc": "^0.3.1",
     "semantic-release": "^18.0.0",
     "supertest": "^6.1.6",
@@ -101,7 +103,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "rm -rf docs/api && typedoc --plugin typedoc-plugin-markdown --hideBreadcrumbs true && git add -A ."
+      "pre-commit": "rm -rf docs/api && typedoc --plugin typedoc-plugin-markdown --hideBreadcrumbs true && npm run lint && git add -A ."
     }
   }
 }

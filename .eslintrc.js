@@ -6,7 +6,8 @@ module.exports = {
   },
   plugins: [
     '@typescript-eslint/eslint-plugin',
-    'eslint-plugin-import'
+    'eslint-plugin-import',
+    'prettier',
   ],
   extends: [
     'plugin:@typescript-eslint/eslint-recommended',
@@ -32,5 +33,7 @@ module.exports = {
         "peerDependencies": false,
       },
     ],
+    'prettier/prettier': ['error'],
+    'semi': ['error', 'always'],
   },
 };
