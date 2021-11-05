@@ -10,7 +10,7 @@
   "scripts": {
     "start-rpc": "run-with-testrpc -m \"candy maple cake sugar pudding cream honey rich smooth crumble sweet treat\" --port 8544 --chainId 1337 --accounts 20 --gasLimit=10000000",
     "ganache": "ganache-cli -m \"candy maple cake sugar pudding cream honey rich smooth crumble sweet treat\" --port 8544 --accounts 20 --networkId=9 --gasLimit=10000000",
-    "prepare": "npm run build",
+    "prepare": "npm run build && husky install",
     "build": "rm -rf dist && rm -rf ethers && npm run build:contracts && npm run build:ts",
     "build:api_docs": "rm -rf docs/api && typedoc --plugin typedoc-plugin-markdown --hideBreadcrumbs true",
     "build:ts": "tsc",
@@ -84,6 +84,7 @@
     "eslint-config-prettier": "^8.3.0",
     "eslint-module-utils": "^2.7.0",
     "eslint-plugin-import": "^2.25.1",
+    "eslint-plugin-prettier": "^4.0.0",
     "express": "^4.17.1",
     "husky": "^7.0.2",
     "iam-client-lib": "^3.1.0",
@@ -91,6 +92,7 @@
     "mocha": "^9.1.1",
     "morgan": "^1.10.0",
     "passport-jwt": "^4.0.0",
+    "prettier": "^2.4.1",
     "run-with-testrpc": "^0.3.1",
     "semantic-release": "^18.0.0",
     "supertest": "^6.1.6",
@@ -101,7 +103,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "rm -rf docs/api && typedoc --plugin typedoc-plugin-markdown --hideBreadcrumbs true && git add -A ."
+      "pre-commit": "rm -rf docs/api && typedoc --plugin typedoc-plugin-markdown --hideBreadcrumbs true && npm run lint && git add -A ."
     }
   }
 }
