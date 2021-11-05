@@ -33,7 +33,7 @@ module.exports = {
         "peerDependencies": false,
       },
     ],
-    'prettier/prettier': ['error'],
-    'semi': ['error', 'always'],
+    'prettier/prettier': ['warn'], //change from warn to error if you want to reject checking if the rule is missing
+    'semi': ['warn', 'always'], //change from warn to error if you want to reject checking if the rule is missing
   },
 };
