@@ -10,7 +10,7 @@
   "scripts": {
     "start-rpc": "run-with-testrpc -m \"candy maple cake sugar pudding cream honey rich smooth crumble sweet treat\" --port 8544 --chainId 1337 --accounts 20 --gasLimit=10000000",
     "ganache": "ganache-cli -m \"candy maple cake sugar pudding cream honey rich smooth crumble sweet treat\" --port 8544 --accounts 20 --networkId=9 --gasLimit=10000000",
-    "prepare": "npm run build",
+    "prepare": "npm run build && husky install",
     "build": "rm -rf dist && rm -rf ethers && npm run build:contracts && npm run build:ts",
     "build:api_docs": "rm -rf docs/api && typedoc --plugin typedoc-plugin-markdown --hideBreadcrumbs true",
     "build:ts": "tsc",
