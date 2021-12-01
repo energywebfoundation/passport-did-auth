@@ -1,7 +1,7 @@
 import { Claim, DecodedToken, IRoleDefinition } from "./LoginStrategy.types";
 import * as jwt from "jsonwebtoken";
-import { AuthTokenVerifier } from "./AuthTokenVerifier";
 import { IDIDDocument } from "@ew-did-registry/did-resolver-interface";
+import { ProofVerifier } from "@ew-did-registry/claims";
 
 export class ClaimVerifier {
   constructor(
@@ -100,14 +100,14 @@ export class ClaimVerifier {
     issuerClaims: Claim[]
   ): Promise<boolean> {
     const didDocument = await this.getDidDocument(issuer);
-    const authenticationClaimVerifier = new AuthTokenVerifier(didDocument);
+    const proofVerifier = new ProofVerifier(didDocument);
     const checks = await Promise.all(
       issuerClaims.map(async (claim) => {
         if (claim.iss !== issuer) {
           return false;
         }
         const claimToken = claim.issuedToken as string;
-        const verifiedIssuer = await authenticationClaimVerifier.verify(
+        const verifiedIssuer = await proofVerifier.verifyAssertionProof(
           claimToken
         );
         if (verifiedIssuer !== issuer) {

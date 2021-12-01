@@ -86,7 +86,7 @@ export const preparePassport = (
     done(null, _user);
   });
   passport.deserializeUser(function (user, done) {
-    done(null, user);
+    done(null, user as Express.User);
   });
 
   return { passport, LOGIN_STRATEGY, loginStrategy };
