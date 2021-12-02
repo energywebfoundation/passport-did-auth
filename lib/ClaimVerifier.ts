@@ -1,44 +1,44 @@
-import { Claim, DecodedToken, IRoleDefinition } from './LoginStrategy.types'
-import * as jwt from 'jsonwebtoken'
-import { AuthTokenVerifier } from './AuthTokenVerifier';
-import { IDIDDocument } from '@ew-did-registry/did-resolver-interface';
+import { Claim, DecodedToken, IRoleDefinition } from "./LoginStrategy.types";
+import * as jwt from "jsonwebtoken";
+import { AuthTokenVerifier } from "./AuthTokenVerifier";
+import { IDIDDocument } from "@ew-did-registry/did-resolver-interface";
 
 export class ClaimVerifier {
-
   constructor(
     private readonly claims: Claim[],
-    private readonly getRoleDefinition: (namespace: string) => Promise<IRoleDefinition>,
+    private readonly getRoleDefinition: (
+      namespace: string
+    ) => Promise<IRoleDefinition>,
     private readonly getUserClaims: (did: string) => Promise<Claim[]>,
-    private readonly getDidDocument: (did: string) => Promise<IDIDDocument>,
-  ) {
-  }
+    private readonly getDidDocument: (did: string) => Promise<IDIDDocument>
+  ) {}
 
   public async getVerifiedRoles(): Promise<{ name: any; namespace: string }[]> {
     const roles = await Promise.all(
       this.claims.map(
         async ({ claimType, claimTypeVersion, iss, issuedToken }) => {
-          if (!claimType) return
+          if (!claimType) return;
 
           if (iss) {
             return this.verifyRole({
               issuer: iss,
               namespace: claimType,
               version: claimTypeVersion,
-            })
+            });
           }
           const issuedClaim = jwt.decode(issuedToken!) as DecodedToken;
           return this.verifyRole({
             issuer: issuedClaim.iss,
             namespace: claimType,
             version: claimTypeVersion,
-          })
+          });
         }
       )
     );
     const filteredRoles = roles.filter(Boolean);
     const uniqueRoles = [...new Set(filteredRoles)];
     return uniqueRoles as [];
-  };
+  }
 
   /**
    * @description checks that the `issuer` has the required role specified by the `namespace`
@@ -49,9 +49,9 @@ export class ClaimVerifier {
     issuer,
     version,
   }: {
-    namespace: string
-    issuer: string
-    version?: string
+    namespace: string;
+    issuer: string;
+    version?: string;
   }): Promise<{
     name: string;
     namespace: string;
@@ -70,8 +70,7 @@ export class ClaimVerifier {
     if (!areClaimsValid) {
       return null;
     }
-    if (role.issuer?.issuerType === 'DID') {
-
+    if (role.issuer?.issuerType === "DID") {
       if (
         Array.isArray(role.issuer?.did) &&
         role.issuer?.did.includes(issuer)
@@ -84,8 +83,8 @@ export class ClaimVerifier {
       return null;
     }
 
-    if (role.issuer?.issuerType === 'Role') {
-      const issuerRoles = issuerClaims.map((claim) => claim.claimType)
+    if (role.issuer?.issuerType === "Role") {
+      const issuerRoles = issuerClaims.map((claim) => claim.claimType);
       if (issuerRoles.includes(role.issuer.roleName)) {
         return {
           name: role.roleName,
@@ -94,9 +93,12 @@ export class ClaimVerifier {
       }
     }
     return null;
-  };
+  }
 
-  private async verifySignature(issuer: string, issuerClaims: Claim[]): Promise<boolean> {
+  private async verifySignature(
+    issuer: string,
+    issuerClaims: Claim[]
+  ): Promise<boolean> {
     const didDocument = await this.getDidDocument(issuer);
     const authenticationClaimVerifier = new AuthTokenVerifier(didDocument);
     const checks = await Promise.all(
@@ -104,8 +106,10 @@ export class ClaimVerifier {
         if (claim.iss !== issuer) {
           return false;
         }
-        const claimToken = claim.issuedToken as string
-        const verifiedIssuer = await authenticationClaimVerifier.verify(claimToken)
+        const claimToken = claim.issuedToken as string;
+        const verifiedIssuer = await authenticationClaimVerifier.verify(
+          claimToken
+        );
         if (verifiedIssuer !== issuer) {
           return false;
         }
@@ -113,6 +117,5 @@ export class ClaimVerifier {
       })
     );
     return checks.includes(true);
-  };
-
+  }
 }
