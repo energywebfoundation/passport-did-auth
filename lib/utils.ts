@@ -1,5 +1,6 @@
 import { normalize } from "eth-ens-namehash";
 import { keccak_256 as sha3 } from "js-sha3";
+import { OffchainClaim } from "./LoginStrategy.types";
 
 export function decodeLabelhash(hash: string): string {
   if (!(hash.startsWith("[") && hash.endsWith("]"))) {
@@ -68,4 +69,15 @@ export function lookup(
     obj = prop;
   }
   return null;
+}
+
+export function isOffchainClaim(claim: any): claim is OffchainClaim {
+  const offChainCliamProps = [
+    "claimType",
+    "claimTypeVersion",
+    "issuedToken",
+    "iss",
+  ];
+  const claimProps = Object.keys(claim);
+  return offChainCliamProps.every((p) => claimProps.includes(p));
 }

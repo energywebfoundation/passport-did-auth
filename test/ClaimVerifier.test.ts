@@ -3,7 +3,7 @@ import { ClaimsUser } from "@ew-did-registry/claims";
 import { Keys } from "@ew-did-registry/keys";
 import assert from "assert";
 import { ClaimVerifier } from "../lib/ClaimVerifier";
-import { Claim, IRoleDefinition } from "../lib/LoginStrategy.types";
+import { OffchainClaim, IRoleDefinition } from "../lib/LoginStrategy.types";
 import { ClaimData } from "./claim-creation/ClaimData";
 import { ClaimsUserFactory } from "./claim-creation/ClaimsUserFactory";
 import { mockDocument } from "./TestDidDocuments";
@@ -16,92 +16,97 @@ const keys = new Keys({
 const keys2 = new Keys();
 
 const claimsUser: ClaimsUser = ClaimsUserFactory.create(keys);
-const secondClaimUser: ClaimsUser = ClaimsUserFactory.create(keys2);
-const issuerDID = `did:ethr:${keys.getAddress()}`;
-const secondDID = `did:ethr:${keys2.getAddress()}`;
+const claimsUser2: ClaimsUser = ClaimsUserFactory.create(keys2);
+const userDID = `did:ethr:${keys.getAddress()}`;
+const user2DID = `did:ethr:${keys2.getAddress()}`;
 
-let claims: Claim[];
-let invalidClaims: Claim[];
-let secondClaims: Claim[];
-let claimsWithoutIssField: Claim[];
+let userClaims: OffchainClaim[];
+let invalidClaims: OffchainClaim[];
+let user2Claims: OffchainClaim[];
+let claimsWithoutIssField: OffchainClaim[];
+
+const claimTypeVersion = "1";
+const claimType = "user.roles.example1.apps.john.iam.ewc";
+const claimData: ClaimData = {
+  claimType,
+  claimTypeVersion,
+  profile: "",
+};
 
 describe("ClaimVerifier", () => {
   beforeAll(async () => {
-    const claimType = "user.roles.example1.apps.john.iam.ewc";
-    const claimData: ClaimData = {
+    const userToken = await claimsUser.createPublicClaim(claimData);
+    const user2Token = await claimsUser2.createPublicClaim(claimData);
+
+    const claim1: OffchainClaim = {
       claimType,
-      claimTypeVersion: "",
-      profile: "",
+      claimTypeVersion,
+      issuedToken: userToken,
+      iss: userDID,
     };
 
-    const claimToken = await claimsUser.createPublicClaim(claimData);
-    const secondClaimToken = await secondClaimUser.createPublicClaim(claimData);
-
-    const claim1: Claim = {
+    const claim2: OffchainClaim = {
       claimType,
-      issuedToken: claimToken,
-      iss: issuerDID,
+      claimTypeVersion,
+      issuedToken: userToken,
     };
 
-    const claim2: Claim = {
+    const claim3: OffchainClaim = {
       claimType,
-      issuedToken: claimToken,
+      claimTypeVersion,
+      issuedToken: user2Token,
+      iss: user2DID,
     };
 
-    const claim3: Claim = {
+    const invalidClaim: OffchainClaim = {
       claimType,
-      issuedToken: secondClaimToken,
-      iss: secondDID,
-    };
-
-    const invalidClaim: Claim = {
-      claimType,
-      issuedToken: secondClaimToken,
-      iss: issuerDID,
+      claimTypeVersion,
+      issuedToken: userToken,
+      iss: user2DID,
     };
     claimsWithoutIssField = [claim2];
-    claims = [claim1];
-    secondClaims = [claim3];
+    userClaims = [claim1, claim2];
+    user2Claims = [claim3];
     invalidClaims = [invalidClaim];
   });
 
   it("should verify Role-type claim", async () => {
     const verifier = new ClaimVerifier(
-      claims,
-      getRoleDefinition(secondDID, "Role"),
+      userClaims,
+      getRoleDefinition(user2DID, "Role"),
       getUserClaims,
       getDidDocument
     );
     const verifiedRoles = await verifier.getVerifiedRoles();
-    assert.strictEqual(verifiedRoles.length, 1);
+    assert.strictEqual(verifiedRoles.length, userClaims.length);
   });
 
   it("should verify DID-type claim", async () => {
     const verifier = new ClaimVerifier(
-      claims,
-      getRoleDefinition(issuerDID, "DID"),
+      userClaims,
+      getRoleDefinition(userDID, "DID"),
       getUserClaims,
       getDidDocument
     );
     const verifiedRoles = await verifier.getVerifiedRoles();
-    assert.strictEqual(verifiedRoles.length, 1);
+    assert.strictEqual(verifiedRoles.length, userClaims.length);
   });
 
   it("should verify DID-type claim without iss field", async () => {
     const verifier = new ClaimVerifier(
       claimsWithoutIssField,
-      getRoleDefinition(issuerDID, "DID"),
+      getRoleDefinition(userDID, "DID"),
       getUserClaims,
       getDidDocument
     );
     const verifiedRoles = await verifier.getVerifiedRoles();
-    assert.strictEqual(verifiedRoles.length, 1);
+    assert.strictEqual(verifiedRoles.length, claimsWithoutIssField.length);
   });
 
   it("should reject invalid DID-type claim", async () => {
     const verifier = new ClaimVerifier(
       invalidClaims,
-      getRoleDefinition(secondDID, "DID"),
+      getRoleDefinition(user2DID, "DID"),
       getUserClaims,
       getDidDocument
     );
@@ -113,7 +118,7 @@ describe("ClaimVerifier", () => {
     const incorrectIssuerDID =
       "did:ethr:0x0xeBaD11b9b20Ec11F2FC44F99C21242f510B522b6";
     const verifier = new ClaimVerifier(
-      claims,
+      userClaims,
       getRoleDefinition(incorrectIssuerDID, "DID"),
       getUserClaims,
       getDidDocument
@@ -140,19 +145,21 @@ const getRoleDefinition = (issuerDid: string, issuerType: string) => {
     ],
     metadata: {},
     roleType: "",
-    version: "",
+    version: claimTypeVersion,
   };
   return () => Promise.resolve(roleDef);
 };
 
-const getUserClaims: (did: string) => Promise<Claim[]> = (did: string) => {
+const getUserClaims: (did: string) => Promise<OffchainClaim[]> = (
+  did: string
+) => {
   switch (did) {
-    case issuerDID:
-      return Promise.resolve(claims);
-    case secondDID:
-      return Promise.resolve(secondClaims);
+    case userDID:
+      return Promise.resolve(userClaims);
+    case user2DID:
+      return Promise.resolve(user2Claims);
     default:
-      return Promise.resolve(new Array<Claim>());
+      return Promise.resolve(new Array<OffchainClaim>());
   }
 };
 

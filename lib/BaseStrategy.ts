@@ -1,7 +1,7 @@
 import { Strategy } from "passport";
 import { Request } from "express";
 import { inherits } from "util";
-import { Claim } from "./LoginStrategy.types";
+import { OffchainClaim } from "./LoginStrategy.types";
 
 export interface StrategyOptions {
   name: string;
@@ -47,7 +47,7 @@ export abstract class BaseStrategy extends Strategy {
    *
    * @param did
    */
-  abstract getUserClaims(did: string): Promise<Claim[]>;
+  abstract offchainClaimsOf(did: string): Promise<OffchainClaim[]>;
 
   /**
    * @constructor
