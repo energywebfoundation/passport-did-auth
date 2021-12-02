@@ -1,7 +1,7 @@
 import assert from "assert";
 import { Wallet } from "ethers";
-import ECKey from 'ec-key';
-import jsonwebtoken from 'jsonwebtoken';
+import ECKey from "ec-key";
+import jsonwebtoken from "jsonwebtoken";
 import { JWT } from "@ew-did-registry/jwt";
 import { AuthTokenVerifier } from "../lib/AuthTokenVerifier";
 import { mockDocument } from "./TestDidDocuments";
@@ -33,13 +33,11 @@ const createEIP191claim = async (signer?: Wallet | Keys) => {
   });
 };
 const createES256claim = async (signer) =>
-  jsonwebtoken
-    .sign(
-      payload,
-      signer.privKey.toString('pem'),
-      { algorithm: 'ES256', noTimestamp: true, issuer: DID }
-    );
-
+  jsonwebtoken.sign(payload, signer.privKey.toString("pem"), {
+    algorithm: "ES256",
+    noTimestamp: true,
+    issuer: DID,
+  });
 
 describe("AuthTokenVerifier", () => {
   let verifier: AuthTokenVerifier;
@@ -134,8 +132,8 @@ describe("AuthTokenVerifier", () => {
     describe("With P256 signer", () => {
       beforeAll(() => {
         createClaim = createES256claim;
-        const privKey = ECKey.createECKey('prime256v1');
-        const publicKey = `0x${privKey.publicCodePoint.toString('hex')}`;
+        const privKey = ECKey.createECKey("prime256v1");
+        const publicKey = `0x${privKey.publicCodePoint.toString("hex")}`;
         delegate = {
           privKey,
           publicKey,
@@ -147,4 +145,3 @@ describe("AuthTokenVerifier", () => {
     });
   });
 });
-

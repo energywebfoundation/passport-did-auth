@@ -1,9 +1,9 @@
-import passport, { PassportStatic } from 'passport';
-import {Strategy, ExtractJwt} from 'passport-jwt';
-import { LoginStrategyOptions, LoginStrategy } from '../../lib/LoginStrategy';
+import passport, { PassportStatic } from "passport";
+import { Strategy, ExtractJwt } from "passport-jwt";
+import { LoginStrategyOptions, LoginStrategy } from "../../lib/LoginStrategy";
 
-export const LOGIN_STRATEGY = 'login'
-export const private_pem_secret =  `-----BEGIN RSA PRIVATE KEY-----
+export const LOGIN_STRATEGY = "login";
+export const private_pem_secret = `-----BEGIN RSA PRIVATE KEY-----
 MIIEpAIBAAKCAQEA0Ir9KTl66IzS5pQclFnvpP8+eTWwiVtqONPUn17359cpfLAS
 b4OcRPkBfoBu9ecLnsYl+dfvyOxGI0risdDCiRHpSOrXhbfUhvYZXDSrpO4lFk10
 UE35d//YawCs3GEJ1KEdyYvafFGjhzkn4rqh26YlTguLkNce6oxGh0axkcxSm2pd
@@ -29,7 +29,7 @@ u16qDOagFKi0NGYU1/hvVqWn9J3PPE1gF3fkQNhqm3aN8vY+Bqk4ymftq7Xuozty
 8ub04IECgYBtA+38cogUmawHyehzfKys0808CUqSCEuWa8BjfFWCb+KwuKYepsC3
 BvHScFOKHrnC31adVv5sShpVqfTx7muLT5QH9fsEEPO+BF4zzry5iTOHFh65fkE7
 HMYR54AB/HvOVRq/GYFVjhJdRRWRp/C4m7JJUTZgS0WXsYe8I7W7nw==
------END RSA PRIVATE KEY-----`
+-----END RSA PRIVATE KEY-----`;
 
 const public_pem = `-----BEGIN PUBLIC KEY-----
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA0Ir9KTl66IzS5pQclFnv
@@ -39,52 +39,55 @@ iRHpSOrXhbfUhvYZXDSrpO4lFk10UE35d//YawCs3GEJ1KEdyYvafFGjhzkn4rqh
 79lDvsCL9vNfL8Lv4UbHfDxNiyEvoBiN9U4GeWH+58Ofmj7SL9H8aDtEMfmZI5qc
 AYbNmwbyp463E9KMjrbNb0IASujkwvWtfA76yp9epXlJ3FyiUJt95PXlvP26zfuJ
 hQIDAQAB
------END PUBLIC KEY-----`
+-----END PUBLIC KEY-----`;
 
 const jwtOptions = {
-    secretOrKey: public_pem,
-    algorithms: ['RS256'],
-    jwtFromRequest: ExtractJwt.fromExtractors([
-        ExtractJwt.fromAuthHeaderAsBearerToken(),
-        (req) => {
-          if (req && req.cookies) {
-            return req.cookies.auth;
-          }
-          return undefined;
-        },
-        (req) => {
-          if (req && req.body && req.body.identity) {
-            return req.body.identity.token;
-          }
-          return undefined;
-        },
-      ]),
-}
+  secretOrKey: public_pem,
+  algorithms: ["RS256"],
+  jwtFromRequest: ExtractJwt.fromExtractors([
+    ExtractJwt.fromAuthHeaderAsBearerToken(),
+    (req) => {
+      if (req && req.cookies) {
+        return req.cookies.auth;
+      }
+      return undefined;
+    },
+    (req) => {
+      if (req && req.body && req.body.identity) {
+        return req.body.identity.token;
+      }
+      return undefined;
+    },
+  ]),
+};
 
-export const preparePassport = (didRegistryAddress : string) : Partial<{
+export const preparePassport = (
+  didRegistryAddress: string
+): Partial<{
   passport: PassportStatic;
   LOGIN_STRATEGY: string;
   loginStrategy: LoginStrategy;
-
 }> => {
-  const loginStrategyOptions : LoginStrategyOptions = {
+  const loginStrategyOptions: LoginStrategyOptions = {
     jwtSecret: private_pem_secret,
     name: LOGIN_STRATEGY,
     rpcUrl: `http://localhost:8544`,
-    didContractAddress: didRegistryAddress
-  }
+    didContractAddress: didRegistryAddress,
+  };
   const loginStrategy = new LoginStrategy(loginStrategyOptions);
-  
+
   passport.use(loginStrategy);
-  passport.use(new Strategy(jwtOptions, (_payload, _done) => {
+  passport.use(
+    new Strategy(jwtOptions, (_payload, _done) => {
       return _done(null, _payload);
-  }));
+    })
+  );
   passport.serializeUser((_user, done) => {
-      done(null, _user);
+    done(null, _user);
   });
   passport.deserializeUser(function (user, done) {
-      done(null, user);
+    done(null, user);
   });
 
   return { passport, LOGIN_STRATEGY, loginStrategy };
-}
+};

@@ -31,7 +31,7 @@ export class AuthTokenVerifier {
 
   /**
    * @description Determines if a token was signed with an Ethereum signature by the address referenced by the id of the DID Document
-   * Note that JWT-compliant signatures can't be used to recover an ethereum 
+   * Note that JWT-compliant signatures can't be used to recover an ethereum
    */
   private async isIdentity(token: string) {
     const [encodedHeader, encodedPayload, encodedSignature] = token.split(".");
@@ -70,7 +70,9 @@ export class AuthTokenVerifier {
         try {
           const parts = pubKeyField["publicKeyHex"]?.split("x");
           const publickey = parts.length == 2 ? parts[1] : parts[0];
-          const decodedClaim = await this._jwt.verify(token, publickey, { algorithms: [Algorithms.ES256, Algorithms.EIP191] });
+          const decodedClaim = await this._jwt.verify(token, publickey, {
+            algorithms: [Algorithms.ES256, Algorithms.EIP191],
+          });
 
           return decodedClaim !== undefined;
         } catch (error) {
