@@ -1,8 +1,0 @@
-{
-    "tabSize": 2,
-    "semi": true,
-    "useTabs": true,
-    "singleQuote": true,
-    "parser": "typescript",
-    "bracketSpacing": true
-}

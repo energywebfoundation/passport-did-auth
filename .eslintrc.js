@@ -12,7 +12,7 @@ module.exports = {
   extends: [
     'plugin:@typescript-eslint/eslint-recommended',
     'plugin:@typescript-eslint/recommended',
-    'prettier',
+    'plugin:prettier/recommended',
   ],
   root: true,
   env: {
@@ -33,7 +33,6 @@ module.exports = {
         "peerDependencies": false,
       },
     ],
-    'prettier/prettier': ['warn'], //change from warn to error if you want to reject checking if the rule is missing
     'semi': ['warn', 'always'], //change from warn to error if you want to reject checking if the rule is missing
   },
 };
