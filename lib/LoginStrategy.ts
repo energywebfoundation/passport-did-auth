@@ -6,6 +6,7 @@ import {
   ethrReg,
   Resolver,
   VoltaAddress1056,
+  addressOf,
 } from "@ew-did-registry/did-ethr-resolver";
 
 import { lookup, namehash } from "./utils";
@@ -16,8 +17,8 @@ import { Methods } from "@ew-did-registry/did";
 import { DidStore } from "@ew-did-registry/did-ipfs-store";
 import { CacheServerClient } from "./cacheServerClient";
 import { ClaimVerifier } from "./ClaimVerifier";
-import { AuthTokenVerifier } from "./AuthTokenVerifier";
 import { IDIDDocument } from "@ew-did-registry/did-resolver-interface";
+import { ProofVerifier } from "@ew-did-registry/claims";
 
 const { abi: abi1056 } = ethrReg;
 
@@ -123,15 +124,15 @@ export class LoginStrategy extends BaseStrategy {
     done: (err?: Error, user?: any, info?: any) => void
   ): Promise<void> {
     const didDocument = await this.getDidDocument(payload.iss);
-    const authenticationClaimVerifier = new AuthTokenVerifier(didDocument);
-    const did = await authenticationClaimVerifier.verify(token);
+    const proofVerifier = new ProofVerifier(didDocument);
+    const did = await proofVerifier.verifyAuthenticationProof(token);
 
     if (!did) {
       console.log("Not Verified");
       return done(undefined, null, "Not Verified");
     }
 
-    const [, , address] = did.split(":");
+    const address = addressOf(did);
 
     try {
       const latestBlock = await this.provider.getBlockNumber();

@@ -69,3 +69,13 @@ export function lookup(
   }
   return null;
 }
+
+export enum Chain {
+  EWC = "ewc",
+  VOLTA = "volta",
+}
+
+export const knownChains = {
+  73799: Chain.VOLTA,
+  246: Chain.EWC,
+};

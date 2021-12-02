@@ -42,7 +42,7 @@ export class ClaimsUserFactory {
     const operator: IOperator = new Operator(privateKeySigner, {
       address: registrySettings.address,
     });
-    const did = `did:ethr:${keys.getAddress()}`;
+    const did = `did:${Methods.Erc1056}:volta:${keys.getAddress()}`;
     const didDocument = new DIDDocumentFull(did, operator);
     return new ClaimsUser(privateKeySigner, didDocument, didStore);
   }
