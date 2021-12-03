@@ -9,8 +9,12 @@ import {
   addressOf,
 } from "@ew-did-registry/did-ethr-resolver";
 
-import { lookup, namehash } from "./utils";
-import { Claim, IRoleDefinition, ITokenPayload } from "./LoginStrategy.types";
+import { isOffchainClaim, lookup, namehash } from "./utils";
+import {
+  OffchainClaim,
+  IRoleDefinition,
+  ITokenPayload,
+} from "./LoginStrategy.types";
 import { PublicResolver__factory } from "../ethers/factories/PublicResolver__factory";
 import { PublicResolver } from "../ethers/PublicResolver";
 import { Methods } from "@ew-did-registry/did";
@@ -111,9 +115,10 @@ export class LoginStrategy extends BaseStrategy {
   }
 
   /**
-   * @description verifies issuer signature, then check that claim issued
-   * no later then `this.numberOfBlocksBack` and user has enrolled with at
-   * least one role
+   * @description Uses authentication token to
+   * * Authenticate user
+   * * Check that token is not expired
+   * * User has enrolled with at least one role
    * @param token
    * @param payload
    * @callback done on successful validation is called with encoded {did, verifiedRoles} object
@@ -123,16 +128,16 @@ export class LoginStrategy extends BaseStrategy {
     payload: ITokenPayload,
     done: (err?: Error, user?: any, info?: any) => void
   ): Promise<void> {
-    const didDocument = await this.getDidDocument(payload.iss);
-    const proofVerifier = new ProofVerifier(didDocument);
-    const did = await proofVerifier.verifyAuthenticationProof(token);
+    const userDoc = await this.getDidDocument(payload.iss);
+    const proofVerifier = new ProofVerifier(userDoc);
+    const userDid = await proofVerifier.verifyAuthenticationProof(token);
 
-    if (!did) {
+    if (!userDid) {
       console.log("Not Verified");
       return done(undefined, null, "Not Verified");
     }
 
-    const address = addressOf(did);
+    const userAddress = addressOf(userDid);
 
     try {
       const latestBlock = await this.provider.getBlockNumber();
@@ -157,14 +162,14 @@ export class LoginStrategy extends BaseStrategy {
        * Therefore, not getting userClaims
        * if address attempting to login is the address of the strategy
        */
-      const roleClaims =
-        this.cacheServerClient?.address === address
+      const userClaims =
+        this.cacheServerClient?.address === userAddress
           ? []
-          : await this.getUserClaims(did);
+          : await this.offchainClaimsOf(userDid);
       const verifier = new ClaimVerifier(
-        roleClaims,
+        userClaims,
         this.getRoleDefinition.bind(this),
-        this.getUserClaims.bind(this),
+        this.offchainClaimsOf.bind(this),
         this.getDidDocument.bind(this)
       );
       const uniqueRoles = await verifier.getVerifiedRoles();
@@ -236,31 +241,25 @@ export class LoginStrategy extends BaseStrategy {
     return JSON.parse(definition) as IRoleDefinition;
   }
 
-  async getUserClaims(did: string): Promise<Claim[]> {
+  /**
+   * @param did
+   * @returns
+   *
+   * @todo use iam-lib
+   */
+  async offchainClaimsOf(did: string): Promise<OffchainClaim[]> {
     if (this.cacheServerClient?.isAvailable) {
-      return this.cacheServerClient.getUserClaims({ did });
+      return this.cacheServerClient.getOffchainClaims({ did });
     }
     const didDocument = await this.didResolver.read(did);
     const services = didDocument.service || [];
-    const claims: Claim[] = await Promise.all(
-      services.map(async ({ serviceEndpoint }) => {
-        const claimToken = await this.ipfsStore.get(serviceEndpoint);
-        const { claimData, iss } = this.decodeToken<{
-          claimData: { claimType?: string; claimTypeVersion?: string };
-          iss: string;
-        }>(claimToken);
-        return {
-          iss,
-          claimType: claimData?.claimType,
-          claimTypeVersion: claimData?.claimTypeVersion,
-        };
-      })
+    return await Promise.all(
+      services
+        .map(async ({ serviceEndpoint }) => {
+          const claimToken = await this.ipfsStore.get(serviceEndpoint);
+          return this.decodeToken<OffchainClaim>(claimToken);
+        })
+        .filter(isOffchainClaim)
     );
-    return claims.reduce((acc, item) => {
-      if (item.claimType) {
-        acc.push(item);
-      }
-      return acc;
-    }, [] as Claim[]);
   }
 }

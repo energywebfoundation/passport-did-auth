@@ -1,7 +1,7 @@
 import axios, { AxiosError, AxiosInstance, AxiosResponse } from "axios";
 import base64url from "base64url";
 import { Signer, Wallet, utils, providers } from "ethers";
-import { Claim, IRole, IRoleDefinition } from "./LoginStrategy.types";
+import { OffchainClaim, IRole, IRoleDefinition } from "./LoginStrategy.types";
 import { Policy } from "cockatiel";
 import { IDIDDocument } from "@ew-did-registry/did-resolver-interface";
 import { knownChains } from "./utils";
@@ -170,8 +170,8 @@ export class CacheServerClient {
     return data.definition;
   }
 
-  async getUserClaims({ did }: { did: string }): Promise<Claim[]> {
-    const { data } = await this.httpClient.get<{ service: Claim[] }>(
+  async getOffchainClaims({ did }: { did: string }): Promise<OffchainClaim[]> {
+    const { data } = await this.httpClient.get<{ service: OffchainClaim[] }>(
       `/DID/${did}?includeClaims=true`
     );
     return data.service;

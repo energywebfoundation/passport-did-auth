@@ -23,10 +23,10 @@ export interface IRole {
   definition: IRoleDefinition;
 }
 
-export interface Claim {
-  claimType?: string;
-  claimTypeVersion?: string;
-  issuedToken?: string;
+export interface OffchainClaim {
+  claimType: string;
+  claimTypeVersion: string;
+  issuedToken: string;
   iss?: string;
 }
 
