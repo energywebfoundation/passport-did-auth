@@ -13,7 +13,8 @@
     "rootDir": ".",
     "skipLibCheck": true,
     "strict": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "resolveJsonModule": true
   },
   "include": ["lib/**/*", "ethers", "index.ts"],
   "exclude": ["node_modules", "**/*.spec.ts"],

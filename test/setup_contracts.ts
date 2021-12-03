@@ -53,14 +53,11 @@ export const deployEns = async (): Promise<void> => {
 export const deployIdentityManager = async (): Promise<void> => {
   const identityFactory = new OfferableIdentity__factory(deployer);
   const library = await identityFactory.deploy();
-  assetsManager = await new IdentityManager__factory(deployer).deploy(
-    library.address
-  );
+  assetsManager = await new IdentityManager__factory(deployer).deploy();
+  assetsManager.initialize(library.address);
 };
 
 export const deployClaimManager = async (): Promise<void> => {
-  claimManager = await new ClaimManager__factory(deployer).deploy(
-    didContract.address,
-    ensRegistry.address
-  );
+  claimManager = await new ClaimManager__factory(deployer).deploy();
+  claimManager.initialize(didContract.address, ensRegistry.address);
 };

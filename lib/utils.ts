@@ -81,3 +81,12 @@ export function isOffchainClaim(claim: any): claim is OffchainClaim {
   const claimProps = Object.keys(claim);
   return offChainCliamProps.every((p) => claimProps.includes(p));
 }
+export enum Chain {
+  EWC = "ewc",
+  VOLTA = "volta",
+}
+
+export const knownChains = {
+  73799: Chain.VOLTA,
+  246: Chain.EWC,
+};

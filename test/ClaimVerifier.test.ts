@@ -17,8 +17,8 @@ const keys2 = new Keys();
 
 const claimsUser: ClaimsUser = ClaimsUserFactory.create(keys);
 const claimsUser2: ClaimsUser = ClaimsUserFactory.create(keys2);
-const userDID = `did:ethr:${keys.getAddress()}`;
-const user2DID = `did:ethr:${keys2.getAddress()}`;
+const userDID = `did:ethr:volta:${keys.getAddress()}`;
+const user2DID = `did:ethr:volta:${keys2.getAddress()}`;
 
 let userClaims: OffchainClaim[];
 let invalidClaims: OffchainClaim[];
@@ -116,7 +116,7 @@ describe("ClaimVerifier", () => {
 
   it("should filter out claim which does not match role definition issuer", async () => {
     const incorrectIssuerDID =
-      "did:ethr:0x0xeBaD11b9b20Ec11F2FC44F99C21242f510B522b6";
+      "did:ethr:volta:0x0xeBaD11b9b20Ec11F2FC44F99C21242f510B522b6";
     const verifier = new ClaimVerifier(
       userClaims,
       getRoleDefinition(incorrectIssuerDID, "DID"),

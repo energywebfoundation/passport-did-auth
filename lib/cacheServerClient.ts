@@ -4,6 +4,7 @@ import { Signer, Wallet, utils, providers } from "ethers";
 import { OffchainClaim, IRole, IRoleDefinition } from "./LoginStrategy.types";
 import { Policy } from "cockatiel";
 import { IDIDDocument } from "@ew-did-registry/did-resolver-interface";
+import { knownChains } from "./utils";
 
 export class CacheServerClient {
   private readonly signer: Signer;
@@ -58,14 +59,19 @@ export class CacheServerClient {
       );
     });
     const token = await retry.execute(async () => {
-      const [address, blockNumber] = await Promise.all([
+      const [address, blockNumber, chainId] = await Promise.all([
         this.signer.getAddress(),
         this.provider.getBlockNumber(),
+        this.signer.getChainId(),
       ]);
 
       const { arrayify, keccak256 } = utils;
       const { encodedHeader, encodedPayload } =
-        this.createLoginTokenHeadersAndPayload({ address, blockNumber });
+        this.createLoginTokenHeadersAndPayload({
+          address,
+          blockNumber,
+          chainName: knownChains[chainId],
+        });
       const msg = `0x${Buffer.from(
         `${encodedHeader}.${encodedPayload}`
       ).toString("hex")}`;
@@ -131,9 +137,11 @@ export class CacheServerClient {
   createLoginTokenHeadersAndPayload({
     address,
     blockNumber,
+    chainName,
   }: {
     address: string;
     blockNumber: number;
+    chainName: string;
   }): { encodedHeader: string; encodedPayload: string } {
     const header = {
       alg: "ES256",
@@ -143,7 +151,7 @@ export class CacheServerClient {
     const encodedHeader = base64url(JSON.stringify(header));
 
     const payload = {
-      iss: `did:ethr:${address}`,
+      iss: `did:ethr:${chainName}:${address}`,
       claimData: {
         blockNumber,
       },

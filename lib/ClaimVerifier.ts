@@ -4,8 +4,8 @@ import {
   IRoleDefinition,
 } from "./LoginStrategy.types";
 import * as jwt from "jsonwebtoken";
-import { AuthTokenVerifier } from "./AuthTokenVerifier";
 import { IDIDDocument } from "@ew-did-registry/did-resolver-interface";
+import { ProofVerifier } from "@ew-did-registry/claims";
 
 export class ClaimVerifier {
   constructor(
@@ -89,8 +89,10 @@ export class ClaimVerifier {
     claim: Required<OffchainClaim>
   ): Promise<boolean> {
     const document = await this.getDidDocument(claim.iss);
-    const issuerClaimsVerifier = new AuthTokenVerifier(document);
-    const verifiedIssuer = await issuerClaimsVerifier.verify(claim.issuedToken);
+    const proofVerifier = new ProofVerifier(document);
+    const verifiedIssuer = await proofVerifier.verifyAssertionProof(
+      claim.issuedToken
+    );
     return verifiedIssuer === claim.iss;
   }
 }
