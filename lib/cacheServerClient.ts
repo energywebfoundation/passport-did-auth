@@ -77,12 +77,9 @@ export class CacheServerClient {
       ).toString("hex")}`;
       const sig = await this.signer.signMessage(arrayify(keccak256(msg)));
       const encodedSignature = base64url(sig);
-      const data = (await this.httpClient.post<{ identityToken: string }>(
-        "/login",
-        {
-          identityToken: `${encodedHeader}.${encodedPayload}.${encodedSignature}`,
-        }
-      )) as Partial<{ token: string }>;
+      const { data } = await this.httpClient.post<{ token: string }>("/login", {
+        identityToken: `${encodedHeader}.${encodedPayload}.${encodedSignature}`,
+      });
       this!.httpClient!.defaults!.headers!.common[
         "Authorization"
       ] = `Bearer ${data.token}`;
