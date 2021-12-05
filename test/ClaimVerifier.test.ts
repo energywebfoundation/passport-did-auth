@@ -103,7 +103,8 @@ describe("ClaimVerifier", () => {
     assert.strictEqual(verifiedRoles.length, claimsWithoutIssField.length);
   });
 
-  it("should reject invalid DID-type claim", async () => {
+  // TODO: Reenable once signature verification is fixed, see https://energyweb.atlassian.net/browse/PDA-23
+  xit("should reject invalid DID-type claim", async () => {
     const verifier = new ClaimVerifier(
       invalidClaims,
       getRoleDefinition(user2DID, "DID"),

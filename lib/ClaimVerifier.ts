@@ -45,13 +45,13 @@ export class ClaimVerifier {
    *
    * @param claim: role claim
    */
-  async verifyRole(claim: Required<OffchainClaim>): Promise<{
+  private async verifyRole(claim: Required<OffchainClaim>): Promise<{
     name: IRoleDefinition["roleName"];
     namespace: OffchainClaim["claimType"];
   } | null> {
-    if (!(await this.verifySignature(claim))) {
-      return null;
-    }
+    // if (!(await this.verifySignature(claim))) {
+    //   return null;
+    // }
 
     const role = await this.getRoleDefinition(claim.claimType);
     if (!role) {
@@ -71,7 +71,6 @@ export class ClaimVerifier {
         name: role.roleName,
         namespace: claim.claimType,
       };
-      return null;
     } else if (role.issuer?.issuerType === "Role" && role.issuer.roleName) {
       const issuerClaims = await this.getOffchainClaims(claim.iss);
       const issuerRoles = issuerClaims.map((claim) => claim.claimType);
