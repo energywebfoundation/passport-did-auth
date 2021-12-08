@@ -23,6 +23,8 @@ import { CacheServerClient } from "./cacheServerClient";
 import { ClaimVerifier } from "./ClaimVerifier";
 import { IDIDDocument } from "@ew-did-registry/did-resolver-interface";
 import { ProofVerifier } from "@ew-did-registry/claims";
+import { Logger } from "./Logger";
+//import { Logger } from "@ethersproject/logger";
 
 const { abi: abi1056 } = ethrReg;
 
@@ -133,7 +135,7 @@ export class LoginStrategy extends BaseStrategy {
     const userDid = await proofVerifier.verifyAuthenticationProof(token);
 
     if (!userDid) {
-      console.log("Not Verified");
+      Logger.info("Not Verified");
       return done(undefined, null, "Not Verified");
     }
 
@@ -145,12 +147,12 @@ export class LoginStrategy extends BaseStrategy {
         !payload.claimData.blockNumber ||
         latestBlock - this.numberOfBlocksBack >= payload.claimData.blockNumber
       ) {
-        console.log("Claim outdated");
+        Logger.info("Claim outdated");
         return done(undefined, null, "Claim outdated");
       }
     } catch (err) {
       const error: Error = err as Error;
-      console.log("Provider err", error);
+      Logger.error(`Provider err: ${error}`);
       return done(error);
     }
 
@@ -195,7 +197,7 @@ export class LoginStrategy extends BaseStrategy {
       return done(undefined, user);
     } catch (err) {
       const error: Error = err as Error;
-      console.log(error);
+      Logger.error(error);
       return done(error);
     }
   }
