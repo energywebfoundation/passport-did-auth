@@ -5,6 +5,7 @@ import { OffchainClaim, IRole, IRoleDefinition } from "./LoginStrategy.types";
 import { Policy } from "cockatiel";
 import { IDIDDocument } from "@ew-did-registry/did-resolver-interface";
 import { knownChains } from "./utils";
+import { Logger } from "./Logger";
 
 export class CacheServerClient {
   private readonly signer: Signer;
@@ -44,7 +45,7 @@ export class CacheServerClient {
   async login(): Promise<string> {
     const retry = Policy.handleAll().retry().attempts(10).delay(2000);
     retry.onFailure(({ reason }) => {
-      console.log(
+      Logger.warn(
         `DID login strategy was not able to login to cache server due to ${JSON.stringify(
           reason,
           null,
@@ -54,7 +55,7 @@ export class CacheServerClient {
     });
 
     retry.onSuccess(({ duration }) => {
-      console.log(
+      Logger.info(
         `DID Login Strategy is now logged into cache server after ${duration}ms`
       );
     });
