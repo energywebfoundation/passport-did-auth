@@ -12,12 +12,29 @@
   ],
   "repositoryUrl": "git@github.com:energywebfoundation/passport-did-auth.git",
   "plugins": [
+    [
+      "@semantic-release/commit-analyzer",
+      {
+        "preset": "angular",
+        "releaseRules": [
+          { "type": "docs", "release": "patch" },
+          { "type": "refactor", "release": "patch" },
+          { "type": "style", "release": "patch" },
+          { "type": "test", "release": "patch" },
+          { "type": "ci", "release": "patch" },
+          { "type": "build", "release": "patch" }
+        ],
+        "parserOpts": {
+          "noteKeywords": ["BREAKING CHANGE", "BREAKING CHANGES"]
+        }
+      }
+    ],
     "@semantic-release/npm",
     [
-        "@semantic-release/git",
-        {
-            "assets": ["package.json", "docs/CHANGELOG.md"]
-        }
+      "@semantic-release/git",
+      {
+        "assets": ["package.json", "docs/CHANGELOG.md"]
+      }
     ]
   ]
 }
