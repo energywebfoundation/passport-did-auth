@@ -13,11 +13,13 @@ export const mockDocument = (
   identity: Wallet,
   { withOwnerKey = true }: { withOwnerKey?: boolean } = {}
 ): IDIDDocument => {
-  const did = `did:${Methods.Erc1056}:${identity.address}`;
+  const did = `did:${Methods.Erc1056}:volta:${identity.address}`;
   const doc: IDIDDocument = {
+    "@context": "https://w3id.org/did/v1",
     id: did,
     publicKey: [],
     authentication: [],
+    service: [],
   } as IDIDDocument;
   if (withOwnerKey) {
     doc.authentication.push({

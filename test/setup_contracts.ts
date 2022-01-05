@@ -2,7 +2,10 @@ import { DomainNotifier__factory } from "../ethers/factories/DomainNotifier__fac
 import type { DomainNotifier } from "../ethers/DomainNotifier";
 import { RoleDefinitionResolver__factory } from "../ethers/factories/RoleDefinitionResolver__factory";
 import type { RoleDefinitionResolver } from "../ethers/RoleDefinitionResolver";
-import { abi as didContractAbi, bytecode as didContractBytecode } from "./testUtils/ERC1056.json";
+import {
+  abi as didContractAbi,
+  bytecode as didContractBytecode,
+} from "./testUtils/ERC1056.json";
 import { ContractFactory, Contract, providers } from "ethers";
 import { ENSRegistry } from "../ethers/ENSRegistry";
 import { ENSRegistry__factory } from "../ethers/factories/ENSRegistry__factory";
@@ -28,25 +31,33 @@ export let claimManager: ClaimManager;
 export const deployer = provider.getSigner(0);
 
 export const deployDidRegistry = async (): Promise<void> => {
-    const didContractFactory = new ContractFactory(didContractAbi, didContractBytecode, deployer);
-    didContract = await didContractFactory.deploy();
+  const didContractFactory = new ContractFactory(
+    didContractAbi,
+    didContractBytecode,
+    deployer
+  );
+  didContract = await didContractFactory.deploy();
 };
 
 export const deployEns = async (): Promise<void> => {
-    ensRegistry = await new ENSRegistry__factory(deployer).deploy();
-    domainNotifer = await new DomainNotifier__factory(deployer).deploy(ensRegistry.address);
-    ensResolver = await new RoleDefinitionResolver__factory(deployer).deploy(
-        ensRegistry.address,
-        domainNotifer.address,
-    );
+  ensRegistry = await new ENSRegistry__factory(deployer).deploy();
+  domainNotifer = await new DomainNotifier__factory(deployer).deploy(
+    ensRegistry.address
+  );
+  ensResolver = await new RoleDefinitionResolver__factory(deployer).deploy(
+    ensRegistry.address,
+    domainNotifer.address
+  );
 };
 
 export const deployIdentityManager = async (): Promise<void> => {
-    const identityFactory = new OfferableIdentity__factory(deployer);
-    const library = await identityFactory.deploy();
-    assetsManager = await new IdentityManager__factory(deployer).deploy(library.address);
+  const identityFactory = new OfferableIdentity__factory(deployer);
+  const library = await identityFactory.deploy();
+  assetsManager = await new IdentityManager__factory(deployer).deploy();
+  assetsManager.initialize(library.address);
 };
 
 export const deployClaimManager = async (): Promise<void> => {
-    claimManager = await new ClaimManager__factory(deployer).deploy(didContract.address, ensRegistry.address);
+  claimManager = await new ClaimManager__factory(deployer).deploy();
+  claimManager.initialize(didContract.address, ensRegistry.address);
 };
