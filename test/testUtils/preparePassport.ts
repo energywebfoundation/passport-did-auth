@@ -1,8 +1,8 @@
-import passport, { PassportStatic } from "passport";
-import { Strategy, ExtractJwt } from "passport-jwt";
-import { LoginStrategyOptions, LoginStrategy } from "../../lib/LoginStrategy";
+import passport, { PassportStatic } from 'passport';
+import { Strategy, ExtractJwt } from 'passport-jwt';
+import { LoginStrategyOptions, LoginStrategy } from '../../lib/LoginStrategy';
 
-export const LOGIN_STRATEGY = "login";
+export const LOGIN_STRATEGY = 'login';
 export const private_pem_secret = `-----BEGIN RSA PRIVATE KEY-----
 MIIEpAIBAAKCAQEA0Ir9KTl66IzS5pQclFnvpP8+eTWwiVtqONPUn17359cpfLAS
 b4OcRPkBfoBu9ecLnsYl+dfvyOxGI0risdDCiRHpSOrXhbfUhvYZXDSrpO4lFk10
@@ -43,7 +43,7 @@ hQIDAQAB
 
 const jwtOptions = {
   secretOrKey: public_pem,
-  algorithms: ["RS256"],
+  algorithms: ['RS256'],
   jwtFromRequest: ExtractJwt.fromExtractors([
     ExtractJwt.fromAuthHeaderAsBearerToken(),
     (req) => {

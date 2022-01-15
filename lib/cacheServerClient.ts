@@ -1,11 +1,11 @@
-import axios, { AxiosError, AxiosInstance, AxiosResponse } from "axios";
-import base64url from "base64url";
-import { Signer, Wallet, utils, providers } from "ethers";
-import { OffchainClaim, IRole, IRoleDefinition } from "./LoginStrategy.types";
-import { Policy } from "cockatiel";
-import { IDIDDocument } from "@ew-did-registry/did-resolver-interface";
-import { knownChains } from "./utils";
-import { Logger } from "./Logger";
+import axios, { AxiosError, AxiosInstance, AxiosResponse } from 'axios';
+import base64url from 'base64url';
+import { Signer, Wallet, utils, providers } from 'ethers';
+import { OffchainClaim, IRole, IRoleDefinition } from './LoginStrategy.types';
+import { Policy } from 'cockatiel';
+import { IDIDDocument } from '@ew-did-registry/did-resolver-interface';
+import { knownChains } from './utils';
+import { Logger } from './Logger';
 
 export class CacheServerClient {
   private readonly signer: Signer;
@@ -75,14 +75,14 @@ export class CacheServerClient {
         });
       const msg = `0x${Buffer.from(
         `${encodedHeader}.${encodedPayload}`
-      ).toString("hex")}`;
+      ).toString('hex')}`;
       const sig = await this.signer.signMessage(arrayify(keccak256(msg)));
       const encodedSignature = base64url(sig);
-      const { data } = await this.httpClient.post<{ token: string }>("/login", {
+      const { data } = await this.httpClient.post<{ token: string }>('/login', {
         identityToken: `${encodedHeader}.${encodedPayload}.${encodedSignature}`,
       });
-      this!.httpClient!.defaults!.headers!.common[
-        "Authorization"
+      this.httpClient.defaults.headers.common[
+        'Authorization'
       ] = `Bearer ${data.token}`;
       this._isAvailable = true;
 
@@ -108,13 +108,16 @@ export class CacheServerClient {
       response &&
       response.status === 401 &&
       config &&
-      config.url?.indexOf("/login") === -1
+      config.url?.indexOf('/login') === -1
     ) {
+      // eslint-disable-next-line no-useless-catch
       try {
         this._isAvailable = false;
         const retryOriginalRequest = new Promise((resolve) => {
           this.addFailedRequest((token) => {
-            originalRequest!.headers!.Authorization = "Bearer " + token;
+            originalRequest?.headers?.Authorization
+              ? (originalRequest.headers.Authorization = 'Bearer ' + token)
+              : null;
             resolve(axios(originalRequest));
           });
         });
@@ -142,8 +145,8 @@ export class CacheServerClient {
     chainName: string;
   }): { encodedHeader: string; encodedPayload: string } {
     const header = {
-      alg: "ES256",
-      typ: "JWT",
+      alg: 'ES256',
+      typ: 'JWT',
     };
 
     const encodedHeader = base64url(JSON.stringify(header));

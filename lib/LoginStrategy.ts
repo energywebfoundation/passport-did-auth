@@ -1,29 +1,29 @@
-import { BaseStrategy, StrategyOptions } from "./BaseStrategy";
-import { Request } from "express";
-import * as jwt from "jsonwebtoken";
-import { providers } from "ethers";
+import { BaseStrategy, StrategyOptions } from './BaseStrategy';
+import { Request } from 'express';
+import * as jwt from 'jsonwebtoken';
+import { providers } from 'ethers';
 import {
   ethrReg,
   Resolver,
   VoltaAddress1056,
   addressOf,
-} from "@ew-did-registry/did-ethr-resolver";
+} from '@ew-did-registry/did-ethr-resolver';
 
-import { isOffchainClaim, lookup, namehash } from "./utils";
+import { isOffchainClaim, lookup, namehash } from './utils';
 import {
   OffchainClaim,
   IRoleDefinition,
   ITokenPayload,
-} from "./LoginStrategy.types";
-import { PublicResolver__factory } from "../ethers/factories/PublicResolver__factory";
-import { PublicResolver } from "../ethers/PublicResolver";
-import { Methods } from "@ew-did-registry/did";
-import { DidStore } from "@ew-did-registry/did-ipfs-store";
-import { CacheServerClient } from "./cacheServerClient";
-import { ClaimVerifier } from "./ClaimVerifier";
-import { IDIDDocument } from "@ew-did-registry/did-resolver-interface";
-import { ProofVerifier } from "@ew-did-registry/claims";
-import { Logger } from "./Logger";
+} from './LoginStrategy.types';
+import { PublicResolver__factory } from '../ethers/factories/PublicResolver__factory';
+import { PublicResolver } from '../ethers/PublicResolver';
+import { Methods } from '@ew-did-registry/did';
+import { DidStore } from '@ew-did-registry/did-ipfs-store';
+import { CacheServerClient } from './cacheServerClient';
+import { ClaimVerifier } from './ClaimVerifier';
+import { IDIDDocument } from '@ew-did-registry/did-resolver-interface';
+import { ProofVerifier } from '@ew-did-registry/claims';
+import { Logger } from './Logger';
 //import { Logger } from "@ethersproject/logger";
 
 const { abi: abi1056 } = ethrReg;
@@ -44,7 +44,7 @@ export interface LoginStrategyOptions extends StrategyOptions {
 
 export class LoginStrategy extends BaseStrategy {
   private readonly claimField: string;
-  private readonly jwtSecret?: string | Buffer;
+  private readonly jwtSecret: string | Buffer;
   private readonly jwtSignOptions?: jwt.SignOptions;
   private readonly provider: providers.JsonRpcProvider;
   private readonly numberOfBlocksBack: number;
@@ -52,21 +52,20 @@ export class LoginStrategy extends BaseStrategy {
   private readonly didResolver: Resolver;
   private readonly ipfsStore: DidStore;
   private readonly acceptedRoles: Set<string>;
-  private readonly privateKey: string;
   private readonly cacheServerClient?: CacheServerClient;
 
   constructor(
     {
-      claimField = "identityToken",
+      claimField = 'identityToken',
       rpcUrl,
       cacheServerUrl,
       privateKey,
       numberOfBlocksBack = 4,
       jwtSecret,
       jwtSignOptions,
-      ensResolverAddress = "0x0a97e07c4Df22e2e31872F20C5BE191D5EFc4680",
+      ensResolverAddress = '0x0a97e07c4Df22e2e31872F20C5BE191D5EFc4680',
       didContractAddress = VoltaAddress1056,
-      ipfsUrl = "https://ipfs.infura.io:5001/api/v0/",
+      ipfsUrl = 'https://ipfs.infura.io:5001/api/v0/',
       acceptedRoles,
       ...options
     }: LoginStrategyOptions,
@@ -83,7 +82,7 @@ export class LoginStrategy extends BaseStrategy {
     );
     if (cacheServerUrl && !privateKey) {
       throw new Error(
-        "You need to provide privateKey of an accepted account to login to cache server"
+        'You need to provide privateKey of an accepted account to login to cache server'
       );
     }
     if (cacheServerUrl && privateKey) {
@@ -103,9 +102,8 @@ export class LoginStrategy extends BaseStrategy {
     this.ipfsStore = new DidStore(ipfsUrl);
     this.numberOfBlocksBack = numberOfBlocksBack;
     this.jwtSecret = jwtSecret;
-    this.acceptedRoles = acceptedRoles! && new Set(acceptedRoles);
+    this.acceptedRoles = new Set(acceptedRoles);
     this.jwtSignOptions = jwtSignOptions;
-    this.privateKey = privateKey!;
   }
 
   private async getDidDocument(did: string): Promise<IDIDDocument> {
@@ -128,15 +126,15 @@ export class LoginStrategy extends BaseStrategy {
   async validate(
     token: string,
     payload: ITokenPayload,
-    done: (err?: Error, user?: any, info?: any) => void
+    done: (err?: Error, user?: unknown, info?: unknown) => void
   ): Promise<void> {
     const userDoc = await this.getDidDocument(payload.iss);
     const proofVerifier = new ProofVerifier(userDoc);
     const userDid = await proofVerifier.verifyAuthenticationProof(token);
 
     if (!userDid) {
-      Logger.info("Not Verified");
-      return done(undefined, null, "Not Verified");
+      Logger.info('Not Verified');
+      return done(undefined, null, 'Not Verified');
     }
 
     const userAddress = addressOf(userDid);
@@ -147,8 +145,8 @@ export class LoginStrategy extends BaseStrategy {
         !payload.claimData.blockNumber ||
         latestBlock - this.numberOfBlocksBack >= payload.claimData.blockNumber
       ) {
-        Logger.info("Claim outdated");
-        return done(undefined, null, "Claim outdated");
+        Logger.info('Claim outdated');
+        return done(undefined, null, 'Claim outdated');
       }
     } catch (err) {
       const error: Error = err as Error;
@@ -184,7 +182,7 @@ export class LoginStrategy extends BaseStrategy {
           return this.acceptedRoles.has(namespace);
         })
       ) {
-        return done(undefined, null, "User does not have an accepted role.");
+        return done(undefined, null, 'User does not have an accepted role.');
       }
       const user = {
         did: payload.iss,
@@ -212,7 +210,7 @@ export class LoginStrategy extends BaseStrategy {
    * @param options
    */
   encodeToken(data: Record<string, unknown>): string {
-    return jwt.sign(data, this.jwtSecret!, this.jwtSignOptions);
+    return jwt.sign(data, this.jwtSecret, this.jwtSignOptions);
   }
 
   /**
@@ -233,12 +231,12 @@ export class LoginStrategy extends BaseStrategy {
     );
   }
 
-  async getRoleDefinition(namespace: string): Promise<any> {
+  async getRoleDefinition(namespace: string): Promise<IRoleDefinition> {
     if (this.cacheServerClient?.isAvailable) {
       return this.cacheServerClient.getRoleDefinition({ namespace });
     }
     const namespaceHash = namehash(namespace);
-    const definition = await this.ensResolver.text(namespaceHash, "metadata");
+    const definition = await this.ensResolver.text(namespaceHash, 'metadata');
 
     return JSON.parse(definition) as IRoleDefinition;
   }
