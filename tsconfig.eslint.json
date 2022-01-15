@@ -1,9 +1,4 @@
 {
   "extends": "./tsconfig.json",
-  "include": [
-    "lib",
-    "test",
-    "index.ts",
-    ".eslintrc.js"
-  ]
+  "include": ["lib", "test", "index.ts", ".eslintrc.js", ".prettierrc.js"]
 }
