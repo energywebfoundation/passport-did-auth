@@ -3,18 +3,18 @@ import {
   ethrReg,
   Operator,
   EwSigner,
-} from "@ew-did-registry/did-ethr-resolver";
-import { ClaimsUser } from "@ew-did-registry/claims";
+} from '@ew-did-registry/did-ethr-resolver';
+import { ClaimsUser } from '@ew-did-registry/claims';
 import {
   IOperator,
   RegistrySettings,
   ProviderSettings,
   ProviderTypes,
-} from "@ew-did-registry/did-resolver-interface";
-import { Methods } from "@ew-did-registry/did";
-import { DIDDocumentFull } from "@ew-did-registry/did-document";
-import { DidStore } from "@ew-did-registry/did-ipfs-store";
-import { Keys } from "@ew-did-registry/keys";
+} from '@ew-did-registry/did-resolver-interface';
+import { Methods } from '@ew-did-registry/did';
+import { DIDDocumentFull } from '@ew-did-registry/did-document';
+import { DidStore } from '@ew-did-registry/did-ipfs-store';
+import { Keys } from '@ew-did-registry/keys';
 
 const { abi: abi1056 } = ethrReg;
 
@@ -28,7 +28,7 @@ const providerSettings: ProviderSettings = {
   type: ProviderTypes.HTTP,
 };
 
-const didStore = new DidStore("http://not-used.org");
+const didStore = new DidStore('http://not-used.org');
 
 export class ClaimsUserFactory {
   static create(keys: Keys): ClaimsUser {

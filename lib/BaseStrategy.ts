@@ -1,7 +1,8 @@
-import { Strategy } from "passport";
-import { Request } from "express";
-import { inherits } from "util";
-import { OffchainClaim } from "./LoginStrategy.types";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { Strategy } from 'passport';
+import { Request } from 'express';
+import { inherits } from 'util';
+import { OffchainClaim } from './LoginStrategy.types';
 
 export interface StrategyOptions {
   name: string;
@@ -66,10 +67,10 @@ export abstract class BaseStrategy extends Strategy {
   authenticate(req: Request): void {
     const token = this.extractToken(req);
     if (!token) {
-      return this.fail("Missing credentials", 400);
+      return this.fail('Missing credentials', 400);
     }
     const tokenPayload = this.decodeToken(token);
-    const verified = (err?: Error, user?: any, info?: any) => {
+    const verified = (err, user, info) => {
       if (err) {
         return this.error(err);
       }

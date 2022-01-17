@@ -1,19 +1,19 @@
-import { DomainNotifier__factory } from "../ethers/factories/DomainNotifier__factory";
-import type { DomainNotifier } from "../ethers/DomainNotifier";
-import { RoleDefinitionResolver__factory } from "../ethers/factories/RoleDefinitionResolver__factory";
-import type { RoleDefinitionResolver } from "../ethers/RoleDefinitionResolver";
+import { DomainNotifier__factory } from '../ethers/factories/DomainNotifier__factory';
+import type { DomainNotifier } from '../ethers/DomainNotifier';
+import { RoleDefinitionResolver__factory } from '../ethers/factories/RoleDefinitionResolver__factory';
+import type { RoleDefinitionResolver } from '../ethers/RoleDefinitionResolver';
 import {
   abi as didContractAbi,
   bytecode as didContractBytecode,
-} from "./testUtils/ERC1056.json";
-import { ContractFactory, Contract, providers } from "ethers";
-import { ENSRegistry } from "../ethers/ENSRegistry";
-import { ENSRegistry__factory } from "../ethers/factories/ENSRegistry__factory";
-import { IdentityManager__factory } from "../ethers/factories/IdentityManager__factory";
-import { IdentityManager } from "../ethers/IdentityManager";
-import { OfferableIdentity__factory } from "../ethers/factories/OfferableIdentity__factory";
-import { ClaimManager__factory } from "../ethers/factories/ClaimManager__factory";
-import { ClaimManager } from "../ethers/ClaimManager";
+} from './testUtils/ERC1056.json';
+import { ContractFactory, Contract, providers } from 'ethers';
+import { ENSRegistry } from '../ethers/ENSRegistry';
+import { ENSRegistry__factory } from '../ethers/factories/ENSRegistry__factory';
+import { IdentityManager__factory } from '../ethers/factories/IdentityManager__factory';
+import { IdentityManager } from '../ethers/IdentityManager';
+import { OfferableIdentity__factory } from '../ethers/factories/OfferableIdentity__factory';
+import { ClaimManager__factory } from '../ethers/factories/ClaimManager__factory';
+import { ClaimManager } from '../ethers/ClaimManager';
 
 const { JsonRpcProvider } = providers;
 
