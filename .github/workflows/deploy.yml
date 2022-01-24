@@ -23,6 +23,7 @@ jobs:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
+          persist-credentials: false
       - uses: actions/setup-node@v2-beta
         with:
           node-version: '14.17.0'
@@ -32,7 +33,7 @@ jobs:
         run: |
           git config --global user.email ${{ secrets.GH_EMAIL }}
           git config --global user.name ${{ secrets.GH_USER }}
-          git remote set-url origin "https://${{ secrets.GH_ACTION_TOKEN }}@github.com/energywebfoundation/passport-did-auth.git" > /dev/null 2>&1
+          git remote set-url origin "https://${{ secrets.GITHUB_TOKEN }}@github.com/energywebfoundation/passport-did-auth.git" > /dev/null 2>&1
           git reset --hard
           git fetch -u origin master:master
           git fetch -u origin develop:develop
@@ -75,7 +76,8 @@ jobs:
         with:
           fetch-depth: 0
           ref: develop
-          token: ${{ secrets.GH_ACTION_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          persist-credentials: false
 
       - name: Merge master into develop branch
         run: |
