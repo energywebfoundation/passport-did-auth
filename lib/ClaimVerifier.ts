@@ -2,10 +2,10 @@ import {
   OffchainClaim,
   DecodedToken,
   IRoleDefinition,
-} from "./LoginStrategy.types";
-import * as jwt from "jsonwebtoken";
-import { IDIDDocument } from "@ew-did-registry/did-resolver-interface";
-import { ProofVerifier } from "@ew-did-registry/claims";
+} from './LoginStrategy.types';
+import * as jwt from 'jsonwebtoken';
+import { IDIDDocument } from '@ew-did-registry/did-resolver-interface';
+import { ProofVerifier } from '@ew-did-registry/claims';
 
 export class ClaimVerifier {
   constructor(
@@ -32,8 +32,8 @@ export class ClaimVerifier {
       })
     );
     const filteredRoles = roles.filter(Boolean) as {
-      name: IRoleDefinition["roleName"];
-      namespace: OffchainClaim["claimType"];
+      name: IRoleDefinition['roleName'];
+      namespace: OffchainClaim['claimType'];
     }[];
     const uniqueRoles = [...new Set(filteredRoles)];
     return uniqueRoles;
@@ -46,8 +46,8 @@ export class ClaimVerifier {
    * @param claim: role claim
    */
   private async verifyRole(claim: Required<OffchainClaim>): Promise<{
-    name: IRoleDefinition["roleName"];
-    namespace: OffchainClaim["claimType"];
+    name: IRoleDefinition['roleName'];
+    namespace: OffchainClaim['claimType'];
   } | null> {
     // if (!(await this.verifySignature(claim))) {
     //   return null;
@@ -63,7 +63,7 @@ export class ClaimVerifier {
     }
 
     if (
-      role.issuer?.issuerType === "DID" &&
+      role.issuer?.issuerType === 'DID' &&
       Array.isArray(role.issuer?.did) &&
       role.issuer?.did.includes(claim.iss)
     ) {
@@ -71,7 +71,7 @@ export class ClaimVerifier {
         name: role.roleName,
         namespace: claim.claimType,
       };
-    } else if (role.issuer?.issuerType === "Role" && role.issuer.roleName) {
+    } else if (role.issuer?.issuerType === 'Role' && role.issuer.roleName) {
       const issuerClaims = await this.getOffchainClaims(claim.iss);
       const issuerRoles = issuerClaims.map((claim) => claim.claimType);
       if (issuerRoles.includes(role.issuer.roleName)) {

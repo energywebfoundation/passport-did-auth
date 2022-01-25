@@ -1,11 +1,11 @@
-import { Methods } from "@ew-did-registry/did";
+import { Methods } from '@ew-did-registry/did';
 import {
   IDIDDocument,
   IPublicKey,
   KeyTags,
   PubKeyType,
-} from "@ew-did-registry/did-resolver-interface";
-import { Wallet, utils, BigNumber } from "ethers";
+} from '@ew-did-registry/did-resolver-interface';
+import { Wallet, utils, BigNumber } from 'ethers';
 
 const { computePublicKey } = utils;
 
@@ -15,7 +15,7 @@ export const mockDocument = (
 ): IDIDDocument => {
   const did = `did:${Methods.Erc1056}:volta:${identity.address}`;
   const doc: IDIDDocument = {
-    "@context": "https://w3id.org/did/v1",
+    '@context': 'https://w3id.org/did/v1',
     id: did,
     publicKey: [],
     authentication: [],
@@ -23,7 +23,7 @@ export const mockDocument = (
   } as IDIDDocument;
   if (withOwnerKey) {
     doc.authentication.push({
-      type: "owner",
+      type: 'owner',
       validity: BigNumber.from(47),
       publicKey: `${did}#owner`,
     });
