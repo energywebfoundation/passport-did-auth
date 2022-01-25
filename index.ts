@@ -1,4 +1,4 @@
-import { BaseStrategy } from './lib/BaseStrategy'
-import { LoginStrategy } from './lib/LoginStrategy'
+import { BaseStrategy } from './lib/BaseStrategy';
+import { LoginStrategy } from './lib/LoginStrategy';
 
-export { BaseStrategy, LoginStrategy }
+export { BaseStrategy, LoginStrategy };

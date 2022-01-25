@@ -1,9 +1,10 @@
-const cors = require("cors");
-const express = require("express");
-const bodyParser = require("body-parser");
-const { preparePassport } = require("./preparePassport");
+/* eslint-disable @typescript-eslint/no-var-requires */
+const cors = require('cors');
+const express = require('express');
+const bodyParser = require('body-parser');
+const { preparePassport } = require('./preparePassport');
 
-export const getServer = (didRegistryAddress) => { 
+export const getServer = (didRegistryAddress) => {
   const { passport, LOGIN_STRATEGY } = preparePassport(didRegistryAddress);
   const server = express();
 
@@ -12,8 +13,12 @@ export const getServer = (didRegistryAddress) => {
   server.use(bodyParser.urlencoded({ extended: false }));
   server.use(bodyParser.json());
 
-  server.post("/login", passport.authenticate(LOGIN_STRATEGY), async (req, res) => {
-    return res.send({ token: req.user });
-  });
-  return server
-}
+  server.post(
+    '/login',
+    passport.authenticate(LOGIN_STRATEGY),
+    async (req, res) => {
+      return res.send({ token: req.user });
+    }
+  );
+  return server;
+};

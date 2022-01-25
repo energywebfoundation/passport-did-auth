@@ -1,11 +1,12 @@
-import { SyncRedactor } from "redact-pii";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { SyncRedactor } from 'redact-pii';
 
 const redactor = new SyncRedactor({
   customRedactors: {
     before: [
       {
-        regexpPattern: /0x[a-f0-9\-]+/gi,
-        replaceWith: "0x***",
+        regexpPattern: /(?<=0x[a-f0-9-]{3})[a-f0-9-]+/gi,
+        replaceWith: '***',
       },
     ],
   },

@@ -1,16 +1,16 @@
-import { Wallet } from "ethers";
-import { ClaimsUser } from "@ew-did-registry/claims";
-import { Keys } from "@ew-did-registry/keys";
-import assert from "assert";
-import { ClaimVerifier } from "../lib/ClaimVerifier";
-import { OffchainClaim, IRoleDefinition } from "../lib/LoginStrategy.types";
-import { ClaimData } from "./claim-creation/ClaimData";
-import { ClaimsUserFactory } from "./claim-creation/ClaimsUserFactory";
-import { mockDocument } from "./TestDidDocuments";
+import { Wallet } from 'ethers';
+import { ClaimsUser } from '@ew-did-registry/claims';
+import { Keys } from '@ew-did-registry/keys';
+import assert from 'assert';
+import { ClaimVerifier } from '../lib/ClaimVerifier';
+import { OffchainClaim, IRoleDefinition } from '../lib/LoginStrategy.types';
+import { ClaimData } from './claim-creation/ClaimData';
+import { ClaimsUserFactory } from './claim-creation/ClaimsUserFactory';
+import { mockDocument } from './TestDidDocuments';
 
 const keys = new Keys({
   privateKey:
-    "de0aac51c154f9d467653ae882da9b77d0699b88d98f8bb4b03fd5e687b00824",
+    'de0aac51c154f9d467653ae882da9b77d0699b88d98f8bb4b03fd5e687b00824',
 });
 
 const keys2 = new Keys();
@@ -25,15 +25,15 @@ let invalidClaims: OffchainClaim[];
 let user2Claims: OffchainClaim[];
 let claimsWithoutIssField: OffchainClaim[];
 
-const claimTypeVersion = "1";
-const claimType = "user.roles.example1.apps.john.iam.ewc";
+const claimTypeVersion = '1';
+const claimType = 'user.roles.example1.apps.john.iam.ewc';
 const claimData: ClaimData = {
   claimType,
   claimTypeVersion,
-  profile: "",
+  profile: '',
 };
 
-describe("ClaimVerifier", () => {
+describe('ClaimVerifier', () => {
   beforeAll(async () => {
     const userToken = await claimsUser.createPublicClaim(claimData);
     const user2Token = await claimsUser2.createPublicClaim(claimData);
@@ -70,10 +70,10 @@ describe("ClaimVerifier", () => {
     invalidClaims = [invalidClaim];
   });
 
-  it("should verify Role-type claim", async () => {
+  it('should verify Role-type claim', async () => {
     const verifier = new ClaimVerifier(
       userClaims,
-      getRoleDefinition(user2DID, "Role"),
+      getRoleDefinition(user2DID, 'Role'),
       getUserClaims,
       getDidDocument
     );
@@ -81,10 +81,10 @@ describe("ClaimVerifier", () => {
     assert.strictEqual(verifiedRoles.length, userClaims.length);
   });
 
-  it("should verify DID-type claim", async () => {
+  it('should verify DID-type claim', async () => {
     const verifier = new ClaimVerifier(
       userClaims,
-      getRoleDefinition(userDID, "DID"),
+      getRoleDefinition(userDID, 'DID'),
       getUserClaims,
       getDidDocument
     );
@@ -92,10 +92,10 @@ describe("ClaimVerifier", () => {
     assert.strictEqual(verifiedRoles.length, userClaims.length);
   });
 
-  it("should verify DID-type claim without iss field", async () => {
+  it('should verify DID-type claim without iss field', async () => {
     const verifier = new ClaimVerifier(
       claimsWithoutIssField,
-      getRoleDefinition(userDID, "DID"),
+      getRoleDefinition(userDID, 'DID'),
       getUserClaims,
       getDidDocument
     );
@@ -104,10 +104,10 @@ describe("ClaimVerifier", () => {
   });
 
   // TODO: Reenable once signature verification is fixed, see https://energyweb.atlassian.net/browse/PDA-23
-  xit("should reject invalid DID-type claim", async () => {
+  xit('should reject invalid DID-type claim', async () => {
     const verifier = new ClaimVerifier(
       invalidClaims,
-      getRoleDefinition(user2DID, "DID"),
+      getRoleDefinition(user2DID, 'DID'),
       getUserClaims,
       getDidDocument
     );
@@ -115,12 +115,12 @@ describe("ClaimVerifier", () => {
     assert.strictEqual(verifiedRoles.length, 0);
   });
 
-  it("should filter out claim which does not match role definition issuer", async () => {
+  it('should filter out claim which does not match role definition issuer', async () => {
     const incorrectIssuerDID =
-      "did:ethr:volta:0x0xeBaD11b9b20Ec11F2FC44F99C21242f510B522b6";
+      'did:ethr:volta:0x0xeBaD11b9b20Ec11F2FC44F99C21242f510B522b6';
     const verifier = new ClaimVerifier(
       userClaims,
-      getRoleDefinition(incorrectIssuerDID, "DID"),
+      getRoleDefinition(incorrectIssuerDID, 'DID'),
       getUserClaims,
       getDidDocument
     );
@@ -131,21 +131,21 @@ describe("ClaimVerifier", () => {
 
 const getRoleDefinition = (issuerDid: string, issuerType: string) => {
   const roleDef: IRoleDefinition = {
-    roleName: "user",
+    roleName: 'user',
     issuer: {
       issuerType,
       did: [issuerDid],
-      roleName: "user.roles.example1.apps.john.iam.ewc",
+      roleName: 'user.roles.example1.apps.john.iam.ewc',
     },
     fields: [
       {
-        fieldType: "fieldType",
-        label: "label",
-        validation: "validation",
+        fieldType: 'fieldType',
+        label: 'label',
+        validation: 'validation',
       },
     ],
     metadata: {},
-    roleType: "",
+    roleType: '',
     version: claimTypeVersion,
   };
   return () => Promise.resolve(roleDef);

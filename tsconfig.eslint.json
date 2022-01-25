@@ -4,6 +4,9 @@
     "lib",
     "test",
     "index.ts",
-    ".eslintrc.js"
+    ".eslintrc.js",
+    ".prettierrc.js",
+    "babel.config.js",
+    "jest.config.ts"
   ]
 }
