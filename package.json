@@ -53,7 +53,7 @@
     "@ew-did-registry/keys": "0.6.3-alpha.426.0",
     "axios": "^0.25.0",
     "base64url": "^3.0.1",
-    "cockatiel": "^2.0.1",
+    "cockatiel": "^2.0.2",
     "eth-ens-namehash": "^2.0.8",
     "ethereumjs-abi": "^0.6.8",
     "ethers": "^5.4.5",

@@ -56,7 +56,7 @@ export class CacheServerClient {
 
     retry.onSuccess(({ duration }) => {
       Logger.info(
-        `DID Login Strategy is now logged into cache server after ${duration}ms`
+        `DID Login Strategy is now logged into cache server after ${duration.toFixed()}ms`
       );
     });
     const token = await retry.execute(async () => {
@@ -110,27 +110,22 @@ export class CacheServerClient {
       config &&
       config.url?.indexOf('/login') === -1
     ) {
-      // eslint-disable-next-line no-useless-catch
-      try {
-        this._isAvailable = false;
-        const retryOriginalRequest = new Promise((resolve) => {
-          this.addFailedRequest((token) => {
-            originalRequest?.headers?.Authorization
-              ? (originalRequest.headers.Authorization = 'Bearer ' + token)
-              : null;
-            resolve(axios(originalRequest));
-          });
+      this._isAvailable = false;
+      const retryOriginalRequest = new Promise((resolve) => {
+        this.addFailedRequest((token) => {
+          originalRequest?.headers?.Authorization
+            ? (originalRequest.headers.Authorization = 'Bearer ' + token)
+            : null;
+          resolve(axios(originalRequest));
         });
-        if (!this.isAlreadyFetchingAccessToken) {
-          this.isAlreadyFetchingAccessToken = true;
-          const token = await this.login();
-          this.isAlreadyFetchingAccessToken = false;
-          this.handleSuccessfulReLogin(token);
-        }
-        return retryOriginalRequest;
-      } catch (err) {
-        throw err;
+      });
+      if (!this.isAlreadyFetchingAccessToken) {
+        this.isAlreadyFetchingAccessToken = true;
+        const token = await this.login();
+        this.isAlreadyFetchingAccessToken = false;
+        this.handleSuccessfulReLogin(token);
       }
+      return retryOriginalRequest;
     }
     return Promise.reject(error);
   };
