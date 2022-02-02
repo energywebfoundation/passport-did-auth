@@ -49,9 +49,9 @@ export class ClaimVerifier {
     name: IRoleDefinition['roleName'];
     namespace: OffchainClaim['claimType'];
   } | null> {
-    // if (!(await this.verifySignature(claim))) {
-    //   return null;
-    // }
+    if (!(await this.verifySignature(claim))) {
+      return null;
+    }
 
     const role = await this.getRoleDefinition(claim.claimType);
     if (!role) {

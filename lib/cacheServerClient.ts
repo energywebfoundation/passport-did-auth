@@ -4,7 +4,7 @@ import { Signer, Wallet, utils, providers } from 'ethers';
 import { OffchainClaim, IRole, IRoleDefinition } from './LoginStrategy.types';
 import { Policy } from 'cockatiel';
 import { IDIDDocument } from '@ew-did-registry/did-resolver-interface';
-import { knownChains } from './utils';
+import { isOffchainClaim, knownChains } from './utils';
 import { Logger } from './Logger';
 
 export class CacheServerClient {
@@ -170,7 +170,7 @@ export class CacheServerClient {
     const { data } = await this.httpClient.get<{ service: OffchainClaim[] }>(
       `/DID/${did}?includeClaims=true`
     );
-    return data.service;
+    return data.service.filter(isOffchainClaim);
   }
 
   async getDidsWithAcceptedRole(role: string): Promise<string[]> {
