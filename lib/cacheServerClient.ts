@@ -16,6 +16,7 @@ export class CacheServerClient {
   private _isAvailable = false;
 
   public readonly address: string;
+  public chainName?: string;
   public get isAvailable(): boolean {
     return this._isAvailable;
   }
@@ -66,12 +67,15 @@ export class CacheServerClient {
         this.signer.getChainId(),
       ]);
 
+      const chainName = knownChains[chainId];
+      this.chainName = chainName || 'volta';
+
       const { arrayify, keccak256 } = utils;
       const { encodedHeader, encodedPayload } =
         this.createLoginTokenHeadersAndPayload({
           address,
           blockNumber,
-          chainName: knownChains[chainId],
+          chainName,
         });
       const msg = `0x${Buffer.from(
         `${encodedHeader}.${encodedPayload}`

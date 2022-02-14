@@ -32,6 +32,7 @@ import {
   ensResolver,
 } from './setup_contracts';
 import { assert } from 'chai';
+import { OffchainClaim } from '../lib/LoginStrategy.types';
 
 const GANACHE_PORT = 8544;
 const rpcUrl = `http://localhost:${GANACHE_PORT}`;
@@ -186,12 +187,14 @@ it('Should authenticate issuer signature', async () => {
   await loginStrategy?.validate(token, payload, (_, user) => {
     const jwt = new JWT(new Keys({ privateKey: userPrivKey }));
     const decodedIdentity = jwt.decode(token) as {
-      [key: string]: string | object;
+      [key: string]: string;
     };
     const decodedVerifiedUser = jwt.decode(user as string) as {
       [key: string]: string | object;
     };
-    expect(decodedVerifiedUser.did).toBe(decodedIdentity.did);
+    expect(decodedVerifiedUser.did).toBe(
+      loginStrategy.didUnification(decodedIdentity.did)
+    );
   });
 });
 
@@ -237,4 +240,52 @@ it('Should reject invalid token', async () => {
   await loginStrategy?.validate(token, payload, () => {
     expect(consoleListener).toBeCalledWith('Not Verified');
   });
+});
+
+it('Should add volta to old did address format', () => {
+  const { loginStrategy } = preparePassport(didContract.address);
+
+  expect(
+    loginStrategy.didUnification(
+      'did:ethr:0x0000000000000000000000000000000000000001'
+    )
+  ).toBe('did:ethr:volta:0x0000000000000000000000000000000000000001');
+});
+
+it('Should support old format did for off chain claims', async () => {
+  const { loginStrategy } = preparePassport(didContract.address);
+
+  const claim: OffchainClaim = {
+    claimType: 'test',
+    claimTypeVersion: '1',
+    issuedToken: 'token.token.token',
+    iss: 'did:ethr:0x0000000000000000000000000000000000000001',
+  };
+
+  jest
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    .spyOn((loginStrategy as any).ipfsStore, 'get')
+    .mockResolvedValueOnce('url');
+
+  jest
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    .spyOn((loginStrategy as any).didResolver, 'read')
+    .mockResolvedValueOnce({
+      service: [{ id: 'did:ethr:0x0000000000000000000000000000000000000001' }],
+    });
+
+  jest.spyOn(loginStrategy, 'decodeToken').mockReturnValueOnce(claim);
+
+  const result = await loginStrategy.offchainClaimsOf(
+    'did:ethr:0x0000000000000000000000000000000000000001'
+  );
+
+  expect(result).toEqual([
+    {
+      claimType: 'test',
+      claimTypeVersion: '1',
+      issuedToken: 'token.token.token',
+      iss: 'did:ethr:volta:0x0000000000000000000000000000000000000001',
+    },
+  ]);
 });
