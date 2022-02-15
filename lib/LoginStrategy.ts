@@ -17,7 +17,7 @@ import {
 } from './LoginStrategy.types';
 import { PublicResolver__factory } from '../ethers/factories/PublicResolver__factory';
 import { PublicResolver } from '../ethers/PublicResolver';
-import { Methods } from '@ew-did-registry/did';
+import { Methods, getDIDChain } from '@ew-did-registry/did';
 import { DidStore } from '@ew-did-registry/did-ipfs-store';
 import { CacheServerClient } from './cacheServerClient';
 import { ClaimVerifier } from './ClaimVerifier';
@@ -128,7 +128,8 @@ export class LoginStrategy extends BaseStrategy {
     payload: ITokenPayload,
     done: (err?: Error, user?: unknown, info?: unknown) => void
   ): Promise<void> {
-    const userDoc = await this.getDidDocument(payload.iss);
+    const iss = this.didUnification(payload.iss);
+    const userDoc = await this.getDidDocument(iss);
     const proofVerifier = new ProofVerifier(userDoc);
     const userDid = await proofVerifier.verifyAuthenticationProof(token);
 
@@ -185,7 +186,7 @@ export class LoginStrategy extends BaseStrategy {
         return done(undefined, null, 'User does not have an accepted role.');
       }
       const user = {
-        did: payload.iss,
+        did: iss,
         verifiedRoles: uniqueRoles,
       };
       if (this.jwtSecret) {
@@ -248,18 +249,57 @@ export class LoginStrategy extends BaseStrategy {
    * @todo use iam-lib
    */
   async offchainClaimsOf(did: string): Promise<OffchainClaim[]> {
+    did = this.didUnification(did);
+
+    const transformClaim = (claim: OffchainClaim): OffchainClaim => {
+      const transformedClaim = { ...claim };
+      const didFormatFields = ['iss', 'sub', 'subject', 'did'];
+
+      Object.keys(transformedClaim).forEach((key) => {
+        if (didFormatFields.includes(key)) {
+          transformedClaim[key] = this.didUnification(transformedClaim[key]);
+        }
+      });
+
+      return transformedClaim;
+    };
+
     if (this.cacheServerClient?.isAvailable) {
-      return this.cacheServerClient.getOffchainClaims({ did });
+      return (await this.cacheServerClient.getOffchainClaims({ did })).map(
+        transformClaim
+      );
     }
     const didDocument = await this.didResolver.read(did);
     const services = didDocument.service || [];
-    return await Promise.all(
-      services
-        .map(async ({ serviceEndpoint }) => {
+    return (
+      await Promise.all(
+        services.map(async ({ serviceEndpoint }) => {
           const claimToken = await this.ipfsStore.get(serviceEndpoint);
           return this.decodeToken<OffchainClaim>(claimToken);
         })
-        .filter(isOffchainClaim)
-    );
+      )
+    )
+      .filter(isOffchainClaim)
+      .map(transformClaim);
+  }
+
+  /**
+   * @param {string} did
+   * @returns {string} DID address in format "did:" method-name ":" method-specific-id ":" address
+   */
+  didUnification(did: string): string {
+    const { foundChainInfo } = getDIDChain(did);
+    if (foundChainInfo) return did;
+
+    const didParts = did.split(':');
+
+    let chainName = 'volta';
+    if (
+      this.cacheServerClient?.isAvailable &&
+      this.cacheServerClient?.chainName
+    ) {
+      chainName = this.cacheServerClient?.chainName;
+    }
+    return `${didParts[0]}:${didParts[1]}:${chainName}:${didParts[2]}`;
   }
 }
