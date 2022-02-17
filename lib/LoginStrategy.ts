@@ -17,7 +17,7 @@ import {
 } from './LoginStrategy.types';
 import { PublicResolver__factory } from '../ethers/factories/PublicResolver__factory';
 import { PublicResolver } from '../ethers/PublicResolver';
-import { Methods, getDIDChain } from '@ew-did-registry/did';
+import { Methods, getDIDChain, isValidErc1056 } from '@ew-did-registry/did';
 import { DidStore } from '@ew-did-registry/did-ipfs-store';
 import { CacheServerClient } from './cacheServerClient';
 import { ClaimVerifier } from './ClaimVerifier';
@@ -251,23 +251,38 @@ export class LoginStrategy extends BaseStrategy {
   async offchainClaimsOf(did: string): Promise<OffchainClaim[]> {
     did = this.didUnification(did);
 
-    const transformClaim = (claim: OffchainClaim): OffchainClaim => {
+    const transformClaim = (
+      claim: OffchainClaim
+    ): OffchainClaim | undefined => {
       const transformedClaim = { ...claim };
-      const didFormatFields = ['iss', 'sub', 'subject', 'did'];
+      const didFormatFields = ['iss', 'sub', 'subject', 'did', 'signer'];
+
+      let invalidDIDProperty = false;
 
       Object.keys(transformedClaim).forEach((key) => {
         if (didFormatFields.includes(key)) {
-          transformedClaim[key] = this.didUnification(transformedClaim[key]);
+          const expectedEthrDID = transformedClaim[key];
+          if (isValidErc1056(expectedEthrDID)) {
+            transformedClaim[key] = this.didUnification(transformedClaim[key]);
+          } else {
+            invalidDIDProperty = true;
+          }
         }
       });
 
-      return transformedClaim;
+      return invalidDIDProperty ? undefined : transformedClaim;
+    };
+
+    const filterOutMaliciousClaims = (
+      item: OffchainClaim | undefined
+    ): item is OffchainClaim => {
+      return !!item;
     };
 
     if (this.cacheServerClient?.isAvailable) {
-      return (await this.cacheServerClient.getOffchainClaims({ did })).map(
-        transformClaim
-      );
+      return (await this.cacheServerClient.getOffchainClaims({ did }))
+        .map(transformClaim)
+        .filter(filterOutMaliciousClaims);
     }
     const didDocument = await this.didResolver.read(did);
     const services = didDocument.service || [];
@@ -280,7 +295,8 @@ export class LoginStrategy extends BaseStrategy {
       )
     )
       .filter(isOffchainClaim)
-      .map(transformClaim);
+      .map(transformClaim)
+      .filter(filterOutMaliciousClaims);
   }
 
   /**
