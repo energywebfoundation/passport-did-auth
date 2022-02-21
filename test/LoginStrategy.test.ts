@@ -289,3 +289,34 @@ it('Should support old format did for off chain claims', async () => {
     },
   ]);
 });
+
+it('Should filter out malicious claims', async () => {
+  const { loginStrategy } = preparePassport(didContract.address);
+
+  const claim: OffchainClaim = {
+    claimType: 'test',
+    claimTypeVersion: '1',
+    issuedToken: 'token.token.token',
+    iss: 'test.roles.org.iam.ewc',
+  };
+
+  jest
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    .spyOn((loginStrategy as any).ipfsStore, 'get')
+    .mockResolvedValueOnce('url');
+
+  jest
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    .spyOn((loginStrategy as any).didResolver, 'read')
+    .mockResolvedValueOnce({
+      service: [{ id: 'did:ethr:0x0000000000000000000000000000000000000001' }],
+    });
+
+  jest.spyOn(loginStrategy, 'decodeToken').mockReturnValueOnce(claim);
+
+  const result = await loginStrategy.offchainClaimsOf(
+    'did:ethr:0x0000000000000000000000000000000000000001'
+  );
+
+  expect(result).toEqual([]);
+});
