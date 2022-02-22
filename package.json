@@ -86,6 +86,7 @@
     "@typescript-eslint/parser": "^5.9.1",
     "babel-jest": "^27.2.0",
     "chai": "^4.3.4",
+    "conventional-changelog-conventionalcommits": "^4.6.3",
     "cors": "^2.8.5",
     "dotenv": "^10.0.0",
     "ec-key": "0.0.4",
