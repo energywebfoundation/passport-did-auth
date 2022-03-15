@@ -5,18 +5,11 @@ import { providers } from 'ethers';
 import {
   ethrReg,
   Resolver,
-  VoltaAddress1056,
   addressOf,
 } from '@ew-did-registry/did-ethr-resolver';
 
 import { isOffchainClaim, lookup, namehash } from './utils';
-import {
-  OffchainClaim,
-  IRoleDefinition,
-  ITokenPayload,
-} from './LoginStrategy.types';
-import { PublicResolver__factory } from '../ethers/factories/PublicResolver__factory';
-import { PublicResolver } from '../ethers/PublicResolver';
+import { OffchainClaim, ITokenPayload } from './LoginStrategy.types';
 import { Methods, getDIDChain, isValidErc1056 } from '@ew-did-registry/did';
 import { DidStore } from '@ew-did-registry/did-ipfs-store';
 import { CacheServerClient } from './cacheServerClient';
@@ -24,8 +17,14 @@ import { ClaimVerifier } from './ClaimVerifier';
 import { IDIDDocument } from '@ew-did-registry/did-resolver-interface';
 import { ProofVerifier } from '@ew-did-registry/claims';
 import { Logger } from './Logger';
-//import { Logger } from "@ethersproject/logger";
+import {
+  DomainReader,
+  ResolverContractType,
+  IRoleDefinition,
+} from '@energyweb/credential-governance';
+import { knownResolvers } from './defaultConfig';
 
+const { JsonRpcProvider } = providers;
 const { abi: abi1056 } = ethrReg;
 
 export interface LoginStrategyOptions extends StrategyOptions {
@@ -34,8 +33,13 @@ export interface LoginStrategyOptions extends StrategyOptions {
   cacheServerUrl?: string;
   privateKey?: string;
   numberOfBlocksBack?: number;
-  ensResolverAddress?: string;
-  didContractAddress?: string;
+  ensResolvers?: {
+    chainId: number;
+    resolverType: ResolverContractType;
+    address: string;
+  }[];
+  didContractAddress: string;
+  ensRegistryAddress: string;
   ipfsUrl?: string;
   acceptedRoles?: string[];
   jwtSecret: string | Buffer;
@@ -48,7 +52,7 @@ export class LoginStrategy extends BaseStrategy {
   private readonly jwtSignOptions?: jwt.SignOptions;
   private readonly provider: providers.JsonRpcProvider;
   private readonly numberOfBlocksBack: number;
-  private readonly ensResolver: PublicResolver;
+  private readonly domainReader: DomainReader;
   private readonly didResolver: Resolver;
   private readonly ipfsStore: DidStore;
   private readonly acceptedRoles: Set<string>;
@@ -63,8 +67,9 @@ export class LoginStrategy extends BaseStrategy {
       numberOfBlocksBack = 4,
       jwtSecret,
       jwtSignOptions,
-      ensResolverAddress = '0x0a97e07c4Df22e2e31872F20C5BE191D5EFc4680',
-      didContractAddress = VoltaAddress1056,
+      ensResolvers = [],
+      didContractAddress,
+      ensRegistryAddress,
       ipfsUrl = 'https://ipfs.infura.io:5001/api/v0/',
       acceptedRoles,
       ...options
@@ -75,11 +80,21 @@ export class LoginStrategy extends BaseStrategy {
   ) {
     super(options);
     this.claimField = claimField;
-    this.provider = new providers.JsonRpcProvider(rpcUrl);
-    this.ensResolver = PublicResolver__factory.connect(
-      ensResolverAddress,
-      this.provider
-    );
+    this.provider = new JsonRpcProvider(rpcUrl);
+    this.domainReader = new DomainReader({
+      ensRegistryAddress,
+      provider: this.provider,
+    });
+
+    knownResolvers
+      .concat(ensResolvers)
+      .forEach(({ chainId, resolverType, address }) =>
+        this.domainReader.addKnownResolver({
+          chainId,
+          address,
+          type: resolverType,
+        })
+      );
     if (cacheServerUrl && !privateKey) {
       throw new Error(
         'You need to provide privateKey of an accepted account to login to cache server'
@@ -232,14 +247,15 @@ export class LoginStrategy extends BaseStrategy {
     );
   }
 
-  async getRoleDefinition(namespace: string): Promise<IRoleDefinition> {
+  async getRoleDefinition(namespace: string): Promise<IRoleDefinition | null> {
     if (this.cacheServerClient?.isAvailable) {
       return this.cacheServerClient.getRoleDefinition({ namespace });
     }
-    const namespaceHash = namehash(namespace);
-    const definition = await this.ensResolver.text(namespaceHash, 'metadata');
 
-    return JSON.parse(definition) as IRoleDefinition;
+    const definition = await this.domainReader.read({
+      node: namehash(namespace),
+    });
+    return DomainReader.isRoleDefinition(definition) ? definition : null;
   }
 
   /**

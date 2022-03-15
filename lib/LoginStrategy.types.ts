@@ -1,19 +1,4 @@
-export interface IRoleDefinition {
-  version: string;
-  roleType: string;
-  roleName: string;
-  fields: {
-    fieldType: string;
-    label: string;
-    validation: string;
-  }[];
-  metadata: Record<string, unknown> | Record<string, unknown>[];
-  issuer: {
-    issuerType?: string;
-    did?: string[];
-    roleName?: string;
-  };
-}
+import { IRoleDefinition } from '@energyweb/credential-governance';
 
 export interface IRole {
   uid: string;
@@ -25,7 +10,7 @@ export interface IRole {
 
 export interface OffchainClaim {
   claimType: string;
-  claimTypeVersion: string;
+  claimTypeVersion: number;
   issuedToken: string;
   iss?: string;
 }

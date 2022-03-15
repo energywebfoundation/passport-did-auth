@@ -4,8 +4,11 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const { preparePassport } = require('./preparePassport');
 
-export const getServer = (didRegistryAddress) => {
-  const { passport, LOGIN_STRATEGY } = preparePassport(didRegistryAddress);
+export const getServer = (didRegistryAddress, ensRegistryAddress) => {
+  const { passport, LOGIN_STRATEGY } = preparePassport(
+    didRegistryAddress,
+    ensRegistryAddress
+  );
   const server = express();
 
   server.use(passport.initialize(), cors({ origin: true, credentials: true }));
