@@ -158,7 +158,7 @@ it('Verifies asset authentication', async () => {
     assetDid
   );
   const identityToken = token;
-  const server = getServer(didContract.address);
+  const server = getServer(didContract.address, ensRegistry.address);
   const connection = server.listen(4242, () => {
     console.log('Test Server is ready and listening on port 4242');
   });
@@ -169,7 +169,10 @@ it('Verifies asset authentication', async () => {
 });
 
 it('Should authenticate issuer signature', async () => {
-  const { loginStrategy } = preparePassport(didContract.address);
+  const { loginStrategy } = preparePassport(
+    didContract.address,
+    ensRegistry.address
+  );
   const token = await iam.claimsService?.createIdentityProof();
   const payload = {
     iss: `did:ethr:${userAddress}`,
@@ -199,7 +202,7 @@ it('Should authenticate issuer signature', async () => {
 });
 
 it('Should reject invalid issuer', async () => {
-  const { loginStrategy } = preparePassport(didContract.address);
+  const { loginStrategy } = preparePassport(didContract.address, ensRegistry.address);
   const token = await iam.claimsService?.createIdentityProof();
   if (!token) {
     expect(false).toBeTruthy();
@@ -226,7 +229,7 @@ it('Should reject invalid token', async () => {
   );
   const { connectToDidRegistry } = await connectToCacheServer();
   const { claimsService } = await connectToDidRegistry();
-  const { loginStrategy } = preparePassport(didContract.address);
+  const { loginStrategy } = preparePassport(didContract.address, ensRegistry.address);
   const token = await claimsService.createIdentityProof();
   const payload = {
     iss: userDid,
@@ -243,7 +246,7 @@ it('Should reject invalid token', async () => {
 });
 
 it('Should add volta to old did address format', () => {
-  const { loginStrategy } = preparePassport(didContract.address);
+  const { loginStrategy } = preparePassport(didContract.address, ensRegistry.address);
 
   expect(
     loginStrategy.didUnification(
@@ -253,7 +256,7 @@ it('Should add volta to old did address format', () => {
 });
 
 it('Should support old format did for off chain claims', async () => {
-  const { loginStrategy } = preparePassport(didContract.address);
+  const { loginStrategy } = preparePassport(didContract.address, ensRegistry.address);
 
   const claim: OffchainClaim = {
     claimType: 'test',
@@ -291,7 +294,7 @@ it('Should support old format did for off chain claims', async () => {
 });
 
 it('Should filter out malicious claims', async () => {
-  const { loginStrategy } = preparePassport(didContract.address);
+  const { loginStrategy } = preparePassport(didContract.address, ensRegistry.address);
 
   const claim: OffchainClaim = {
     claimType: 'test',

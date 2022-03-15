@@ -62,7 +62,8 @@ const jwtOptions = {
 };
 
 export const preparePassport = (
-  didRegistryAddress: string
+  didRegistryAddress: string,
+  ensRegistryAddress: string
 ): Partial<{
   passport: PassportStatic;
   LOGIN_STRATEGY: string;
@@ -73,6 +74,7 @@ export const preparePassport = (
     name: LOGIN_STRATEGY,
     rpcUrl: `http://localhost:8544`,
     didContractAddress: didRegistryAddress,
+    ensRegistryAddress,
   };
   const loginStrategy = new LoginStrategy(loginStrategyOptions);
 

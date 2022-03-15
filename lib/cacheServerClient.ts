@@ -1,9 +1,10 @@
 import axios, { AxiosError, AxiosInstance, AxiosResponse } from 'axios';
 import base64url from 'base64url';
 import { Signer, Wallet, utils, providers } from 'ethers';
-import { OffchainClaim, IRole, IRoleDefinition } from './LoginStrategy.types';
+import { OffchainClaim, IRole } from './LoginStrategy.types';
 import { Policy } from 'cockatiel';
 import { IDIDDocument } from '@ew-did-registry/did-resolver-interface';
+import { IRoleDefinition } from '@energyweb/credential-governance';
 import { knownChains } from './utils';
 import { Logger } from './Logger';
 

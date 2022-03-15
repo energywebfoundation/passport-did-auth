@@ -1,9 +1,6 @@
-import {
-  OffchainClaim,
-  DecodedToken,
-  IRoleDefinition,
-} from './LoginStrategy.types';
+import { OffchainClaim, DecodedToken } from './LoginStrategy.types';
 import * as jwt from 'jsonwebtoken';
+import { IRoleDefinition } from '@energyweb/credential-governance';
 import { IDIDDocument } from '@ew-did-registry/did-resolver-interface';
 import { ProofVerifier } from '@ew-did-registry/claims';
 
@@ -12,7 +9,7 @@ export class ClaimVerifier {
     private readonly claims: OffchainClaim[],
     private readonly getRoleDefinition: (
       namespace: string
-    ) => Promise<IRoleDefinition>,
+    ) => Promise<IRoleDefinition | null>,
     private readonly getOffchainClaims: (
       did: string
     ) => Promise<OffchainClaim[]>,
