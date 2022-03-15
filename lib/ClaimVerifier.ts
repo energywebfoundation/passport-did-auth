@@ -32,8 +32,10 @@ export class ClaimVerifier {
       name: IRoleDefinition['roleName'];
       namespace: OffchainClaim['claimType'];
     }[];
-    const uniqueRoles = [...new Set(filteredRoles)];
-    return uniqueRoles;
+    const uniqueRoles = [
+      ...new Set(filteredRoles.map((r) => JSON.stringify(r))),
+    ];
+    return uniqueRoles.map((r) => JSON.parse(r));
   }
 
   /**
