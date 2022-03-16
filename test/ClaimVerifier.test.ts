@@ -25,10 +25,11 @@ let invalidClaims: OffchainClaim[];
 let user2Claims: OffchainClaim[];
 let claimsWithoutIssField: OffchainClaim[];
 
-const claimTypeVersion = '1';
-const claimType = 'user.roles.example1.apps.john.iam.ewc';
+const claimTypeVersion = 1;
+const claimType1 = 'user.roles.example1.apps.john.iam.ewc';
+const claimType2 = 'user2.roles.example1.apps.john.iam.ewc';
 const claimData: ClaimData = {
-  claimType,
+  claimType: claimType1,
   claimTypeVersion,
   profile: '',
 };
@@ -39,27 +40,27 @@ describe('ClaimVerifier', () => {
     const user2Token = await claimsUser2.createPublicClaim(claimData);
 
     const claim1: OffchainClaim = {
-      claimType,
+      claimType: claimType1,
       claimTypeVersion,
       issuedToken: userToken,
       iss: userDID,
     };
 
     const claim2: OffchainClaim = {
-      claimType,
+      claimType: claimType2,
       claimTypeVersion,
       issuedToken: userToken,
     };
 
     const claim3: OffchainClaim = {
-      claimType,
+      claimType: claimType1,
       claimTypeVersion,
       issuedToken: user2Token,
       iss: user2DID,
     };
 
     const invalidClaim: OffchainClaim = {
-      claimType,
+      claimType: claimType1,
       claimTypeVersion,
       issuedToken: userToken,
       iss: user2DID,
