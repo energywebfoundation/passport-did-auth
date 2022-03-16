@@ -1,3 +1,10 @@
+## [2.0.0-alpha.2](https://github.com/energywebfoundation/passport-did-auth/compare/v2.0.0-alpha.1...v2.0.0-alpha.2) (2022-03-16)
+
+
+### Bug Fixes
+
+* compare stringified roles ([16166f1](https://github.com/energywebfoundation/passport-did-auth/commit/16166f1c5bbc169bfadeeed8d4e16ed4180d60b5))
+
 ## [2.0.0-alpha.1](https://github.com/energywebfoundation/passport-did-auth/compare/v1.3.0-alpha.6...v2.0.0-alpha.1) (2022-03-15)
 
 
