@@ -143,6 +143,11 @@ export class LoginStrategy extends BaseStrategy {
     payload: ITokenPayload,
     done: (err?: Error, user?: unknown, info?: unknown) => void
   ): Promise<void> {
+    if (!this.isTokenPayload(payload)) {
+      Logger.info('Token payload is not valid');
+      return done(undefined, null, 'Token payload is not valid');
+    }
+
     const iss = this.didUnification(payload.iss);
     const userDoc = await this.getDidDocument(iss);
     const proofVerifier = new ProofVerifier(userDoc);
@@ -156,11 +161,12 @@ export class LoginStrategy extends BaseStrategy {
     const userAddress = addressOf(userDid);
 
     try {
+      const claimBlockNumber =
+        typeof payload.claimData.blockNumber === 'number'
+          ? payload.claimData.blockNumber
+          : parseInt(payload.claimData.blockNumber);
       const latestBlock = await this.provider.getBlockNumber();
-      if (
-        !payload.claimData.blockNumber ||
-        latestBlock - this.numberOfBlocksBack >= payload.claimData.blockNumber
-      ) {
+      if (latestBlock - this.numberOfBlocksBack >= claimBlockNumber) {
         Logger.info('Claim outdated');
         return done(undefined, null, 'Claim outdated');
       }
@@ -333,5 +339,40 @@ export class LoginStrategy extends BaseStrategy {
       chainName = this.cacheServerClient?.chainName;
     }
     return `${didParts[0]}:${didParts[1]}:${chainName}:${didParts[2]}`;
+  }
+
+  isTokenPayload(payload: unknown): payload is ITokenPayload {
+    if (!payload) return false;
+    if (typeof payload !== 'object') return false;
+
+    const payloadKeys = Object.keys(payload);
+    if (!payloadKeys.includes('iss') || !payloadKeys.includes('claimData')) {
+      return false;
+    }
+
+    if (typeof payload['claimData'] !== 'object') return false;
+
+    const claimDatKeys = Object.keys(payload['claimData']);
+    if (!claimDatKeys.includes('blockNumber')) {
+      return false;
+    }
+
+    const blockNumberType = typeof payload['claimData']['blockNumber'];
+    if (!['string', 'number'].includes(blockNumberType)) {
+      return false;
+    }
+
+    if (
+      blockNumberType === 'string' &&
+      isNaN(payload['claimData']['blockNumber'])
+    ) {
+      return false;
+    }
+
+    if (typeof payload['iss'] !== 'string' || !isValidErc1056(payload['iss'])) {
+      return false;
+    }
+
+    return true;
   }
 }
