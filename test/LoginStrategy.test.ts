@@ -202,7 +202,10 @@ it('Should authenticate issuer signature', async () => {
 });
 
 it('Should reject invalid issuer', async () => {
-  const { loginStrategy } = preparePassport(didContract.address, ensRegistry.address);
+  const { loginStrategy } = preparePassport(
+    didContract.address,
+    ensRegistry.address
+  );
   const token = await iam.claimsService?.createIdentityProof();
   if (!token) {
     expect(false).toBeTruthy();
@@ -229,7 +232,10 @@ it('Should reject invalid token', async () => {
   );
   const { connectToDidRegistry } = await connectToCacheServer();
   const { claimsService } = await connectToDidRegistry();
-  const { loginStrategy } = preparePassport(didContract.address, ensRegistry.address);
+  const { loginStrategy } = preparePassport(
+    didContract.address,
+    ensRegistry.address
+  );
   const token = await claimsService.createIdentityProof();
   const payload = {
     iss: userDid,
@@ -245,8 +251,37 @@ it('Should reject invalid token', async () => {
   });
 });
 
+it('Should reject invalid token payload', async () => {
+  const { connectToCacheServer } = await initWithPrivateKeySigner(
+    secondPrivKey,
+    rpcUrl
+  );
+  const { connectToDidRegistry } = await connectToCacheServer();
+  const { claimsService } = await connectToDidRegistry();
+  const { loginStrategy } = preparePassport(
+    didContract.address,
+    ensRegistry.address
+  );
+  const token = await claimsService.createIdentityProof();
+  const payload = {
+    iss: 'abcdef',
+    claimData: {
+      blockNumber: 4242,
+    },
+    sub: '',
+  };
+
+  const consoleListener = jest.spyOn(console, 'log');
+  await loginStrategy?.validate(token, payload, () => {
+    expect(consoleListener).toBeCalledWith('Token payload is not valid');
+  });
+});
+
 it('Should add volta to old did address format', () => {
-  const { loginStrategy } = preparePassport(didContract.address, ensRegistry.address);
+  const { loginStrategy } = preparePassport(
+    didContract.address,
+    ensRegistry.address
+  );
 
   expect(
     loginStrategy.didUnification(
@@ -256,7 +291,10 @@ it('Should add volta to old did address format', () => {
 });
 
 it('Should support old format did for off chain claims', async () => {
-  const { loginStrategy } = preparePassport(didContract.address, ensRegistry.address);
+  const { loginStrategy } = preparePassport(
+    didContract.address,
+    ensRegistry.address
+  );
 
   const claim: OffchainClaim = {
     claimType: 'test',
@@ -294,7 +332,10 @@ it('Should support old format did for off chain claims', async () => {
 });
 
 it('Should filter out malicious claims', async () => {
-  const { loginStrategy } = preparePassport(didContract.address, ensRegistry.address);
+  const { loginStrategy } = preparePassport(
+    didContract.address,
+    ensRegistry.address
+  );
 
   const claim: OffchainClaim = {
     claimType: 'test',
@@ -322,4 +363,48 @@ it('Should filter out malicious claims', async () => {
   );
 
   expect(result).toEqual([]);
+});
+
+it('Should reject invalid payload', async () => {
+  const { loginStrategy } = preparePassport(
+    didContract.address,
+    ensRegistry.address
+  );
+
+  const results = [
+    loginStrategy.isTokenPayload({}), // Empty payload,
+    loginStrategy.isTokenPayload(''), // String instead of object,
+    loginStrategy.isTokenPayload(function () {
+      return true;
+    }), // Function instead of object,
+    loginStrategy.isTokenPayload({
+      claimData: {
+        blockNumber: 4242,
+      },
+    }), // missing keys,
+    loginStrategy.isTokenPayload({
+      iss: 'did:ethr:0x0000000000000000000000000000000000000001',
+      claimData: {},
+    }), // missing keys in nested object,
+    loginStrategy.isTokenPayload({
+      iss: 1,
+      claimData: {
+        blockNumber: 4242,
+      },
+    }), // wrong type,
+    loginStrategy.isTokenPayload({
+      iss: 'asd',
+      claimData: {
+        blockNumber: 4242,
+      },
+    }), // wrong iss DID,
+    loginStrategy.isTokenPayload({
+      iss: 'did:ethr:0x0000000000000000000000000000000000000001',
+      claimData: {
+        blockNumber: 'tomato',
+      },
+    }), // wrong nested properties type,
+  ];
+
+  expect(results.every((x) => !x)).toBeTruthy();
 });
