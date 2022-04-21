@@ -1,3 +1,10 @@
+## [2.0.0-alpha.3](https://github.com/energywebfoundation/passport-did-auth/compare/v2.0.0-alpha.2...v2.0.0-alpha.3) (2022-04-21)
+
+
+### Features
+
+* add token payload validation ([cfde615](https://github.com/energywebfoundation/passport-did-auth/commit/cfde615ca2f4e3e22c8a8fa1b2204d5ad0c23961))
+
 ## [2.0.0-alpha.2](https://github.com/energywebfoundation/passport-did-auth/compare/v2.0.0-alpha.1...v2.0.0-alpha.2) (2022-03-16)
 
 
