@@ -1,3 +1,5 @@
+## [2.0.0-alpha.4](https://github.com/energywebfoundation/passport-did-auth/compare/v2.0.0-alpha.3...v2.0.0-alpha.4) (2022-04-22)
+
 ## [2.0.0-alpha.3](https://github.com/energywebfoundation/passport-did-auth/compare/v2.0.0-alpha.2...v2.0.0-alpha.3) (2022-04-21)
 
 
