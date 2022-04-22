@@ -21,7 +21,7 @@ export interface DecodedToken {
   sub: string;
 }
 
-export interface ITokenPayload extends DecodedToken {
+export interface ITokenPayload {
   claimData: {
     blockNumber: number;
   };

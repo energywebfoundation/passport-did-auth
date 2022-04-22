@@ -161,6 +161,7 @@ export class LoginStrategy extends BaseStrategy {
     const userAddress = addressOf(userDid);
 
     try {
+      // TODO: remove parseInt (it's only for backward compatibility)
       const claimBlockNumber =
         typeof payload.claimData.blockNumber === 'number'
           ? payload.claimData.blockNumber
@@ -357,6 +358,7 @@ export class LoginStrategy extends BaseStrategy {
       return false;
     }
 
+    // TODO: remove `string` type (it's only for backward compatibility)
     const blockNumberType = typeof payload['claimData']['blockNumber'];
     if (!['string', 'number'].includes(blockNumberType)) {
       return false;
