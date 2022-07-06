@@ -60,6 +60,7 @@
     "ganache-cli": "^6.12.2",
     "js-sha3": "^0.8.0",
     "jsonwebtoken": "^8.5.1",
+    "multiformats": "^9.7.0",
     "passport": "^0.5.0",
     "passport-strategy": "^1.0.0",
     "redact-pii": "^3.2.3",
