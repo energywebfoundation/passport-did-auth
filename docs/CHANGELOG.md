@@ -1,3 +1,10 @@
+## [2.0.0-alpha.5](https://github.com/energywebfoundation/passport-did-auth/compare/v2.0.0-alpha.4...v2.0.0-alpha.5) (2022-07-06)
+
+
+### Bug Fixes
+
+* add additional filters to off-chain claim filtering ([#303](https://github.com/energywebfoundation/passport-did-auth/issues/303)) ([77ff339](https://github.com/energywebfoundation/passport-did-auth/commit/77ff339663d600ca707e4c8c7d66dd7004fd83a5))
+
 ## [2.0.0-alpha.4](https://github.com/energywebfoundation/passport-did-auth/compare/v2.0.0-alpha.3...v2.0.0-alpha.4) (2022-04-22)
 
 ## [2.0.0-alpha.3](https://github.com/energywebfoundation/passport-did-auth/compare/v2.0.0-alpha.2...v2.0.0-alpha.3) (2022-04-21)
