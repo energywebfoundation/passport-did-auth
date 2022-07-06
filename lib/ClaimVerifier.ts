@@ -1,8 +1,6 @@
-import { OffchainClaim, DecodedToken } from './LoginStrategy.types';
-import * as jwt from 'jsonwebtoken';
+import { OffchainClaim } from './LoginStrategy.types';
 import { IRoleDefinition } from '@energyweb/credential-governance';
 import { IDIDDocument } from '@ew-did-registry/did-resolver-interface';
-import { ProofVerifier } from '@ew-did-registry/claims';
 
 export class ClaimVerifier {
   constructor(
@@ -20,13 +18,9 @@ export class ClaimVerifier {
     { name: string; namespace: string }[]
   > {
     const roles = await Promise.all(
-      this.claims.map(async (claim) => {
-        if (claim.iss) {
-          return this.verifyRole(<Required<OffchainClaim>>claim);
-        }
-        const { iss } = jwt.decode(claim.issuedToken) as DecodedToken;
-        return this.verifyRole({ ...claim, iss });
-      })
+      this.claims.map(async (claim) =>
+        this.verifyRole(<Required<OffchainClaim>>claim)
+      )
     );
     const filteredRoles = roles.filter(Boolean) as {
       name: IRoleDefinition['roleName'];
@@ -81,16 +75,5 @@ export class ClaimVerifier {
       }
     }
     return null;
-  }
-
-  private async verifySignature(
-    claim: Required<OffchainClaim>
-  ): Promise<boolean> {
-    const document = await this.getDidDocument(claim.iss);
-    const proofVerifier = new ProofVerifier(document);
-    const verifiedIssuer = await proofVerifier.verifyAssertionProof(
-      claim.issuedToken
-    );
-    return verifiedIssuer === claim.iss;
   }
 }

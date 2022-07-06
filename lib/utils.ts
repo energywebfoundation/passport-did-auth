@@ -73,12 +73,7 @@ export function lookup(
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function isOffchainClaim(claim: any): claim is OffchainClaim {
-  const offChainClaimProps = [
-    'claimType',
-    'claimTypeVersion',
-    'issuedToken',
-    'iss',
-  ];
+  const offChainClaimProps = ['claimType', 'claimTypeVersion', 'iss'];
   const claimProps = Object.keys(claim);
   return offChainClaimProps.every((p) => claimProps.includes(p));
 }

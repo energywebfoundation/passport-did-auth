@@ -16,7 +16,7 @@ import { DidStore } from '@ew-did-registry/did-ipfs-store';
 import { CacheServerClient } from './cacheServerClient';
 import { ClaimVerifier } from './ClaimVerifier';
 import { IDIDDocument } from '@ew-did-registry/did-resolver-interface';
-import { ProofVerifier } from '@ew-did-registry/claims';
+import { IPublicClaim, ProofVerifier } from '@ew-did-registry/claims';
 import { Logger } from './Logger';
 import {
   DomainReader,
@@ -313,12 +313,20 @@ export class LoginStrategy extends BaseStrategy {
     const services = didDocument.service || [];
     return (
       await Promise.all(
-        services.map(async ({ serviceEndpoint }) => {
-          if (this.isCID(serviceEndpoint)) {
+        services.map(async ({ serviceEndpoint, ...rest }) => {
+          if (!this.isCID(serviceEndpoint)) {
             return {};
           }
           const claimToken = await this.ipfsStore.get(serviceEndpoint);
-          return this.decodeToken<OffchainClaim>(claimToken);
+          const decodedData = this.decodeToken<IPublicClaim>(claimToken);
+          const { claimData, ...claimRest } = decodedData;
+
+          return {
+            serviceEndpoint,
+            ...rest,
+            ...claimData,
+            ...claimRest,
+          };
         })
       )
     )
