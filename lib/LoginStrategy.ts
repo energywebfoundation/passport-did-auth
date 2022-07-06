@@ -7,6 +7,7 @@ import {
   Resolver,
   addressOf,
 } from '@ew-did-registry/did-ethr-resolver';
+import { CID } from 'multiformats/cid';
 
 import { isOffchainClaim, lookup, namehash } from './utils';
 import { OffchainClaim, ITokenPayload } from './LoginStrategy.types';
@@ -304,6 +305,7 @@ export class LoginStrategy extends BaseStrategy {
 
     if (this.cacheServerClient?.isAvailable) {
       return (await this.cacheServerClient.getOffchainClaims({ did }))
+        .filter(isOffchainClaim)
         .map(transformClaim)
         .filter(filterOutMaliciousClaims);
     }
@@ -312,6 +314,9 @@ export class LoginStrategy extends BaseStrategy {
     return (
       await Promise.all(
         services.map(async ({ serviceEndpoint }) => {
+          if (this.isCID(serviceEndpoint)) {
+            return {};
+          }
           const claimToken = await this.ipfsStore.get(serviceEndpoint);
           return this.decodeToken<OffchainClaim>(claimToken);
         })
@@ -376,5 +381,31 @@ export class LoginStrategy extends BaseStrategy {
     }
 
     return true;
+  }
+
+  /**
+   * Check if given value is a valid IPFS CID.
+   *
+   * ```typescript
+   * this.isCID('Qm...');
+   * ```
+   *
+   * @param {Any} hash value to check
+   *
+   */
+  private isCID(hash: unknown): boolean {
+    try {
+      if (typeof hash === 'string') {
+        return Boolean(CID.parse(hash));
+      }
+
+      if (hash instanceof Uint8Array) {
+        return Boolean(CID.decode(hash));
+      }
+
+      return Boolean(CID.asCID(hash));
+    } catch (e) {
+      return false;
+    }
   }
 }
