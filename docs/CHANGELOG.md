@@ -1,3 +1,10 @@
+## [2.0.0-alpha.6](https://github.com/energywebfoundation/passport-did-auth/compare/v2.0.0-alpha.5...v2.0.0-alpha.6) (2022-07-08)
+
+
+### Bug Fixes
+
+* fetching off-chain claims from did document ([#304](https://github.com/energywebfoundation/passport-did-auth/issues/304)) ([a4c6999](https://github.com/energywebfoundation/passport-did-auth/commit/a4c699960d6dbbf75dc95b94bab906bd09eed6ef))
+
 ## [2.0.0-alpha.5](https://github.com/energywebfoundation/passport-did-auth/compare/v2.0.0-alpha.4...v2.0.0-alpha.5) (2022-07-06)
 
 
