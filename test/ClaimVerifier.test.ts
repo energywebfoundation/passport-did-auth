@@ -1,11 +1,8 @@
 import { Wallet } from 'ethers';
-import { ClaimsUser } from '@ew-did-registry/claims';
 import { Keys } from '@ew-did-registry/keys';
 import assert from 'assert';
 import { ClaimVerifier } from '../lib/ClaimVerifier';
-import { OffchainClaim, IRoleDefinition } from '../lib/LoginStrategy.types';
-import { ClaimData } from './claim-creation/ClaimData';
-import { ClaimsUserFactory } from './claim-creation/ClaimsUserFactory';
+import { IRoleDefinitionV2, OffchainClaim } from '../lib/LoginStrategy.types';
 import { mockDocument } from './TestDidDocuments';
 
 const keys = new Keys({
@@ -15,8 +12,6 @@ const keys = new Keys({
 
 const keys2 = new Keys();
 
-const claimsUser: ClaimsUser = ClaimsUserFactory.create(keys);
-const claimsUser2: ClaimsUser = ClaimsUserFactory.create(keys2);
 const userDID = `did:ethr:volta:${keys.getAddress()}`;
 const user2DID = `did:ethr:volta:${keys2.getAddress()}`;
 
@@ -28,41 +23,30 @@ let claimsWithoutIssField: OffchainClaim[];
 const claimTypeVersion = 1;
 const claimType1 = 'user.roles.example1.apps.john.iam.ewc';
 const claimType2 = 'user2.roles.example1.apps.john.iam.ewc';
-const claimData: ClaimData = {
-  claimType: claimType1,
-  claimTypeVersion,
-  profile: '',
-};
 
 describe('ClaimVerifier', () => {
   beforeAll(async () => {
-    const userToken = await claimsUser.createPublicClaim(claimData);
-    const user2Token = await claimsUser2.createPublicClaim(claimData);
-
     const claim1: OffchainClaim = {
       claimType: claimType1,
       claimTypeVersion,
-      issuedToken: userToken,
       iss: userDID,
     };
 
     const claim2: OffchainClaim = {
       claimType: claimType2,
       claimTypeVersion,
-      issuedToken: userToken,
+      iss: userDID,
     };
 
     const claim3: OffchainClaim = {
       claimType: claimType1,
       claimTypeVersion,
-      issuedToken: user2Token,
       iss: user2DID,
     };
 
     const invalidClaim: OffchainClaim = {
       claimType: claimType1,
       claimTypeVersion,
-      issuedToken: userToken,
       iss: user2DID,
     };
     claimsWithoutIssField = [claim2];
@@ -131,20 +115,31 @@ describe('ClaimVerifier', () => {
 });
 
 const getRoleDefinition = (issuerDid: string, issuerType: string) => {
-  const roleDef: IRoleDefinition = {
+  const roleDef: IRoleDefinitionV2 = {
     roleName: 'user',
     issuer: {
       issuerType,
       did: [issuerDid],
       roleName: 'user.roles.example1.apps.john.iam.ewc',
     },
+    revoker: {
+      revokerType: issuerType,
+      did: [issuerDid],
+      roleName: 'user.roles.example1.apps.john.iam.ewc',
+    },
+    issuerFields: [
+      {
+        fieldType: 'fieldType',
+        label: 'label',
+      },
+    ],
     fields: [
       {
         fieldType: 'fieldType',
         label: 'label',
-        validation: 'validation',
       },
     ],
+    enrolmentPreconditions: [],
     metadata: {},
     roleType: '',
     version: claimTypeVersion,

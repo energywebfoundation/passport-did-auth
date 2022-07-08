@@ -1,18 +1,19 @@
-import { IRoleDefinition } from '@energyweb/credential-governance';
+import { IRoleDefinitionV2 } from '@energyweb/credential-governance';
+
+export { IRoleDefinitionV2 };
 
 export interface IRole {
   uid: string;
   name: string;
   namespace: string;
   owner: string;
-  definition: IRoleDefinition;
+  definition: IRoleDefinitionV2;
 }
 
 export interface OffchainClaim {
   claimType: string;
   claimTypeVersion: number;
-  issuedToken: string;
-  iss?: string;
+  iss: string;
 }
 
 export interface DecodedToken {

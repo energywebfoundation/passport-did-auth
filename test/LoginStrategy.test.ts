@@ -33,6 +33,7 @@ import {
 } from './setup_contracts';
 import { assert } from 'chai';
 import { OffchainClaim } from '../lib/LoginStrategy.types';
+import { IPublicClaim } from '@ew-did-registry/claims';
 
 const GANACHE_PORT = 8544;
 const rpcUrl = `http://localhost:${GANACHE_PORT}`;
@@ -296,11 +297,14 @@ it('Should support old format did for off chain claims', async () => {
     ensRegistry.address
   );
 
-  const claim: OffchainClaim = {
-    claimType: 'test',
-    claimTypeVersion: '1',
-    issuedToken: 'token.token.token',
-    iss: 'did:ethr:0x0000000000000000000000000000000000000001',
+  const claim: IPublicClaim = {
+    did: 'did:ethr:volta:0x0000000000000000000000000000000000000001',
+    signer: 'did:ethr:volta:0x0000000000000000000000000000000000000001',
+    claimData: {
+      claimType: 'test',
+      claimTypeVersion: 1,
+      iss: 'did:ethr:volta:0x0000000000000000000000000000000000000001',
+    },
   };
 
   jest
@@ -312,7 +316,12 @@ it('Should support old format did for off chain claims', async () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     .spyOn((loginStrategy as any).didResolver, 'read')
     .mockResolvedValueOnce({
-      service: [{ id: 'did:ethr:0x0000000000000000000000000000000000000001' }],
+      service: [
+        {
+          id: 'did:ethr:volta:0x0000000000000000000000000000000000000001',
+          serviceEndpoint: 'Qme7ss3ARVgxv6rXqVPiikMJ8u2NLgmgszg13pYrDKEoiu',
+        },
+      ],
     });
 
   jest.spyOn(loginStrategy, 'decodeToken').mockReturnValueOnce(claim);
@@ -323,10 +332,13 @@ it('Should support old format did for off chain claims', async () => {
 
   expect(result).toEqual([
     {
+      id: 'did:ethr:volta:0x0000000000000000000000000000000000000001',
       claimType: 'test',
-      claimTypeVersion: '1',
-      issuedToken: 'token.token.token',
+      claimTypeVersion: 1,
       iss: 'did:ethr:volta:0x0000000000000000000000000000000000000001',
+      did: 'did:ethr:volta:0x0000000000000000000000000000000000000001',
+      signer: 'did:ethr:volta:0x0000000000000000000000000000000000000001',
+      serviceEndpoint: 'Qme7ss3ARVgxv6rXqVPiikMJ8u2NLgmgszg13pYrDKEoiu',
     },
   ]);
 });
@@ -339,8 +351,7 @@ it('Should filter out malicious claims', async () => {
 
   const claim: OffchainClaim = {
     claimType: 'test',
-    claimTypeVersion: '1',
-    issuedToken: 'token.token.token',
+    claimTypeVersion: 1,
     iss: 'test.roles.org.iam.ewc',
   };
 
