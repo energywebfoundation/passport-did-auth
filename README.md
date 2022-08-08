@@ -26,8 +26,8 @@ where the `iss` is DID of the subject and `blockNumber` is block number (or heig
 ### Prerequisities
 
 ```
-npm version 6+
-nodejs version 10+
+npm version 7+
+nodejs version 16.10+
 ```
 
 ### Building the Passport Strategy
