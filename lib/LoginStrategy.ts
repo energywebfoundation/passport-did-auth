@@ -29,6 +29,7 @@ import {
   IssuerVerification,
   RevocationVerification,
   RevokerResolver,
+  VerificationResult,
 } from '@energyweb/vc-verification';
 
 const { JsonRpcProvider } = providers;
@@ -82,10 +83,13 @@ export class LoginStrategy extends BaseStrategy {
       acceptedRoles,
       ...options
     }: LoginStrategyOptions,
-    private issuerResolver: IssuerResolver,
-    private revokerResolver: RevokerResolver,
+    issuerResolver: IssuerResolver,
+    revokerResolver: RevokerResolver,
     private credentialResolver: CredentialResolver,
-    private verifyProof: (vc: string, proof_options: string) => Promise<any>,
+    verifyProof: (
+      vc: string,
+      proof_options: string
+    ) => Promise<VerificationResult>,
 
     /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
     _nestJsCB?: VoidFunction // Added just for nestjs compatibility

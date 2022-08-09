@@ -39,39 +39,36 @@ export class ClaimVerifier {
     name: IRoleDefinitionV2['roleName'];
     namespace: RoleEIP191JWT['payload']['claimData']['claimType'];
   } | null> {
-    // if (!(await this.verifySignature(claim))) {
-    //   return null;
-    // }
-
-    if (!credential?.payload) {
-      Logger.info('RolePayload does not exist');
+    if (!credential.payload) {
+      Logger.info('Invalid role credential: RolePayload does not exist');
       return null;
     }
-    if (credential.payload) {
-      const role = await this.getRoleDefinition(
-        credential.payload.claimData.claimType
+    const role = await this.getRoleDefinition(
+      credential.payload.claimData.claimType
+    );
+    const credentialClaimData = credential.payload.claimData;
+    if (!role) {
+      Logger.info(
+        `No role found: Role ${credentialClaimData.claimType} does not exist`
       );
-      if (!role) {
-        Logger.info('Role does not exist');
-        return null;
-      }
+      return null;
+    }
 
-      if (role.version !== credential.payload.claimData.claimTypeVersion) {
-        Logger.info(
-          'Role version does not match the claimTypeVersion in credential'
-        );
-        return null;
-      }
-      const verificationResult = await this.issuerVerification.verifyIssuer(
-        credential.payload.iss as string,
-        credential.payload.claimData.claimType
+    if (role.version !== credentialClaimData.claimTypeVersion) {
+      Logger.info(
+        `No role found: Role ${credentialClaimData.claimType} with version ${credentialClaimData.claimTypeVersion} does not exists`
       );
-      if (verificationResult.verified) {
-        return {
-          name: role.roleName,
-          namespace: credential.payload.claimData.claimType,
-        };
-      }
+      return null;
+    }
+    const verificationResult = await this.issuerVerification.verifyIssuer(
+      credential.payload.iss as string,
+      credentialClaimData.claimType
+    );
+    if (verificationResult.verified) {
+      return {
+        name: role.roleName,
+        namespace: credentialClaimData.claimType,
+      };
     }
     return null;
   }

@@ -94,7 +94,6 @@ export const preparePassport = (
     didContractAddress: didRegistryAddress,
     ensRegistryAddress: ensRegistryAddress,
   };
-  //const providers = new JsonRpcProvider(rpcUrl);
   const registrySettings: RegistrySettings = {
     abi: ethrReg.abi,
     address: didRegistryAddress,

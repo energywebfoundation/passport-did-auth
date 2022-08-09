@@ -15,6 +15,7 @@ import {
   isVerifiableCredential,
   transformClaim,
   filterOutMaliciousClaims,
+  isCID,
 } from '@energyweb/vc-verification';
 import * as jwt from 'jsonwebtoken';
 
@@ -140,6 +141,9 @@ export class RoleCredentialResolver implements CredentialResolver {
       return (
         await Promise.all(
           services.map(async ({ serviceEndpoint }) => {
+            if (!isCID(serviceEndpoint)) {
+              return {};
+            }
             const claimToken = await this._ipfsStore.get(serviceEndpoint);
             let rolePayload: RolePayload | undefined;
             // expect that JWT has 3 dot-separated parts
@@ -173,6 +177,9 @@ export class RoleCredentialResolver implements CredentialResolver {
       return (
         await Promise.all(
           services.map(async ({ serviceEndpoint }) => {
+            if (!isCID(serviceEndpoint)) {
+              return {};
+            }
             const credential = await this._ipfsStore.get(serviceEndpoint);
             let vc;
             // expect that JWT would have 3 dot-separated parts, VC is non-JWT credential

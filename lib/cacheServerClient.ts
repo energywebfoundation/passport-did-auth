@@ -1,25 +1,15 @@
 import axios, { AxiosError, AxiosInstance, AxiosResponse } from 'axios';
 import base64url from 'base64url';
 import { Signer, Wallet, utils, providers } from 'ethers';
-import { CredentialFilters, IRole } from './LoginStrategy.types';
+import { IRole } from './LoginStrategy.types';
 import { Policy } from 'cockatiel';
 import {
   IDIDDocument,
   IServiceEndpoint,
 } from '@ew-did-registry/did-resolver-interface';
-import {
-  IRoleDefinitionV2,
-  RoleCredentialSubject,
-} from '@energyweb/credential-governance';
+import { IRoleDefinitionV2 } from '@energyweb/credential-governance';
 import { knownChains } from './utils';
 import { Logger } from './Logger';
-import { Credential } from './LoginStrategy.types';
-import {
-  RoleEIP191JWT,
-  RolePayload,
-  VerifiableCredential,
-} from '@energyweb/vc-verification';
-import * as jwt from 'jsonwebtoken';
 
 export class CacheServerClient {
   private readonly signer: Signer;
@@ -182,51 +172,6 @@ export class CacheServerClient {
   }): Promise<IRoleDefinitionV2> {
     const { data } = await this.httpClient.get<IRole>(`/role/${namespace}`);
     return data.definition;
-  }
-
-  async getRoleEIP191JwtsBySubject(
-    subjectDID: string,
-    { isAccepted, namespace }: CredentialFilters = {}
-  ): Promise<RoleEIP191JWT[]> {
-    const { data } = await this.httpClient.get<Credential[]>(
-      `/claim/subject/${subjectDID}`,
-      {
-        params: {
-          isAccepted,
-          namespace,
-        },
-      }
-    );
-    let roleEIP191Jwts;
-    data.map((credential) => {
-      if (credential.issuedToken) {
-        roleEIP191Jwts.push({
-          payload: jwt.decode(credential.issuedToken) as RolePayload,
-          eip191Jwt: credential.issuedToken,
-        });
-      }
-    });
-    return roleEIP191Jwts;
-  }
-
-  async getVerifiableCredentialBySubject(
-    subjectDID: string,
-    { isAccepted, namespace }: CredentialFilters = {}
-  ): Promise<VerifiableCredential<RoleCredentialSubject>[]> {
-    const { data } = await this.httpClient.get<Credential[]>(
-      `/claim/subject/${subjectDID}`,
-      {
-        params: {
-          isAccepted,
-          namespace,
-        },
-      }
-    );
-    let vcs;
-    data.map((credential) => {
-      vcs.push(credential.vp.verifiableCredential);
-    });
-    return vcs;
   }
 
   async getRoleCredentials(did: string): Promise<IServiceEndpoint[]> {
