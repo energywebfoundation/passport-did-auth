@@ -1,6 +1,21 @@
+import {
+  DomainReader,
+  ResolverContractType,
+  VOLTA_CHAIN_ID,
+} from '@energyweb/credential-governance';
+import { CredentialResolver } from '@energyweb/vc-verification';
+import { Methods } from '@ew-did-registry/did';
+import { ethrReg } from '@ew-did-registry/did-ethr-resolver';
+import { DidStore } from '@ew-did-registry/did-ipfs-store';
+import { RegistrySettings } from '@ew-did-registry/did-resolver-interface';
+import { providers } from 'ethers';
 import passport, { PassportStatic } from 'passport';
 import { Strategy, ExtractJwt } from 'passport-jwt';
 import { LoginStrategyOptions, LoginStrategy } from '../../lib/LoginStrategy';
+import { verifyCredential } from 'didkit-wasm-node';
+import { RoleIssuerResolver } from '../../lib/RoleIssuerResolver';
+import { RoleCredentialResolver } from '../../lib/RoleCredentialResolver';
+import { RoleRevokerResolver } from '../../lib/RoleRevokerResolver';
 
 export const LOGIN_STRATEGY = 'login';
 export const private_pem_secret = `-----BEGIN RSA PRIVATE KEY-----
@@ -62,21 +77,53 @@ const jwtOptions = {
 };
 
 export const preparePassport = (
+  provider: providers.JsonRpcProvider,
+  ensResolverAddress: string,
   didRegistryAddress: string,
   ensRegistryAddress: string
 ): Partial<{
   passport: PassportStatic;
   LOGIN_STRATEGY: string;
   loginStrategy: LoginStrategy;
+  credentialResolver: CredentialResolver;
 }> => {
   const loginStrategyOptions: LoginStrategyOptions = {
     jwtSecret: private_pem_secret,
     name: LOGIN_STRATEGY,
     rpcUrl: `http://localhost:8544`,
     didContractAddress: didRegistryAddress,
-    ensRegistryAddress,
+    ensRegistryAddress: ensRegistryAddress,
   };
-  const loginStrategy = new LoginStrategy(loginStrategyOptions);
+  //const providers = new JsonRpcProvider(rpcUrl);
+  const registrySettings: RegistrySettings = {
+    abi: ethrReg.abi,
+    address: didRegistryAddress,
+    method: Methods.Erc1056,
+  };
+  const didStore = new DidStore('https://ipfs.infura.io:5001/api/v0/');
+  const domainReader = new DomainReader({
+    ensRegistryAddress: ensRegistryAddress,
+    provider: provider,
+  });
+  domainReader.addKnownResolver({
+    chainId: VOLTA_CHAIN_ID,
+    address: ensResolverAddress,
+    type: ResolverContractType.RoleDefinitionResolver_v2,
+  });
+  const issuerResolver = new RoleIssuerResolver(domainReader);
+  const revokerResolver = new RoleRevokerResolver(domainReader);
+  const credentialResolver = new RoleCredentialResolver(
+    provider,
+    registrySettings,
+    didStore
+  );
+  const loginStrategy = new LoginStrategy(
+    loginStrategyOptions,
+    issuerResolver,
+    revokerResolver,
+    credentialResolver,
+    verifyCredential
+  );
 
   passport.use(loginStrategy);
   passport.use(
@@ -91,5 +138,5 @@ export const preparePassport = (
     done(null, user as Express.User);
   });
 
-  return { passport, LOGIN_STRATEGY, loginStrategy };
+  return { passport, LOGIN_STRATEGY, loginStrategy, credentialResolver };
 };

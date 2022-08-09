@@ -7,23 +7,29 @@ import {
   Resolver,
   addressOf,
 } from '@ew-did-registry/did-ethr-resolver';
-import { CID } from 'multiformats/cid';
 
-import { isOffchainClaim, lookup, namehash } from './utils';
-import { OffchainClaim, ITokenPayload } from './LoginStrategy.types';
+import { lookup, namehash } from './utils';
+import { ITokenPayload } from './LoginStrategy.types';
 import { Methods, getDIDChain, isValidErc1056 } from '@ew-did-registry/did';
 import { DidStore } from '@ew-did-registry/did-ipfs-store';
 import { CacheServerClient } from './cacheServerClient';
 import { ClaimVerifier } from './ClaimVerifier';
 import { IDIDDocument } from '@ew-did-registry/did-resolver-interface';
-import { IPublicClaim, ProofVerifier } from '@ew-did-registry/claims';
+import { ProofVerifier } from '@ew-did-registry/claims';
 import { Logger } from './Logger';
 import {
   DomainReader,
   ResolverContractType,
-  IRoleDefinition,
+  IRoleDefinitionV2,
 } from '@energyweb/credential-governance';
 import { knownResolvers } from './defaultConfig';
+import {
+  CredentialResolver,
+  IssuerResolver,
+  IssuerVerification,
+  RevocationVerification,
+  RevokerResolver,
+} from '@energyweb/vc-verification';
 
 const { JsonRpcProvider } = providers;
 const { abi: abi1056 } = ethrReg;
@@ -58,6 +64,7 @@ export class LoginStrategy extends BaseStrategy {
   private readonly ipfsStore: DidStore;
   private readonly acceptedRoles: Set<string>;
   private readonly cacheServerClient?: CacheServerClient;
+  private readonly issuerVerification: IssuerVerification;
 
   constructor(
     {
@@ -75,6 +82,10 @@ export class LoginStrategy extends BaseStrategy {
       acceptedRoles,
       ...options
     }: LoginStrategyOptions,
+    private issuerResolver: IssuerResolver,
+    private revokerResolver: RevokerResolver,
+    private credentialResolver: CredentialResolver,
+    private verifyProof: (vc: string, proof_options: string) => Promise<any>,
 
     /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
     _nestJsCB?: VoidFunction // Added just for nestjs compatibility
@@ -120,6 +131,22 @@ export class LoginStrategy extends BaseStrategy {
     this.jwtSecret = jwtSecret;
     this.acceptedRoles = new Set(acceptedRoles);
     this.jwtSignOptions = jwtSignOptions;
+    const revocationVerification = new RevocationVerification(
+      revokerResolver,
+      issuerResolver,
+      credentialResolver,
+      this.provider,
+      registrySetting,
+      verifyProof
+    );
+    this.issuerVerification = new IssuerVerification(
+      issuerResolver,
+      credentialResolver,
+      this.provider,
+      registrySetting,
+      revocationVerification,
+      verifyProof
+    );
   }
 
   private async getDidDocument(did: string): Promise<IDIDDocument> {
@@ -189,12 +216,11 @@ export class LoginStrategy extends BaseStrategy {
       const userClaims =
         this.cacheServerClient?.address === userAddress
           ? []
-          : await this.offchainClaimsOf(userDid);
+          : await this.credentialResolver.eip191JwtsOf(userDid);
       const verifier = new ClaimVerifier(
         userClaims,
         this.getRoleDefinition.bind(this),
-        this.offchainClaimsOf.bind(this),
-        this.getDidDocument.bind(this)
+        this.issuerVerification
       );
       const uniqueRoles = await verifier.getVerifiedRoles();
 
@@ -238,10 +264,8 @@ export class LoginStrategy extends BaseStrategy {
   }
 
   /**
-   * @description extracts encoded payload either from request body or query
-   *
+   * extracts encoded payload either from request body or query
    * @param req
-   *
    * @returns {string} encoded claim
    */
   extractToken(req: Request): string | null {
@@ -255,7 +279,9 @@ export class LoginStrategy extends BaseStrategy {
     );
   }
 
-  async getRoleDefinition(namespace: string): Promise<IRoleDefinition | null> {
+  async getRoleDefinition(
+    namespace: string
+  ): Promise<IRoleDefinitionV2 | null> {
     if (this.cacheServerClient?.isAvailable) {
       return this.cacheServerClient.getRoleDefinition({ namespace });
     }
@@ -263,76 +289,11 @@ export class LoginStrategy extends BaseStrategy {
     const definition = await this.domainReader.read({
       node: namehash(namespace),
     });
-    return DomainReader.isRoleDefinition(definition) ? definition : null;
+    return DomainReader.isRoleDefinitionV2(definition) ? definition : null;
   }
 
-  /**
-   * @param did
-   * @returns
-   *
-   * @todo use iam-lib
-   */
-  async offchainClaimsOf(did: string): Promise<OffchainClaim[]> {
-    did = this.didUnification(did);
-
-    const transformClaim = (
-      claim: OffchainClaim
-    ): OffchainClaim | undefined => {
-      const transformedClaim = { ...claim };
-      const didFormatFields = ['iss', 'sub', 'subject', 'did', 'signer'];
-
-      let invalidDIDProperty = false;
-
-      Object.keys(transformedClaim).forEach((key) => {
-        if (didFormatFields.includes(key)) {
-          const expectedEthrDID = transformedClaim[key];
-          if (isValidErc1056(expectedEthrDID)) {
-            transformedClaim[key] = this.didUnification(transformedClaim[key]);
-          } else {
-            invalidDIDProperty = true;
-          }
-        }
-      });
-
-      return invalidDIDProperty ? undefined : transformedClaim;
-    };
-
-    const filterOutMaliciousClaims = (
-      item: OffchainClaim | undefined
-    ): item is OffchainClaim => {
-      return !!item;
-    };
-
-    if (this.cacheServerClient?.isAvailable) {
-      return (await this.cacheServerClient.getOffchainClaims({ did }))
-        .filter(isOffchainClaim)
-        .map(transformClaim)
-        .filter(filterOutMaliciousClaims);
-    }
-    const didDocument = await this.didResolver.read(did);
-    const services = didDocument.service || [];
-    return (
-      await Promise.all(
-        services.map(async ({ serviceEndpoint, ...rest }) => {
-          if (!this.isCID(serviceEndpoint)) {
-            return {};
-          }
-          const claimToken = await this.ipfsStore.get(serviceEndpoint);
-          const decodedData = this.decodeToken<IPublicClaim>(claimToken);
-          const { claimData, ...claimRest } = decodedData;
-
-          return {
-            serviceEndpoint,
-            ...rest,
-            ...claimData,
-            ...claimRest,
-          };
-        })
-      )
-    )
-      .filter(isOffchainClaim)
-      .map(transformClaim)
-      .filter(filterOutMaliciousClaims);
+  async verifyIssuer(issuer: string, role: string) {
+    return this.issuerVerification.verifyIssuer(issuer, role);
   }
 
   /**
@@ -389,31 +350,5 @@ export class LoginStrategy extends BaseStrategy {
     }
 
     return true;
-  }
-
-  /**
-   * Check if given value is a valid IPFS CID.
-   *
-   * ```typescript
-   * this.isCID('Qm...');
-   * ```
-   *
-   * @param {Any} hash value to check
-   *
-   */
-  private isCID(hash: unknown): boolean {
-    try {
-      if (typeof hash === 'string') {
-        return Boolean(CID.parse(hash));
-      }
-
-      if (hash instanceof Uint8Array) {
-        return Boolean(CID.decode(hash));
-      }
-
-      return Boolean(CID.asCID(hash));
-    } catch (e) {
-      return false;
-    }
   }
 }

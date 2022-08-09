@@ -1,6 +1,5 @@
 import { normalize } from 'eth-ens-namehash';
 import { keccak_256 as sha3 } from 'js-sha3';
-import { OffchainClaim } from './LoginStrategy.types';
 
 export function decodeLabelhash(hash: string): string {
   if (!(hash.startsWith('[') && hash.endsWith(']'))) {
@@ -71,12 +70,6 @@ export function lookup(
   return null;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function isOffchainClaim(claim: any): claim is OffchainClaim {
-  const offChainClaimProps = ['claimType', 'claimTypeVersion', 'iss'];
-  const claimProps = Object.keys(claim);
-  return offChainClaimProps.every((p) => claimProps.includes(p));
-}
 export enum Chain {
   EWC = 'ewc',
   VOLTA = 'volta',

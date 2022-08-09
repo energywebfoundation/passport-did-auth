@@ -1,17 +1,30 @@
 import axios, { AxiosError, AxiosInstance, AxiosResponse } from 'axios';
 import base64url from 'base64url';
 import { Signer, Wallet, utils, providers } from 'ethers';
-import { OffchainClaim, IRole } from './LoginStrategy.types';
+import { CredentialFilters, IRole } from './LoginStrategy.types';
 import { Policy } from 'cockatiel';
-import { IDIDDocument } from '@ew-did-registry/did-resolver-interface';
-import { IRoleDefinition } from '@energyweb/credential-governance';
+import {
+  IDIDDocument,
+  IServiceEndpoint,
+} from '@ew-did-registry/did-resolver-interface';
+import {
+  IRoleDefinitionV2,
+  RoleCredentialSubject,
+} from '@energyweb/credential-governance';
 import { knownChains } from './utils';
 import { Logger } from './Logger';
+import { Credential } from './LoginStrategy.types';
+import {
+  RoleEIP191JWT,
+  RolePayload,
+  VerifiableCredential,
+} from '@energyweb/vc-verification';
+import * as jwt from 'jsonwebtoken';
 
 export class CacheServerClient {
   private readonly signer: Signer;
   private readonly httpClient: AxiosInstance;
-  private readonly provider: providers.JsonRpcProvider;
+  private readonly provider: providers.Provider;
   private failedRequests: Array<(token: string) => void> = [];
   private isAlreadyFetchingAccessToken = false;
   private _isAvailable = false;
@@ -29,7 +42,7 @@ export class CacheServerClient {
   }: {
     url: string;
     privateKey: string;
-    provider: providers.JsonRpcProvider;
+    provider: providers.Provider;
   }) {
     const wallet = new Wallet(privateKey, provider);
     this.address = wallet.address;
@@ -166,13 +179,58 @@ export class CacheServerClient {
     namespace,
   }: {
     namespace: string;
-  }): Promise<IRoleDefinition> {
+  }): Promise<IRoleDefinitionV2> {
     const { data } = await this.httpClient.get<IRole>(`/role/${namespace}`);
     return data.definition;
   }
 
-  async getOffchainClaims({ did }: { did: string }): Promise<OffchainClaim[]> {
-    const { data } = await this.httpClient.get<{ service: OffchainClaim[] }>(
+  async getRoleEIP191JwtsBySubject(
+    subjectDID: string,
+    { isAccepted, namespace }: CredentialFilters = {}
+  ): Promise<RoleEIP191JWT[]> {
+    const { data } = await this.httpClient.get<Credential[]>(
+      `/claim/subject/${subjectDID}`,
+      {
+        params: {
+          isAccepted,
+          namespace,
+        },
+      }
+    );
+    let roleEIP191Jwts;
+    data.map((credential) => {
+      if (credential.issuedToken) {
+        roleEIP191Jwts.push({
+          payload: jwt.decode(credential.issuedToken) as RolePayload,
+          eip191Jwt: credential.issuedToken,
+        });
+      }
+    });
+    return roleEIP191Jwts;
+  }
+
+  async getVerifiableCredentialBySubject(
+    subjectDID: string,
+    { isAccepted, namespace }: CredentialFilters = {}
+  ): Promise<VerifiableCredential<RoleCredentialSubject>[]> {
+    const { data } = await this.httpClient.get<Credential[]>(
+      `/claim/subject/${subjectDID}`,
+      {
+        params: {
+          isAccepted,
+          namespace,
+        },
+      }
+    );
+    let vcs;
+    data.map((credential) => {
+      vcs.push(credential.vp.verifiableCredential);
+    });
+    return vcs;
+  }
+
+  async getRoleCredentials(did: string): Promise<IServiceEndpoint[]> {
+    const { data } = await this.httpClient.get<{ service: IServiceEndpoint[] }>(
       `/DID/${did}?includeClaims=true`
     );
     return data.service;

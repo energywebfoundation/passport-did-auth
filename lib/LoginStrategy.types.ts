@@ -1,4 +1,5 @@
 import { IRoleDefinitionV2 } from '@energyweb/credential-governance';
+import { VerifiablePresentation } from '@ew-did-registry/credentials-interface';
 
 export { IRoleDefinitionV2 };
 
@@ -10,16 +11,12 @@ export interface IRole {
   definition: IRoleDefinitionV2;
 }
 
-export interface OffchainClaim {
+export interface Credential {
+  issuedToken?: string;
+  acceptedBy: string;
   claimType: string;
   claimTypeVersion: number;
-  iss: string;
-}
-
-export interface DecodedToken {
-  iss: string;
-  claimData: Record<string, unknown>;
-  sub: string;
+  vp: VerifiablePresentation;
 }
 
 export interface ITokenPayload {
@@ -27,4 +24,9 @@ export interface ITokenPayload {
     blockNumber: number;
   };
   iss: string;
+}
+
+export interface CredentialFilters {
+  isAccepted?: boolean;
+  namespace?: string;
 }
