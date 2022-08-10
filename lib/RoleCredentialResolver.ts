@@ -19,6 +19,10 @@ import {
 } from '@energyweb/vc-verification';
 import * as jwt from 'jsonwebtoken';
 
+/**
+ * Resolved subject credential from ssi-hub, if is is specied.
+ * Otherwise resolves credential from blockchain.
+ */
 export class RoleCredentialResolver implements CredentialResolver {
   private _cacheServerClient?: CacheServerClient;
   private _ipfsCredentialResolver: IpfsCredentialResolver;

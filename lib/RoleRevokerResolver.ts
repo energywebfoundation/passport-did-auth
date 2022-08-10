@@ -10,7 +10,7 @@ import { providers, utils } from 'ethers';
 import { CacheServerClient } from './cacheServerClient';
 
 /**
- * Resolves revokers definition either by reading smart contract state via an Ethers provider or from ssi-hub (cache server)
+ * Resolves revoker definition from ssi-hub, if it is specified. Otherwise read form blockchain.
  */
 export class RoleRevokerResolver implements RevokerResolver {
   private _cacheServerClient?: CacheServerClient;

@@ -8,7 +8,7 @@ import { CacheServerClient } from './cacheServerClient';
 import { EthersProviderIssuerResolver } from '@energyweb/vc-verification';
 
 /**
- * Resolves issuers definition by either by reading smart contract state via an Ethers provider or from ssi-hub (cache server)
+ * Resolves issuer definition from ssi-hub, if it is specified. Otherwise read form blockchain.
  */
 export class RoleIssuerResolver implements IssuerResolver {
   private _cacheServerClient?: CacheServerClient;
