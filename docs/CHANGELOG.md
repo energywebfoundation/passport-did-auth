@@ -1,3 +1,22 @@
+## [2.0.0-alpha.7](https://github.com/energywebfoundation/passport-did-auth/compare/v2.0.0-alpha.6...v2.0.0-alpha.7) (2022-08-10)
+
+
+### Features
+
+* verify hierarchy of issuers for credential ([c160e19](https://github.com/energywebfoundation/passport-did-auth/commit/c160e19e2cf8eed68d73e3022f8bceec07a4f8be))
+
+
+### Bug Fixes
+
+* code refactoring ([1f2bfcc](https://github.com/energywebfoundation/passport-did-auth/commit/1f2bfcc7f2d9218a7a361eb71de19a75625a408b))
+* resolve conflicts ([62a8b6d](https://github.com/energywebfoundation/passport-did-auth/commit/62a8b6dded417be044080f7b7d4cb1be45d63c6c))
+* update package-lock.json ([3b96cfa](https://github.com/energywebfoundation/passport-did-auth/commit/3b96cfa63c2f15a2c5267e05f55e111ce95f1236))
+
+
+### Documentation
+
+* update class documentation ([35ce549](https://github.com/energywebfoundation/passport-did-auth/commit/35ce54954bcca71959f405b50cbc64de0f39916b))
+
 ## [2.0.0-alpha.6](https://github.com/energywebfoundation/passport-did-auth/compare/v2.0.0-alpha.5...v2.0.0-alpha.6) (2022-07-08)
 
 
