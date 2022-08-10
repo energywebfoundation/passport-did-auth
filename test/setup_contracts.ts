@@ -1,7 +1,5 @@
 import { DomainNotifier__factory } from '../ethers/factories/DomainNotifier__factory';
 import type { DomainNotifier } from '../ethers/DomainNotifier';
-import { RoleDefinitionResolver__factory } from '../ethers/factories/RoleDefinitionResolver__factory';
-import type { RoleDefinitionResolver } from '../ethers/RoleDefinitionResolver';
 import {
   abi as didContractAbi,
   bytecode as didContractBytecode,
@@ -14,6 +12,10 @@ import { IdentityManager } from '../ethers/IdentityManager';
 import { OfferableIdentity__factory } from '../ethers/factories/OfferableIdentity__factory';
 import { ClaimManager__factory } from '../ethers/factories/ClaimManager__factory';
 import { ClaimManager } from '../ethers/ClaimManager';
+import {
+  RoleDefinitionResolverV2,
+  RoleDefinitionResolverV2__factory,
+} from '@energyweb/credential-governance';
 
 const { JsonRpcProvider } = providers;
 
@@ -22,7 +24,7 @@ export const rpcUrl = `http://localhost:${GANACHE_PORT}`;
 export const provider = new JsonRpcProvider(rpcUrl);
 
 export let ensRegistry: ENSRegistry;
-export let ensResolver: RoleDefinitionResolver;
+export let ensResolver: RoleDefinitionResolverV2;
 export let domainNotifer: DomainNotifier;
 export let didContract: Contract;
 export let assetsManager: IdentityManager;
@@ -44,7 +46,7 @@ export const deployEns = async (): Promise<void> => {
   domainNotifer = await new DomainNotifier__factory(deployer).deploy(
     ensRegistry.address
   );
-  ensResolver = await new RoleDefinitionResolver__factory(deployer).deploy(
+  ensResolver = await new RoleDefinitionResolverV2__factory(deployer).deploy(
     ensRegistry.address,
     domainNotifer.address
   );

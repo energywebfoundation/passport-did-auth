@@ -1,10 +1,8 @@
 import { providers } from 'ethers';
-
 import { getServer } from './testUtils/server';
 import { preparePassport } from './testUtils/preparePassport';
 import {
   setChainConfig,
-  DIDAttribute,
   initWithPrivateKeySigner,
   ClaimsService,
   AssetsService,
@@ -12,10 +10,14 @@ import {
   setCacheConfig,
 } from 'iam-client-lib';
 import ServerMock from 'mock-http-server';
-import { Encoding, PubKeyType } from '@ew-did-registry/did-resolver-interface';
+import { assert } from 'chai';
+import {
+  DIDAttribute,
+  Encoding,
+  PubKeyType,
+} from '@ew-did-registry/did-resolver-interface';
 
 import request from 'supertest';
-
 import { JWT } from '@ew-did-registry/jwt';
 import { Keys, KeyType } from '@ew-did-registry/keys';
 
@@ -31,9 +33,8 @@ import {
   ensRegistry,
   ensResolver,
 } from './setup_contracts';
-import { assert } from 'chai';
-import { OffchainClaim } from '../lib/LoginStrategy.types';
-import { IPublicClaim } from '@ew-did-registry/claims';
+import { RoleEIP191JWT, RolePayload } from '@energyweb/vc-verification';
+import { Chain } from '@ew-did-registry/did';
 
 const GANACHE_PORT = 8544;
 const rpcUrl = `http://localhost:${GANACHE_PORT}`;
@@ -92,14 +93,14 @@ beforeAll(async () => {
   const { chainId } = await provider.getNetwork();
   setChainConfig(chainId, {
     rpcUrl,
-    chainName: 'volta',
+    chainName: Chain.VOLTA,
     didRegistryAddress: didContract.address,
     ensRegistryAddress: ensRegistry.address,
     ensResolverAddress: ensResolver.address,
     assetManagerAddress: assetsManager.address,
     claimManagerAddress: claimManager.address,
     domainNotifierAddress: domainNotifer.address,
-    ensPublicResolverAddress: ensRegistry.address,
+    ensPublicResolverAddress: ensResolver.address,
     stakingPoolFactoryAddress: ensRegistry.address,
   });
 
@@ -159,7 +160,12 @@ it('Verifies asset authentication', async () => {
     assetDid
   );
   const identityToken = token;
-  const server = getServer(didContract.address, ensRegistry.address);
+  const server = getServer(
+    provider,
+    ensResolver.address,
+    didContract.address,
+    ensRegistry.address
+  );
   const connection = server.listen(4242, () => {
     console.log('Test Server is ready and listening on port 4242');
   });
@@ -171,6 +177,8 @@ it('Verifies asset authentication', async () => {
 
 it('Should authenticate issuer signature', async () => {
   const { loginStrategy } = preparePassport(
+    provider,
+    ensResolver.address,
     didContract.address,
     ensRegistry.address
   );
@@ -204,6 +212,8 @@ it('Should authenticate issuer signature', async () => {
 
 it('Should reject invalid issuer', async () => {
   const { loginStrategy } = preparePassport(
+    provider,
+    ensResolver.address,
     didContract.address,
     ensRegistry.address
   );
@@ -234,6 +244,8 @@ it('Should reject invalid token', async () => {
   const { connectToDidRegistry } = await connectToCacheServer();
   const { claimsService } = await connectToDidRegistry();
   const { loginStrategy } = preparePassport(
+    provider,
+    ensResolver.address,
     didContract.address,
     ensRegistry.address
   );
@@ -260,6 +272,8 @@ it('Should reject invalid token payload', async () => {
   const { connectToDidRegistry } = await connectToCacheServer();
   const { claimsService } = await connectToDidRegistry();
   const { loginStrategy } = preparePassport(
+    provider,
+    ensResolver.address,
     didContract.address,
     ensRegistry.address
   );
@@ -280,6 +294,8 @@ it('Should reject invalid token payload', async () => {
 
 it('Should add volta to old did address format', () => {
   const { loginStrategy } = preparePassport(
+    provider,
+    ensResolver.address,
     didContract.address,
     ensRegistry.address
   );
@@ -292,67 +308,64 @@ it('Should add volta to old did address format', () => {
 });
 
 it('Should support old format did for off chain claims', async () => {
-  const { loginStrategy } = preparePassport(
+  const { credentialResolver } = preparePassport(
+    provider,
+    ensResolver.address,
     didContract.address,
     ensRegistry.address
   );
 
-  const claim: IPublicClaim = {
-    did: 'did:ethr:volta:0x0000000000000000000000000000000000000001',
-    signer: 'did:ethr:volta:0x0000000000000000000000000000000000000001',
-    claimData: {
-      claimType: 'test',
-      claimTypeVersion: 1,
+  const claim: RoleEIP191JWT = {
+    payload: {
+      did: 'did:ethr:volta:0x0000000000000000000000000000000000000001',
+      signer: 'did:ethr:volta:0x0000000000000000000000000000000000000001',
+      claimData: {
+        fields: {},
+        claimType: 'test',
+        claimTypeVersion: 1,
+      },
       iss: 'did:ethr:volta:0x0000000000000000000000000000000000000001',
     },
+    eip191Jwt: 'skdjnskdjflksdjlkajsdlkajs',
   };
 
   jest
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .spyOn((loginStrategy as any).ipfsStore, 'get')
-    .mockResolvedValueOnce('url');
+    .spyOn((credentialResolver as any)._ipfsCredentialResolver, 'eip191JwtsOf')
+    .mockReturnValueOnce([claim]);
 
-  jest
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .spyOn((loginStrategy as any).didResolver, 'read')
-    .mockResolvedValueOnce({
-      service: [
-        {
-          id: 'did:ethr:volta:0x0000000000000000000000000000000000000001',
-          serviceEndpoint: 'Qme7ss3ARVgxv6rXqVPiikMJ8u2NLgmgszg13pYrDKEoiu',
-        },
-      ],
-    });
-
-  jest.spyOn(loginStrategy, 'decodeToken').mockReturnValueOnce(claim);
-
-  const result = await loginStrategy.offchainClaimsOf(
+  const result = await credentialResolver.eip191JwtsOf(
     'did:ethr:0x0000000000000000000000000000000000000001'
   );
 
   expect(result).toEqual([
     {
-      id: 'did:ethr:volta:0x0000000000000000000000000000000000000001',
-      claimType: 'test',
-      claimTypeVersion: 1,
-      iss: 'did:ethr:volta:0x0000000000000000000000000000000000000001',
-      did: 'did:ethr:volta:0x0000000000000000000000000000000000000001',
-      signer: 'did:ethr:volta:0x0000000000000000000000000000000000000001',
-      serviceEndpoint: 'Qme7ss3ARVgxv6rXqVPiikMJ8u2NLgmgszg13pYrDKEoiu',
+      eip191Jwt: 'skdjnskdjflksdjlkajsdlkajs',
+      payload: {
+        claimData: { claimType: 'test', claimTypeVersion: 1, fields: {} },
+        did: 'did:ethr:volta:0x0000000000000000000000000000000000000001',
+        iss: 'did:ethr:volta:0x0000000000000000000000000000000000000001',
+        signer: 'did:ethr:volta:0x0000000000000000000000000000000000000001',
+      },
     },
   ]);
 });
 
 it('Should filter out malicious claims', async () => {
-  const { loginStrategy } = preparePassport(
+  const { loginStrategy, credentialResolver } = preparePassport(
+    provider,
+    ensResolver.address,
     didContract.address,
     ensRegistry.address
   );
 
-  const claim: OffchainClaim = {
-    claimType: 'test',
-    claimTypeVersion: 1,
+  const claim: RolePayload = {
+    claimData: {
+      fields: {},
+      claimType: 'test',
+      claimTypeVersion: 1,
+    },
     iss: 'test.roles.org.iam.ewc',
+    signer: 'did:ethr:0x0000000000000000000000000000000000000001',
   };
 
   jest
@@ -369,7 +382,7 @@ it('Should filter out malicious claims', async () => {
 
   jest.spyOn(loginStrategy, 'decodeToken').mockReturnValueOnce(claim);
 
-  const result = await loginStrategy.offchainClaimsOf(
+  const result = await credentialResolver.eip191JwtsOf(
     'did:ethr:0x0000000000000000000000000000000000000001'
   );
 
@@ -378,6 +391,8 @@ it('Should filter out malicious claims', async () => {
 
 it('Should reject invalid payload', async () => {
   const { loginStrategy } = preparePassport(
+    provider,
+    ensResolver.address,
     didContract.address,
     ensRegistry.address
   );

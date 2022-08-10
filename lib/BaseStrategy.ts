@@ -2,7 +2,6 @@
 import { Strategy } from 'passport';
 import { Request } from 'express';
 import { inherits } from 'util';
-import { OffchainClaim } from './LoginStrategy.types';
 
 export interface StrategyOptions {
   name: string;
@@ -42,13 +41,6 @@ export abstract class BaseStrategy extends Strategy {
    * @returns decoded payload fields
    */
   abstract decodeToken(token: string): string | { [key: string]: any };
-  /**
-   * @abstract
-   * @description fetches claims published by the did
-   *
-   * @param did
-   */
-  abstract offchainClaimsOf(did: string): Promise<OffchainClaim[]>;
 
   /**
    * @constructor

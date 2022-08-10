@@ -4,8 +4,15 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const { preparePassport } = require('./preparePassport');
 
-export const getServer = (didRegistryAddress, ensRegistryAddress) => {
+export const getServer = (
+  provider,
+  ensResolverAddress,
+  didRegistryAddress,
+  ensRegistryAddress
+) => {
   const { passport, LOGIN_STRATEGY } = preparePassport(
+    provider,
+    ensResolverAddress,
     didRegistryAddress,
     ensRegistryAddress
   );

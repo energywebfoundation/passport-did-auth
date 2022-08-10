@@ -1,17 +1,20 @@
 import axios, { AxiosError, AxiosInstance, AxiosResponse } from 'axios';
 import base64url from 'base64url';
 import { Signer, Wallet, utils, providers } from 'ethers';
-import { OffchainClaim, IRole } from './LoginStrategy.types';
+import { IRole } from './LoginStrategy.types';
 import { Policy } from 'cockatiel';
-import { IDIDDocument } from '@ew-did-registry/did-resolver-interface';
-import { IRoleDefinition } from '@energyweb/credential-governance';
+import {
+  IDIDDocument,
+  IServiceEndpoint,
+} from '@ew-did-registry/did-resolver-interface';
+import { IRoleDefinitionV2 } from '@energyweb/credential-governance';
 import { knownChains } from './utils';
 import { Logger } from './Logger';
 
 export class CacheServerClient {
   private readonly signer: Signer;
   private readonly httpClient: AxiosInstance;
-  private readonly provider: providers.JsonRpcProvider;
+  private readonly provider: providers.Provider;
   private failedRequests: Array<(token: string) => void> = [];
   private isAlreadyFetchingAccessToken = false;
   private _isAvailable = false;
@@ -29,7 +32,7 @@ export class CacheServerClient {
   }: {
     url: string;
     privateKey: string;
-    provider: providers.JsonRpcProvider;
+    provider: providers.Provider;
   }) {
     const wallet = new Wallet(privateKey, provider);
     this.address = wallet.address;
@@ -166,13 +169,13 @@ export class CacheServerClient {
     namespace,
   }: {
     namespace: string;
-  }): Promise<IRoleDefinition> {
+  }): Promise<IRoleDefinitionV2> {
     const { data } = await this.httpClient.get<IRole>(`/role/${namespace}`);
     return data.definition;
   }
 
-  async getOffchainClaims({ did }: { did: string }): Promise<OffchainClaim[]> {
-    const { data } = await this.httpClient.get<{ service: OffchainClaim[] }>(
+  async getRoleCredentials(did: string): Promise<IServiceEndpoint[]> {
+    const { data } = await this.httpClient.get<{ service: IServiceEndpoint[] }>(
       `/DID/${did}?includeClaims=true`
     );
     return data.service;
