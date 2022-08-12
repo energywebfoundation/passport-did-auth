@@ -166,6 +166,35 @@ export class LoginStrategy extends BaseStrategy {
    * * Authenticate user
    * * Check that token is not expired
    * * User has enrolled with at least one role
+   *
+   * ```typescript
+   * const loginStrategy = new LoginStrategy(
+   * loginStrategyOptions,
+   * issuerResolver,
+   * revokerResolver,
+   * credentialResolver,
+   * verifyCredential
+   * );
+   *
+   * passport.use(loginStrategy);
+   * passport.use(
+   *   new Strategy(jwtOptions, (_payload, _done) => {
+   *     return _done(null, _payload);
+   *   })
+   * );
+   *
+   * const token = 'askjad...';
+   * const payload = {
+   *   iss: `did:ethr:volta:0x1224....`,
+   *   claimData: {
+   *     blockNumber: 4242,
+   *   },
+   *   sub: '',
+   * };
+   *
+   * await loginStrategy.validate(token, payload);
+   * ```
+   *
    * @param token
    * @param payload
    * @callback done on successful validation is called with encoded {did, verifiedRoles} object
