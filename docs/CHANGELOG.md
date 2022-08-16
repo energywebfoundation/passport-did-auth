@@ -1,3 +1,10 @@
+## [2.0.0-alpha.8](https://github.com/energywebfoundation/passport-did-auth/compare/v2.0.0-alpha.7...v2.0.0-alpha.8) (2022-08-16)
+
+
+### Documentation
+
+* add use case example for loginstrategy ([c1e8e66](https://github.com/energywebfoundation/passport-did-auth/commit/c1e8e666fdf6ce856128d6ba08c9020dedbb4545))
+
 ## [2.0.0-alpha.7](https://github.com/energywebfoundation/passport-did-auth/compare/v2.0.0-alpha.6...v2.0.0-alpha.7) (2022-08-10)
 
 
