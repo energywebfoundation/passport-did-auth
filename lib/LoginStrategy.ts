@@ -128,7 +128,16 @@ export class LoginStrategy extends BaseStrategy {
     payload: ITokenPayload,
     done: (err?: Error, user?: unknown, info?: unknown) => void
   ): Promise<void> {
-    const userDoc = await this.getDidDocument(payload.iss);
+    let userDoc: IDIDDocument;
+
+    try {
+      userDoc = await this.getDidDocument(payload.iss);
+    } catch (err) {
+      const error: Error = err as Error;
+      Logger.error(`error getting DID document: ${error}`);
+      return done(error);
+    }
+
     const proofVerifier = new ProofVerifier(userDoc);
     const userDid = await proofVerifier.verifyAuthenticationProof(token);
 
