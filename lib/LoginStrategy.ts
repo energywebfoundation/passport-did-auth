@@ -210,7 +210,17 @@ export class LoginStrategy extends BaseStrategy {
     }
 
     const iss = this.didUnification(payload.iss);
-    const userDoc = await this.getDidDocument(iss);
+
+    let userDoc: IDIDDocument;
+
+    try {
+      userDoc = await this.getDidDocument(iss);
+    } catch (err) {
+      const error: Error = err as Error;
+      Logger.error(`error getting DID document: ${error}`);
+      return done(error);
+    }
+
     const proofVerifier = new ProofVerifier(userDoc);
     const userDid = await proofVerifier.verifyAuthenticationProof(token);
 
