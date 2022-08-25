@@ -1,3 +1,10 @@
+## [2.0.0-alpha.11](https://github.com/energywebfoundation/passport-did-auth/compare/v2.0.0-alpha.10...v2.0.0-alpha.11) (2022-08-25)
+
+
+### Features
+
+* export external dependencies ([0ab1f14](https://github.com/energywebfoundation/passport-did-auth/commit/0ab1f146ffb8de317677ebd5d4522e2fc88f6ce3))
+
 ## [2.0.0-alpha.10](https://github.com/energywebfoundation/passport-did-auth/compare/v2.0.0-alpha.9...v2.0.0-alpha.10) (2022-08-25)
 
 
