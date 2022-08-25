@@ -83,31 +83,35 @@ Check configurations / parameters for [`LoginStrategy`](./lib/LoginStrategy.ts/)
 
 ```Typescript
 import {
-  LoginStrategyOptions,
+  DidStore,
+  DomainReader,
+  ethrReg,
+  EWC_CHAIN_ID,
+  EWC_ADDRESS_1056,
+  EWC_ENS_REGISTRY_ADDRESS,
+  EWC_RESOLVER_V2_ADDRESS,
   LoginStrategy,
+  Methods,
+  RegistrySettings,
+  RoleCredentialResolver,
   RoleIssuerResolver,
   RoleRevokerResolver,
-  RoleCredentialResolver,
-} from 'paasport-did-auth';
-import {
-  DomainReader,
   ResolverContractType,
-} from '@energyweb/credential-governance';
-import { IpfsConfig } from 'iam-client-lib';
+  VOLTA_CHAIN_ID,
+  VOLTA_ERC_1056_ADDRESS,
+  VOLTA_ENS_REGISTRY_ADDRESS,
+  VOLTA_RESOLVER_V2_ADDRESS,
+} from 'passport-did-auth';
 import { providers } from 'ethers';
 import { verifyCredential } from 'didkit-wasm-node';
 import passport from 'passport';
 import { Strategy, ExtractJwt } from 'passport-jwt';
-import { Methods } from '@ew-did-registry/did';
-import { ethrReg } from '@ew-did-registry/did-ethr-resolver';
-import { DidStore } from '@ew-did-registry/did-ipfs-store';
-import { RegistrySettings } from '@ew-did-registry/did-resolver-interface';
 
 const jwtSecret = 'secret';
-// Use contract addresses specific to the chain you are connected to (import from ew-credential)
-const didRegistryAddress = '0x12321ffe321...';
-const ensRegistryAddress = '0x12321ffe322...';
-const ensResolverAddress = '0x12321ffe323...';
+// Use contract addresses specific to the chain you are connected to
+const didRegistryAddress = VOLTA_ERC_1056_ADDRESS;
+const ensRegistryAddress = VOLTA_ENS_REGISTRY_ADDRESS;
+const ensResolverAddress = VOLTA_RESOLVER_V2_ADDRESS;
 
 const jwtOptions = {
   jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
@@ -135,7 +139,7 @@ const domainReader = new DomainReader({
   provider: provider,
 });
 domainReader.addKnownResolver({
-  chainId: 123,
+  chainId: VOLTA_CHAIN_ID,
   address: ensResolverAddress,
   type: ResolverContractType.RoleDefinitionResolver_v2,
 });
