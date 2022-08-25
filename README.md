@@ -4,13 +4,69 @@
 
 # Node.js Passport strategy using decentralised identifiers
 
-## Getting Started
+## Description
 
-This repository consists of a Node.js Password Strategy which provides verification of the issuance of credential made regarding roles defined in an Ethereum Naming System (ENS).
+This repository consists of a Node.js Password Strategy which authenticates based on roles defined in Energy Web Foundation Ethereum namespace.
+
+## Sequence diagram
+
+ ```mermaid
+sequenceDiagram
+autonumber
+    participant C as Client
+    participant LS as LoginStrategy
+    participant CV as ClaimVerifier
+    participant PV as ProofVerifier
+    participant CR as CredentialResolver
+    participant IV as IssuerVerification
+    participant SH as SSI-HUB
+    participant IPFS
+    participant DR as DomainReader
+rect rgb(200, 255, 255)
+    Note right of C: Initialisation
+    C->>C: Client sets the login strategy options and initialises LoginStrategy
+    Note right of C: Validation Call
+    C->>LS: LoginStrategy.validate(token, payload)
+end
+rect rgb(255, 220, 255)
+    Note right of LS: Signature and role validation
+    LS->>PV: Authenticate token issuer
+    LS ->> CR : Fetches role credentials {by DID}
+    alt Fetch DID Document from SSI-HUB if cacheClient initialised
+      CR->>SH: Fetch cached DID Document
+      loop For each serviceEndpoint
+        CR->>IPFS : Resolve credential from IPFS
+      end
+    else Resolve DID Document from Blockchain
+      loop For each serviceEndpoint
+        CR->>IPFS : Resolve credential from IPFS
+      end
+    end
+    CR-->>LS: returns credentials
+end
+rect rgb(255, 255, 220)
+    Note right of CV: Issuer verification
+    LS->>LS: Initialise ClaimVerifier <br> {RoleEIP191Jwt[], getRoleDefinition, IssuerVerification}
+    LS->>CV: ClaimVerifier.getVerifiedRoles(userCredentials, getRoleDefinition, issuerVerification) 
+    loop For each claims
+      alt Fetch role definition from SSI-HUB if cacheClient initialised
+        CV->>SH: Request role definition
+        SH-->>CV: return role definition
+      else Fetch role definition from DomainReader
+        CV->>DR: Request role definition
+        DR-->>CV: return role definition
+      end
+      CV->>IV: IssuerVerification.verifyIssuer() <br> verifies issuers in the hierarchy along with their revocation status and expiration
+      IV-->>CV : Returns VerificationResult
+    end
+    CV-->>LS: returns verified roles
+    LS->>LS: checks if accepted roles are in verified roles
+end
+```
 
 ## LoginStrategy
 
-This class provides implementation for verification of issued roles credential. The verification ensures that the credentials were issued by the authorised issuers and are neither revoked nor expired.
+This class provides implementation for verification of issued roles credential. The verification ensures that the credentials were issued by the authorised issuers and are neither revoked nor expired. LoginStrategy can be configured to authenticate only EnergyWeb Roles.
 
 LoginStrategy relies on [`IssuerVerification`](https://github.com/energywebfoundation/ew-credentials/blob/develop/packages/vc-verification/src/verifier/issuer-verification.ts) internally for verification of the roles credential. 
 
@@ -18,6 +74,8 @@ In order to use LoginStrategy, one needs to intialise and provide :
 [`RoleIssuerResolver`](./lib/RoleIssuerResolver.ts/)
 [`RoleRevokerResolver`](./lib/RoleRevokerResolver.ts/)
 [`RoleCredentialResolver`](./lib/RoleCredentialResolver.ts/)
+
+Addresses for deployed contracts are exported by [`@energyweb/credential-governance`](https://github.com/energywebfoundation/ew-credentials/blob/develop/packages/credential-governance/src/chain-constants.ts). One can choose the addresses based on the chain they want to operate upon.
 
 It is also possible to provide own implementation of these resolvers by implementing these [`Interfaces`](https://github.com/energywebfoundation/ew-credentials/tree/develop/packages/vc-verification/src/resolver). The purpose of these resolvers are to resolve authorities responsible for issuance and revocation of these role credentials.
 
@@ -46,6 +104,7 @@ import { DidStore } from '@ew-did-registry/did-ipfs-store';
 import { RegistrySettings } from '@ew-did-registry/did-resolver-interface';
 
 const jwtSecret = 'secret';
+// Use contract addresses specific to the chain you are connected to (import from ew-credential)
 const didRegistryAddress = '0x12321ffe321...';
 const ensRegistryAddress = '0x12321ffe322...';
 const ensResolverAddress = '0x12321ffe323...';
