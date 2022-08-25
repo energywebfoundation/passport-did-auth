@@ -1,3 +1,10 @@
+## [2.0.0-alpha.10](https://github.com/energywebfoundation/passport-did-auth/compare/v2.0.0-alpha.9...v2.0.0-alpha.10) (2022-08-25)
+
+
+### Documentation
+
+* add contract addr references and seq diagram ([2c6225d](https://github.com/energywebfoundation/passport-did-auth/commit/2c6225dea66543f976e569de561aa249c00ad254))
+
 ## [2.0.0-alpha.9](https://github.com/energywebfoundation/passport-did-auth/compare/v2.0.0-alpha.8...v2.0.0-alpha.9) (2022-08-22)
 
 
