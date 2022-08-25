@@ -1,3 +1,11 @@
+## [2.0.0-alpha.9](https://github.com/energywebfoundation/passport-did-auth/compare/v2.0.0-alpha.8...v2.0.0-alpha.9) (2022-08-22)
+
+
+### Bug Fixes
+
+* fixing entire process crashing after LoginStrategy.getDidDocument throws an error ([2a5e772](https://github.com/energywebfoundation/passport-did-auth/commit/2a5e7720153a4d897225ea0e5e967afbdda6ed93))
+* forcing node v14.17.0 for the `Lint source code` GHA ([6504074](https://github.com/energywebfoundation/passport-did-auth/commit/65040749d81f4cfe848029fe2f01a085413ca629))
+
 ## [2.0.0-alpha.8](https://github.com/energywebfoundation/passport-did-auth/compare/v2.0.0-alpha.7...v2.0.0-alpha.8) (2022-08-16)
 
 
