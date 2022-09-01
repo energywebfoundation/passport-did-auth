@@ -1,3 +1,10 @@
+## [2.0.0-alpha.12](https://github.com/energywebfoundation/passport-did-auth/compare/v2.0.0-alpha.11...v2.0.0-alpha.12) (2022-09-01)
+
+
+### Features
+
+* enabling http keep-alive for the CacheServerClient ([#325](https://github.com/energywebfoundation/passport-did-auth/issues/325)) ([d449709](https://github.com/energywebfoundation/passport-did-auth/commit/d449709879a362566f1e054e0ff6199866559c8e))
+
 ## [2.0.0-alpha.11](https://github.com/energywebfoundation/passport-did-auth/compare/v2.0.0-alpha.10...v2.0.0-alpha.11) (2022-08-25)
 
 
