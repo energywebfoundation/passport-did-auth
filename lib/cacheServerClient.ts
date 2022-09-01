@@ -10,6 +10,8 @@ import {
 import { IRoleDefinitionV2 } from '@energyweb/credential-governance';
 import { knownChains } from './utils';
 import { Logger } from './Logger';
+import { Agent as HttpAgent } from 'http';
+import { Agent as HttpsAgent } from 'https';
 
 export class CacheServerClient {
   private readonly signer: Signer;
@@ -21,6 +23,7 @@ export class CacheServerClient {
 
   public readonly address: string;
   public chainName?: string;
+
   public get isAvailable(): boolean {
     return this._isAvailable;
   }
@@ -38,7 +41,11 @@ export class CacheServerClient {
     this.address = wallet.address;
     this.signer = wallet;
     this.provider = provider;
-    this.httpClient = axios.create({ baseURL: url });
+    this.httpClient = axios.create({
+      baseURL: url,
+      httpAgent: new HttpAgent({ keepAlive: true }),
+      httpsAgent: new HttpsAgent({ keepAlive: true }),
+    });
     this.httpClient.interceptors.response.use(function (
       response: AxiosResponse
     ) {
