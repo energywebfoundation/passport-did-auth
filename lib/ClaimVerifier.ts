@@ -47,6 +47,12 @@ export class ClaimVerifier {
       credential.payload.claimData.claimType
     );
     const credentialClaimData = credential.payload.claimData;
+    if(credential.payload.exp  && credential.payload.exp < Date.now()) {
+      Logger.info(
+        `Credential expired: Role ${credentialClaimData.claimType} has expiration date of ${new Date(credential.payload.exp).toISOString()} UTC`
+      );
+      return null;
+    }
     if (!role) {
       Logger.info(
         `No role found: Role ${credentialClaimData.claimType} does not exist`
