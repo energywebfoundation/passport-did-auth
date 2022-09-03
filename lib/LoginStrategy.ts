@@ -31,6 +31,7 @@ import {
   RevokerResolver,
   VerificationResult,
 } from '@energyweb/vc-verification';
+import { StatusListEntryVerification } from '@ew-did-registry/revocation';
 
 const { JsonRpcProvider } = providers;
 const { abi: abi1056 } = ethrReg;
@@ -66,6 +67,8 @@ export class LoginStrategy extends BaseStrategy {
   private readonly acceptedRoles: Set<string>;
   private readonly cacheServerClient?: CacheServerClient;
   private readonly issuerVerification: IssuerVerification;
+  private readonly revocationVerification: RevocationVerification;
+  private readonly statuslListEntryVerification: StatusListEntryVerification;
 
   constructor(
     {
@@ -135,7 +138,7 @@ export class LoginStrategy extends BaseStrategy {
     this.jwtSecret = jwtSecret;
     this.acceptedRoles = new Set(acceptedRoles);
     this.jwtSignOptions = jwtSignOptions;
-    const revocationVerification = new RevocationVerification(
+    this.revocationVerification = new RevocationVerification(
       revokerResolver,
       issuerResolver,
       credentialResolver,
@@ -148,7 +151,10 @@ export class LoginStrategy extends BaseStrategy {
       credentialResolver,
       this.provider,
       registrySetting,
-      revocationVerification,
+      this.revocationVerification,
+      verifyProof
+    );
+    this.statuslListEntryVerification = new StatusListEntryVerification(
       verifyProof
     );
   }
@@ -263,7 +269,9 @@ export class LoginStrategy extends BaseStrategy {
       const verifier = new ClaimVerifier(
         userClaims,
         this.getRoleDefinition.bind(this),
-        this.issuerVerification
+        this.issuerVerification,
+        this.revocationVerification,
+        this.statuslListEntryVerification
       );
       const uniqueRoles = await verifier.getVerifiedRoles();
 

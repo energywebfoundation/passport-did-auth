@@ -1,6 +1,13 @@
-import { IssuerVerification, RoleEIP191JWT } from '@energyweb/vc-verification';
+import {
+  IssuerVerification,
+  RevocationVerification,
+  RoleEIP191JWT,
+  RolePayload,
+} from '@energyweb/vc-verification';
 import { IRoleDefinitionV2 } from '@energyweb/credential-governance';
 import { Logger } from './Logger';
+import { StatusList2021Entry } from '@ew-did-registry/credentials-interface';
+import { StatusListEntryVerification } from '@ew-did-registry/revocation';
 
 export class ClaimVerifier {
   constructor(
@@ -8,7 +15,9 @@ export class ClaimVerifier {
     private readonly getRoleDefinition: (
       namespace: string
     ) => Promise<IRoleDefinitionV2 | null>,
-    private readonly issuerVerification: IssuerVerification
+    private readonly issuerVerification: IssuerVerification,
+    private readonly revocationVerification: RevocationVerification,
+    private readonly statusListEntryVerificaiton: StatusListEntryVerification
   ) {}
 
   public async getVerifiedRoles(): Promise<
@@ -47,23 +56,15 @@ export class ClaimVerifier {
       credential.payload.claimData.claimType
     );
     const credentialClaimData = credential.payload.claimData;
-    if (credential.payload.exp && credential.payload.exp < Date.now()) {
-      Logger.info(
-        `Credential expired: Role ${
-          credentialClaimData.claimType
-        } has expiration date of ${new Date(
-          credential.payload.exp
-        ).toISOString()} UTC`
-      );
-      return null;
-    }
     if (!role) {
       Logger.info(
         `No role found: Role ${credentialClaimData.claimType} does not exist`
       );
       return null;
     }
-
+    if (!(await this.checkRoleStatus(credential.payload))) {
+      return null;
+    }
     if (role.version !== credentialClaimData.claimTypeVersion) {
       Logger.info(
         `No role found: Role ${credentialClaimData.claimType} with version ${credentialClaimData.claimTypeVersion} does not exists`
@@ -81,5 +82,37 @@ export class ClaimVerifier {
       };
     }
     return null;
+  }
+
+  private async checkRoleStatus(rolePayload: RolePayload): Promise<boolean> {
+    if (rolePayload.exp && rolePayload.exp < Date.now()) {
+      Logger.info(
+        `Credential expired: Role ${
+          rolePayload.claimData.claimType
+        } has expiration date of ${new Date(rolePayload.exp).toISOString()} UTC`
+      );
+      return false;
+    }
+    try {
+      if (rolePayload.credentialStatus) {
+        await this.statusListEntryVerificaiton.verifyCredentialStatus(
+          rolePayload?.credentialStatus as StatusList2021Entry
+        );
+      }
+    } catch (error) {
+      const credential =
+        await this.statusListEntryVerificaiton.fetchStatusListCredential(
+          rolePayload.credentialStatus?.statusListCredential as string
+        );
+      await this.revocationVerification.verifyRevoker(
+        credential?.issuer as string,
+        rolePayload.claimData.claimType
+      );
+      Logger.info(
+        `Credential revoked: Role ${rolePayload.claimData.claimType} has been revoked.`
+      );
+      return false;
+    }
+    return true;
   }
 }

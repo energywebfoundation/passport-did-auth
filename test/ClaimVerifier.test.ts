@@ -57,6 +57,7 @@ import { ClaimVerifier } from '../lib/ClaimVerifier';
 import { RoleIssuerResolver } from '../lib/RoleIssuerResolver';
 import { RoleRevokerResolver } from '../lib/RoleRevokerResolver';
 import { RoleCredentialResolver } from '../lib/RoleCredentialResolver';
+import { StatusListEntryVerification } from '@ew-did-registry/revocation';
 
 chai.use(chaiAsPromised);
 const expect = chai.expect;
@@ -79,6 +80,7 @@ let credentialResolver: CredentialResolver;
 let issuerResolver: IssuerResolver;
 let revokerResolver: RevokerResolver;
 let revocationVerification: RevocationVerification;
+let statusListEntryVerificaiton: StatusListEntryVerification;
 let domainReader: DomainReader;
 
 let deployer: JsonRpcSigner;
@@ -184,6 +186,9 @@ describe('ClaimVerifier', () => {
       credentialResolver,
       provider,
       registrySettings,
+      verifyCredential
+    );
+    statusListEntryVerificaiton = new StatusListEntryVerification(
       verifyCredential
     );
     issuerVerification = new IssuerVerification(
@@ -364,7 +369,9 @@ describe('ClaimVerifier', () => {
     const claimverifier = new ClaimVerifier(
       userclaims,
       getAdminRoleDefinition,
-      issuerVerification
+      issuerVerification,
+      revocationVerification,
+      statusListEntryVerificaiton
     );
     const verifiedRoles = await claimverifier.getVerifiedRoles();
     assert.strictEqual(verifiedRoles.length, userclaims.length);
@@ -447,7 +454,9 @@ describe('ClaimVerifier', () => {
     const claimverifier = new ClaimVerifier(
       userclaims,
       getAdminRoleDefinition,
-      issuerVerification
+      issuerVerification,
+      revocationVerification,
+      statusListEntryVerificaiton
     );
     const verifiedRoles = await claimverifier.getVerifiedRoles();
     assert.strictEqual(verifiedRoles.length, userclaims.length);
@@ -534,7 +543,9 @@ describe('ClaimVerifier', () => {
     const claimverifier = new ClaimVerifier(
       userclaims,
       getAdminRoleDefinition,
-      issuerVerification
+      issuerVerification,
+      revocationVerification,
+      statusListEntryVerificaiton
     );
     const verifiedRoles = await claimverifier.getVerifiedRoles();
     assert.strictEqual(verifiedRoles.length, 0);
@@ -622,7 +633,9 @@ describe('ClaimVerifier', () => {
     const claimverifier = new ClaimVerifier(
       userclaims,
       getManagerRoleDefinition,
-      issuerVerification
+      issuerVerification,
+      revocationVerification,
+      statusListEntryVerificaiton
     );
     await expect(claimverifier.getVerifiedRoles())
       .to.eventually.rejectedWith(
@@ -709,7 +722,9 @@ describe('ClaimVerifier', () => {
     const claimverifier = new ClaimVerifier(
       userclaims,
       getManagerRoleDefinition,
-      issuerVerification
+      issuerVerification,
+      revocationVerification,
+      statusListEntryVerificaiton
     );
     const verifiedRoles = await claimverifier.getVerifiedRoles();
     assert.strictEqual(verifiedRoles.length, 1);
@@ -793,7 +808,9 @@ describe('ClaimVerifier', () => {
     const claimverifier = new ClaimVerifier(
       userclaims,
       getManagerRoleDefinition,
-      issuerVerification
+      issuerVerification,
+      revocationVerification,
+      statusListEntryVerificaiton
     );
     const verifiedRoles = await claimverifier.getVerifiedRoles();
     assert.strictEqual(verifiedRoles.length, 0);
