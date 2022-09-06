@@ -84,12 +84,17 @@ export class ClaimVerifier {
     return null;
   }
 
+  /**
+   * @description Validates role credential expiration and revocation status
+   * @param rolePayload role credential to be validated
+   * @returns boolean
+   */
   private async checkRoleStatus(rolePayload: RolePayload): Promise<boolean> {
-    if (rolePayload.exp && rolePayload.exp < Date.now()) {
+    if (rolePayload.exp && rolePayload.exp * 1000 < Date.now()) {
       Logger.info(
         `Credential expired: Role ${
           rolePayload.claimData.claimType
-        } has expiration date of ${new Date(rolePayload.exp).toISOString()} UTC`
+        } had expiration date of ${new Date(rolePayload.exp).toISOString()} UTC`
       );
       return false;
     }
