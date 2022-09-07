@@ -1,3 +1,18 @@
+## [2.0.0-alpha.13](https://github.com/energywebfoundation/passport-did-auth/compare/v2.0.0-alpha.12...v2.0.0-alpha.13) (2022-09-07)
+
+
+### Features
+
+* add status check for role credential ([a1f83e2](https://github.com/energywebfoundation/passport-did-auth/commit/a1f83e2d8f2ebc50613b348723214159b68e9122))
+* update tests to validate credential status ([22340f4](https://github.com/energywebfoundation/passport-did-auth/commit/22340f45c29f37ffa0c5d3c762aa5100c79817b9))
+
+
+### Bug Fixes
+
+* apply formatting ([a984f7b](https://github.com/energywebfoundation/passport-did-auth/commit/a984f7bd77617a23d74cbc2044062206f9602eab))
+* check for expiration date ([b50f337](https://github.com/energywebfoundation/passport-did-auth/commit/b50f337c23db92fe23dd7f8e9548d3a5eeec88a4))
+* error validation ([8bb5f1e](https://github.com/energywebfoundation/passport-did-auth/commit/8bb5f1e91bbc6701ce627b20dd997873d2d9e9e6))
+
 ## [2.0.0-alpha.12](https://github.com/energywebfoundation/passport-did-auth/compare/v2.0.0-alpha.11...v2.0.0-alpha.12) (2022-09-01)
 
 
