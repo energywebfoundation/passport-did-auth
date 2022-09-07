@@ -8,6 +8,7 @@ import { IRoleDefinitionV2 } from '@energyweb/credential-governance';
 import { Logger } from './Logger';
 import { StatusList2021Entry } from '@ew-did-registry/credentials-interface';
 import { StatusListEntryVerification } from '@ew-did-registry/revocation';
+import { CredentialRevoked } from './utils';
 
 export class ClaimVerifier {
   constructor(
@@ -105,18 +106,23 @@ export class ClaimVerifier {
         );
       }
     } catch (error) {
-      const credential =
-        await this.statusListEntryVerificaiton.fetchStatusListCredential(
-          rolePayload.credentialStatus?.statusListCredential as string
-        );
-      await this.revocationVerification.verifyRevoker(
-        credential?.issuer as string,
-        rolePayload.claimData.claimType
-      );
-      Logger.info(
-        `Credential revoked: Role ${rolePayload.claimData.claimType} has been revoked.`
-      );
-      return false;
+      if (error instanceof Error) {
+        if (error.message == CredentialRevoked) {
+          const credential =
+            await this.statusListEntryVerificaiton.fetchStatusListCredential(
+              rolePayload.credentialStatus?.statusListCredential as string
+            );
+          await this.revocationVerification.verifyRevoker(
+            credential?.issuer as string,
+            rolePayload.claimData.claimType
+          );
+          Logger.info(
+            `Credential revoked: Role ${rolePayload.claimData.claimType} has been revoked.`
+          );
+          return false;
+        }
+        throw new Error(error.message);
+      }
     }
     return true;
   }
