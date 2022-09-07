@@ -79,3 +79,5 @@ export const knownChains = {
   73799: Chain.VOLTA,
   246: Chain.EWC,
 };
+
+export const CredentialRevoked = 'Credential has been revoked';

@@ -1,6 +1,14 @@
-import { IssuerVerification, RoleEIP191JWT } from '@energyweb/vc-verification';
+import {
+  IssuerVerification,
+  RevocationVerification,
+  RoleEIP191JWT,
+  RolePayload,
+} from '@energyweb/vc-verification';
 import { IRoleDefinitionV2 } from '@energyweb/credential-governance';
 import { Logger } from './Logger';
+import { StatusList2021Entry } from '@ew-did-registry/credentials-interface';
+import { StatusListEntryVerification } from '@ew-did-registry/revocation';
+import { CredentialRevoked } from './utils';
 
 export class ClaimVerifier {
   constructor(
@@ -8,7 +16,9 @@ export class ClaimVerifier {
     private readonly getRoleDefinition: (
       namespace: string
     ) => Promise<IRoleDefinitionV2 | null>,
-    private readonly issuerVerification: IssuerVerification
+    private readonly issuerVerification: IssuerVerification,
+    private readonly revocationVerification: RevocationVerification,
+    private readonly statusListEntryVerificaiton: StatusListEntryVerification
   ) {}
 
   public async getVerifiedRoles(): Promise<
@@ -53,7 +63,9 @@ export class ClaimVerifier {
       );
       return null;
     }
-
+    if (!(await this.checkRoleStatus(credential.payload))) {
+      return null;
+    }
     if (role.version !== credentialClaimData.claimTypeVersion) {
       Logger.info(
         `No role found: Role ${credentialClaimData.claimType} with version ${credentialClaimData.claimTypeVersion} does not exists`
@@ -71,5 +83,47 @@ export class ClaimVerifier {
       };
     }
     return null;
+  }
+
+  /**
+   * @description Validates role credential expiration and revocation status
+   * @param rolePayload role credential to be validated
+   * @returns boolean
+   */
+  private async checkRoleStatus(rolePayload: RolePayload): Promise<boolean> {
+    if (rolePayload.exp && rolePayload.exp * 1000 < Date.now()) {
+      Logger.info(
+        `Credential expired: Role ${
+          rolePayload.claimData.claimType
+        } had expiration date of ${new Date(rolePayload.exp).toISOString()} UTC`
+      );
+      return false;
+    }
+    try {
+      if (rolePayload.credentialStatus) {
+        await this.statusListEntryVerificaiton.verifyCredentialStatus(
+          rolePayload?.credentialStatus as StatusList2021Entry
+        );
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        if (error.message == CredentialRevoked) {
+          const credential =
+            await this.statusListEntryVerificaiton.fetchStatusListCredential(
+              rolePayload.credentialStatus?.statusListCredential as string
+            );
+          await this.revocationVerification.verifyRevoker(
+            credential?.issuer as string,
+            rolePayload.claimData.claimType
+          );
+          Logger.info(
+            `Credential revoked: Role ${rolePayload.claimData.claimType} has been revoked.`
+          );
+          return false;
+        }
+        throw new Error(error.message);
+      }
+    }
+    return true;
   }
 }
