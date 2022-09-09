@@ -220,5 +220,4 @@ Example server applications which demonstrate the use of the passport strategy c
 
 - [John Henderson](https://github.com/jrhender)
 - [Dmitry Fesenko](https://github.com/JGiter)
-- [Jakub Sydor](https://github.com/Harasz)
 - [Ashish Tripathi](https://github.com/nichonien)
