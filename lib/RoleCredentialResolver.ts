@@ -18,6 +18,7 @@ import {
   isCID,
 } from '@energyweb/vc-verification';
 import * as jwt from 'jsonwebtoken';
+import { Logger } from './Logger';
 
 /**
  * Resolved subject credential from ssi-hub, if is is specied.
@@ -142,6 +143,7 @@ export class RoleCredentialResolver implements CredentialResolver {
   async eip191JwtsOf(did: string): Promise<RoleEIP191JWT[]> {
     if (this._cacheServerClient?.isAvailable) {
       const services = await this._cacheServerClient.getRoleCredentials(did);
+      Logger.info(`DID Document for DID: ${did} resolved from SSI-Hub`);
       return (
         await Promise.all(
           services.map(async ({ serviceEndpoint }) => {
@@ -178,6 +180,7 @@ export class RoleCredentialResolver implements CredentialResolver {
   ): Promise<VerifiableCredential<RoleCredentialSubject>[]> {
     if (this._cacheServerClient?.isAvailable) {
       const services = await this._cacheServerClient.getRoleCredentials(did);
+      Logger.info(`DID Document for DID: ${did} resolved from SSI-Hub`);
       return (
         await Promise.all(
           services.map(async ({ serviceEndpoint }) => {

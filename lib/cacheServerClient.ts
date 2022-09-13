@@ -3,6 +3,7 @@ import base64url from 'base64url';
 import { Signer, Wallet, utils, providers } from 'ethers';
 import { IRole } from './LoginStrategy.types';
 import { Policy } from 'cockatiel';
+import { inspect } from 'util';
 import {
   IDIDDocument,
   IServiceEndpoint,
@@ -59,7 +60,7 @@ export class CacheServerClient {
     retry.onFailure(({ reason }) => {
       Logger.warn(
         `DID login strategy was not able to login to cache server due to ${JSON.stringify(
-          reason,
+          inspect(reason),
           null,
           4
         )}`
