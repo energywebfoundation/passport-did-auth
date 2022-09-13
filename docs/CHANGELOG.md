@@ -1,3 +1,10 @@
+## [2.0.0-alpha.15](https://github.com/energywebfoundation/passport-did-auth/compare/v2.0.0-alpha.14...v2.0.0-alpha.15) (2022-09-13)
+
+
+### Features
+
+* update logging ([30dd250](https://github.com/energywebfoundation/passport-did-auth/commit/30dd2509ddf2eba90a6959eda4f67868ae0eb3b9))
+
 ## [2.0.0-alpha.14](https://github.com/energywebfoundation/passport-did-auth/compare/v2.0.0-alpha.13...v2.0.0-alpha.14) (2022-09-09)
 
 
