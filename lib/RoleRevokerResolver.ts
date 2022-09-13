@@ -8,6 +8,7 @@ import {
 } from '@energyweb/vc-verification';
 import { providers, utils } from 'ethers';
 import { CacheServerClient } from './cacheServerClient';
+import { Logger } from './Logger';
 
 /**
  * Resolves revoker definition from ssi-hub, if it is specified. Otherwise read form blockchain.
@@ -54,6 +55,9 @@ export class RoleRevokerResolver implements RevokerResolver {
       : utils.namehash(namespace);
 
     if (this._cacheServerClient?.isAvailable) {
+      Logger.info(
+        `IRevokerDefinition for namespace: ${namespace} fetched from SSI-Hub`
+      );
       return (
         await this._cacheServerClient.getRoleDefinition({
           namespace: resolvedNamespace,
