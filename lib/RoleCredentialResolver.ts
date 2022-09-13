@@ -33,8 +33,7 @@ export class RoleCredentialResolver implements CredentialResolver {
     provider: providers.Provider,
     registrySetting: RegistrySettings,
     didStore: DidStore,
-    privateKey?: string,
-    cacheServerUrl?: string
+    cacheServerClient?: CacheServerClient
   ) {
     this._ipfsStore = didStore;
     this._ipfsCredentialResolver = new IpfsCredentialResolver(
@@ -42,13 +41,8 @@ export class RoleCredentialResolver implements CredentialResolver {
       registrySetting,
       didStore
     );
-    if (privateKey && cacheServerUrl) {
-      this._cacheServerClient = new CacheServerClient({
-        privateKey,
-        provider,
-        url: cacheServerUrl,
-      });
-      this._cacheServerClient.login();
+    if (cacheServerClient) {
+      this._cacheServerClient = cacheServerClient;
     }
   }
 

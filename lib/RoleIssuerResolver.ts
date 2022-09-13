@@ -3,7 +3,7 @@ import {
   IIssuerDefinition,
 } from '@energyweb/credential-governance';
 import { IssuerResolver } from '@energyweb/vc-verification';
-import { providers, utils } from 'ethers';
+import { utils } from 'ethers';
 import { CacheServerClient } from './cacheServerClient';
 import { EthersProviderIssuerResolver } from '@energyweb/vc-verification';
 import { Logger } from './Logger';
@@ -17,20 +17,13 @@ export class RoleIssuerResolver implements IssuerResolver {
 
   constructor(
     domainReader: DomainReader,
-    provider?: providers.Provider,
-    userPrivateKey?: string,
-    cacheServerUrl?: string
+    cacheServerClient?: CacheServerClient
   ) {
     this._ethersProviderIssuerResolver = new EthersProviderIssuerResolver(
       domainReader
     );
-    if (userPrivateKey && cacheServerUrl && provider) {
-      this._cacheServerClient = new CacheServerClient({
-        privateKey: userPrivateKey,
-        provider,
-        url: cacheServerUrl,
-      });
-      this._cacheServerClient.login();
+    if (cacheServerClient) {
+      this._cacheServerClient = cacheServerClient;
     }
   }
 

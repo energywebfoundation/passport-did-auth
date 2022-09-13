@@ -6,7 +6,7 @@ import {
   EthersProviderRevokerResolver,
   RevokerResolver,
 } from '@energyweb/vc-verification';
-import { providers, utils } from 'ethers';
+import { utils } from 'ethers';
 import { CacheServerClient } from './cacheServerClient';
 import { Logger } from './Logger';
 
@@ -19,20 +19,13 @@ export class RoleRevokerResolver implements RevokerResolver {
 
   constructor(
     domainReader: DomainReader,
-    provider?: providers.Provider,
-    userPrivateKey?: string,
-    cacheServerUrl?: string
+    cacheServerClient?: CacheServerClient
   ) {
     this._ethersProviderRevokerResolver = new EthersProviderRevokerResolver(
       domainReader
     );
-    if (userPrivateKey && cacheServerUrl && provider) {
-      this._cacheServerClient = new CacheServerClient({
-        privateKey: userPrivateKey,
-        provider,
-        url: cacheServerUrl,
-      });
-      this._cacheServerClient.login();
+    if (cacheServerClient) {
+      this._cacheServerClient = cacheServerClient;
     }
   }
 
