@@ -6,7 +6,7 @@ import {
   EthersProviderRevokerResolver,
   RevokerResolver,
 } from '@energyweb/vc-verification';
-import { providers, utils } from 'ethers';
+import { providers } from 'ethers';
 import { CacheServerClient } from './cacheServerClient';
 import { Logger } from './Logger';
 
@@ -50,22 +50,19 @@ export class RoleRevokerResolver implements RevokerResolver {
   async getRevokerDefinition(
     namespace: string
   ): Promise<IRevokerDefinition | undefined> {
-    const resolvedNamespace = namespace.startsWith('0x')
-      ? namespace
-      : utils.namehash(namespace);
-
     if (this._cacheServerClient?.isAvailable) {
-      Logger.info(
-        `IRevokerDefinition for namespace: ${namespace} fetched from SSI-Hub`
-      );
-      return (
-        await this._cacheServerClient.getRoleDefinition({
-          namespace: resolvedNamespace,
-        })
-      ).revoker;
+      const roleDef = await this._cacheServerClient.getRoleDefinition({
+        namespace,
+      });
+      if (roleDef) {
+        Logger.info(
+          `IRevokerDefinition for namespace: ${namespace} fetched from SSI-Hub`
+        );
+        return roleDef.revoker;
+      }
     }
     return await this._ethersProviderRevokerResolver.getRevokerDefinition(
-      resolvedNamespace
+      namespace
     );
   }
 }
