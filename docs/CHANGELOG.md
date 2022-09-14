@@ -1,3 +1,10 @@
+## [2.0.0-alpha.16](https://github.com/energywebfoundation/passport-did-auth/compare/v2.0.0-alpha.15...v2.0.0-alpha.16) (2022-09-14)
+
+
+### Bug Fixes
+
+* refactor role def resolution ([af4fc31](https://github.com/energywebfoundation/passport-did-auth/commit/af4fc31cd9152280c1b4608ccee8934f1b82e460))
+
 ## [2.0.0-alpha.15](https://github.com/energywebfoundation/passport-did-auth/compare/v2.0.0-alpha.14...v2.0.0-alpha.15) (2022-09-13)
 
 
