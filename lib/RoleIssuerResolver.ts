@@ -3,7 +3,7 @@ import {
   IIssuerDefinition,
 } from '@energyweb/credential-governance';
 import { IssuerResolver } from '@energyweb/vc-verification';
-import { providers, utils } from 'ethers';
+import { providers } from 'ethers';
 import { CacheServerClient } from './cacheServerClient';
 import { EthersProviderIssuerResolver } from '@energyweb/vc-verification';
 import { Logger } from './Logger';
@@ -48,22 +48,19 @@ export class RoleIssuerResolver implements IssuerResolver {
   async getIssuerDefinition(
     namespace: string
   ): Promise<IIssuerDefinition | undefined> {
-    const resolvedNamespace = namespace.startsWith('0x')
-      ? namespace
-      : utils.namehash(namespace);
-
     if (this._cacheServerClient?.isAvailable) {
-      Logger.info(
-        `IIssuerDefinition for namespace: ${namespace} fetched from SSI-Hub`
-      );
-      return (
-        await this._cacheServerClient.getRoleDefinition({
-          namespace: resolvedNamespace,
-        })
-      ).issuer;
+      const roleDef = await this._cacheServerClient.getRoleDefinition({
+        namespace,
+      });
+      if (roleDef) {
+        Logger.info(
+          `IRevokerDefinition for namespace: ${namespace} fetched from SSI-Hub`
+        );
+        return roleDef.issuer;
+      }
     }
     return await this._ethersProviderIssuerResolver.getIssuerDefinition(
-      resolvedNamespace
+      namespace
     );
   }
 }
