@@ -51,6 +51,7 @@ export interface LoginStrategyOptions extends StrategyOptions {
   ensRegistryAddress: string;
   ipfsUrl?: string;
   acceptedRoles?: string[];
+  includeAllRoles?: boolean;
   jwtSecret: string | Buffer;
   jwtSignOptions?: jwt.SignOptions;
 }
@@ -65,6 +66,7 @@ export class LoginStrategy extends BaseStrategy {
   private readonly didResolver: Resolver;
   private readonly ipfsStore: DidStore;
   private readonly acceptedRoles: Set<string>;
+  private readonly includeAllRoles: boolean = false;
   private readonly cacheServerClient?: CacheServerClient;
   private readonly issuerVerification: IssuerVerification;
   private readonly revocationVerification: RevocationVerification;
@@ -84,6 +86,7 @@ export class LoginStrategy extends BaseStrategy {
       ensRegistryAddress,
       ipfsUrl = 'https://ipfs.infura.io:5001/api/v0/',
       acceptedRoles,
+      includeAllRoles,
       ...options
     }: LoginStrategyOptions,
     issuerResolver: IssuerResolver,
@@ -137,6 +140,9 @@ export class LoginStrategy extends BaseStrategy {
     this.numberOfBlocksBack = numberOfBlocksBack;
     this.jwtSecret = jwtSecret;
     this.acceptedRoles = new Set(acceptedRoles);
+    if (includeAllRoles) {
+      this.includeAllRoles = includeAllRoles;
+    }
     this.jwtSignOptions = jwtSignOptions;
     this.revocationVerification = new RevocationVerification(
       revokerResolver,
@@ -266,11 +272,13 @@ export class LoginStrategy extends BaseStrategy {
         this.cacheServerClient?.address === userAddress
           ? []
           : await this.credentialResolver.eip191JwtsOf(userDid);
-      const claims = userClaims.filter((claim) =>
-        this.acceptedRoles.has(claim.payload.claimData.claimType)
-      );
+      const roleClaims = this.includeAllRoles
+        ? userClaims
+        : userClaims.filter((claim) =>
+            this.acceptedRoles.has(claim.payload.claimData.claimType)
+          );
       const verifier = new ClaimVerifier(
-        claims,
+        roleClaims,
         this.getRoleDefinition.bind(this),
         this.issuerVerification,
         this.revocationVerification,
