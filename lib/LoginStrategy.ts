@@ -274,9 +274,10 @@ export class LoginStrategy extends BaseStrategy {
           : await this.credentialResolver.eip191JwtsOf(userDid);
       const roleClaims = this.includeAllRoles
         ? userClaims
-        : userClaims.filter((claim) =>
-            this.acceptedRoles.has(claim.payload.claimData.claimType)
-          );
+        : userClaims.filter((claim) => {
+            const claimType = claim?.payload?.claimData?.claimType;
+            return claimType && this.acceptedRoles.has(claimType);
+          });
       const verifier = new ClaimVerifier(
         roleClaims,
         this.getRoleDefinition.bind(this),
