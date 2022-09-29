@@ -1,3 +1,11 @@
+## [2.0.0-alpha.17](https://github.com/energywebfoundation/passport-did-auth/compare/v2.0.0-alpha.16...v2.0.0-alpha.17) (2022-09-29)
+
+
+### Bug Fixes
+
+* add validation for accepted roles against uniqueroles ([418ef93](https://github.com/energywebfoundation/passport-did-auth/commit/418ef93157d809d9eca54cc0bdb5940ccb6f81e6))
+* fixing a bug when DIDs with no roles are always accepted ([fbe6c71](https://github.com/energywebfoundation/passport-did-auth/commit/fbe6c71c6d2538d465ed8fb743cdbac7d16b2d47))
+
 ## [2.0.0-alpha.16](https://github.com/energywebfoundation/passport-did-auth/compare/v2.0.0-alpha.15...v2.0.0-alpha.16) (2022-09-14)
 
 
