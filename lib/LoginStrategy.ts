@@ -275,7 +275,7 @@ export class LoginStrategy extends BaseStrategy {
       );
       const uniqueRoles = await verifier.getVerifiedRoles();
 
-      if (uniqueRoles.length === 0) {
+      if (uniqueRoles.length === 0 && this.acceptedRoles.size > 0) {
         return done(undefined, null, 'User does not have any roles.');
       } else if (
         this.acceptedRoles &&
