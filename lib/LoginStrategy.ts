@@ -278,6 +278,11 @@ export class LoginStrategy extends BaseStrategy {
             const claimType = claim?.payload?.claimData?.claimType;
             return claimType && this.acceptedRoles.has(claimType);
           });
+      if (this.includeAllRoles && claimsToVerify.length === userClaims.length) {
+        Logger.info('includeAllRoles: true, verifying all roles');
+      } else {
+        Logger.info('includeAllRoles: false, verifying only accepted roles');
+      }
       const verifier = new ClaimVerifier(
         claimsToVerify,
         this.getRoleDefinition.bind(this),
