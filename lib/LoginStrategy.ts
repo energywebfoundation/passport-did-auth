@@ -272,14 +272,14 @@ export class LoginStrategy extends BaseStrategy {
         this.cacheServerClient?.address === userAddress
           ? []
           : await this.credentialResolver.eip191JwtsOf(userDid);
-      const roleClaims = this.includeAllRoles
+      const claimsToVerify = this.includeAllRoles
         ? userClaims
         : userClaims.filter((claim) => {
             const claimType = claim?.payload?.claimData?.claimType;
             return claimType && this.acceptedRoles.has(claimType);
           });
       const verifier = new ClaimVerifier(
-        roleClaims,
+        claimsToVerify,
         this.getRoleDefinition.bind(this),
         this.issuerVerification,
         this.revocationVerification,
