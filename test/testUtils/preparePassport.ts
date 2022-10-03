@@ -80,7 +80,9 @@ export const preparePassport = (
   provider: providers.JsonRpcProvider,
   ensResolverAddress: string,
   didRegistryAddress: string,
-  ensRegistryAddress: string
+  ensRegistryAddress: string,
+  includeAllRoles?: boolean,
+  acceptedRoles?: string[]
 ): Partial<{
   passport: PassportStatic;
   LOGIN_STRATEGY: string;
@@ -93,6 +95,8 @@ export const preparePassport = (
     rpcUrl: `http://localhost:8544`,
     didContractAddress: didRegistryAddress,
     ensRegistryAddress: ensRegistryAddress,
+    includeAllRoles: includeAllRoles,
+    acceptedRoles: acceptedRoles,
   };
   const registrySettings: RegistrySettings = {
     abi: ethrReg.abi,

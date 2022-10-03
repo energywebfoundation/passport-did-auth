@@ -54,7 +54,7 @@ export class RoleIssuerResolver implements IssuerResolver {
       });
       if (roleDef) {
         Logger.info(
-          `IRevokerDefinition for namespace: ${namespace} fetched from SSI-Hub`
+          `IIssuerDefinition for namespace: ${namespace} fetched from SSI-Hub`
         );
         return roleDef.issuer;
       }
