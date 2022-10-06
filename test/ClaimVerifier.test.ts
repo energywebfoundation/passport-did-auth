@@ -1,5 +1,6 @@
 import { utils } from 'ethers';
 import chai from 'chai';
+import { ChildProcess } from 'child_process';
 import chaiAsPromised from 'chai-as-promised';
 import { JWT } from '@ew-did-registry/jwt';
 import { abi as erc1056Abi } from './testUtils/ERC1056.json';
@@ -46,7 +47,7 @@ import {
   IUpdateData,
 } from '@ew-did-registry/did-resolver-interface';
 import { Keys } from '@ew-did-registry/keys';
-import { spawnIpfsDaemon, shutDownIpfsDaemon } from './testUtils/ipfs-daemon';
+import { spawnIpfs, shutdownIpfs } from './testUtils/setUpIpfs';
 import {
   adminStatusList,
   managerStatusList,
@@ -98,13 +99,14 @@ let managerDid: string;
 let adminOperator: Operator;
 let managerOperator: Operator;
 let providerSettings: ProviderSettings;
-let ipfsUrl: string;
 let didStore: DidStore;
 
 const validity = 10 * 60 * 1000;
 jest.setTimeout(84000);
 
 describe('ClaimVerifier', () => {
+  let cluster: ChildProcess;
+
   beforeAll(async function () {
     provider = new JsonRpcProvider(rpcUrl);
     deployer = provider.getSigner(0);
@@ -136,16 +138,16 @@ describe('ClaimVerifier', () => {
   });
 
   afterEach(async () => {
-    await shutDownIpfsDaemon();
+    shutdownIpfs(cluster);
   });
 
   beforeEach(async function () {
     roleFactory = new DomainTransactionFactoryV2({
       domainResolverAddress: ensResolver.address,
     });
-    ipfsUrl = await spawnIpfsDaemon();
+    cluster = await spawnIpfs();
 
-    didStore = new DidStore(ipfsUrl);
+    didStore = new DidStore('http://localhost:8080');
 
     registrySettings = {
       method: Methods.Erc1056,
