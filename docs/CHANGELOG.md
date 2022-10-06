@@ -1,3 +1,10 @@
+## [2.0.0-alpha.19](https://github.com/energywebfoundation/passport-did-auth/compare/v2.0.0-alpha.18...v2.0.0-alpha.19) (2022-10-06)
+
+
+### Features
+
+* add cache to resolvers ([1a291c2](https://github.com/energywebfoundation/passport-did-auth/commit/1a291c2db1c197d2230a4f1a662623a34fdac067))
+
 ## [2.0.0-alpha.18](https://github.com/energywebfoundation/passport-did-auth/compare/v2.0.0-alpha.17...v2.0.0-alpha.18) (2022-10-03)
 
 
