@@ -4,3 +4,4 @@ node_modules
 dist
 ethers
 .env
+test/testUtils/setUpIpfs/compose
