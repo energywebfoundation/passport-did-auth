@@ -1,3 +1,23 @@
+## [2.0.0-alpha.18](https://github.com/energywebfoundation/passport-did-auth/compare/v2.0.0-alpha.17...v2.0.0-alpha.18) (2022-10-03)
+
+
+### ⚠ BREAKING CHANGES
+
+* initialise loginstrategy with includeallroles property to filter claims
+
+### Features
+
+* add option to verify all claims ([4199ea8](https://github.com/energywebfoundation/passport-did-auth/commit/4199ea84b46a77e4316893419cbb60afec60f0ad))
+* add tests ([ec68e2f](https://github.com/energywebfoundation/passport-did-auth/commit/ec68e2f08c2772ca8cf18f73a94ce18c6ce63522))
+
+
+### Bug Fixes
+
+* correct comment ([3e23acd](https://github.com/energywebfoundation/passport-did-auth/commit/3e23acdeb94ddc845d5947098cd039daabc10707))
+* filter claims before verification ([b1a2d24](https://github.com/energywebfoundation/passport-did-auth/commit/b1a2d242111aaa9c8817b0de970c950a38446797))
+* update variable decalration name ([958ad3c](https://github.com/energywebfoundation/passport-did-auth/commit/958ad3c7db4380313a2f1488358d6ba0640133f2))
+* validate if claimType exists ([3ba5e3f](https://github.com/energywebfoundation/passport-did-auth/commit/3ba5e3fee7caa981eef240e596057d2b3bda8fee))
+
 ## [2.0.0-alpha.17](https://github.com/energywebfoundation/passport-did-auth/compare/v2.0.0-alpha.16...v2.0.0-alpha.17) (2022-09-29)
 
 

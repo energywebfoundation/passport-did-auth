@@ -350,6 +350,177 @@ it('Should support old format did for off chain claims', async () => {
   ]);
 });
 
+it('Should not validate issuer if no accepted roles found', async () => {
+  const { loginStrategy } = preparePassport(
+    provider,
+    ensResolver.address,
+    didContract.address,
+    ensRegistry.address,
+    false,
+    ['test']
+  );
+  const token = await iam.claimsService?.createIdentityProof();
+  const payload = {
+    iss: `did:ethr:${userAddress}`,
+    claimData: {
+      blockNumber: 4242,
+    },
+    sub: '',
+  };
+
+  expect(token).toBeTruthy();
+
+  await loginStrategy?.validate(token, payload, (_, user, err) => {
+    expect(err).toEqual('User does not have any roles.');
+  });
+});
+
+it('Should validate user with no roles if no accepted roles defined', async () => {
+  const { loginStrategy } = preparePassport(
+    provider,
+    ensResolver.address,
+    didContract.address,
+    ensRegistry.address,
+    false
+  );
+  const token = await iam.claimsService?.createIdentityProof();
+  const payload = {
+    iss: `did:ethr:${userAddress}`,
+    claimData: {
+      blockNumber: 4242,
+    },
+    sub: '',
+  };
+
+  if (!token) {
+    expect(false).toBeTruthy();
+    return;
+  }
+
+  await loginStrategy?.validate(token, payload, (_, user, err) => {
+    expect(err).toBe(undefined);
+    expect(user);
+  });
+});
+
+it('Should verify only accepted roles if includeAllRoles is false', async () => {
+  const claim1: RoleEIP191JWT = {
+    payload: {
+      did: 'did:ethr:volta:0x0000000000000000000000000000000000000001',
+      signer: 'did:ethr:volta:0x0000000000000000000000000000000000000001',
+      claimData: {
+        fields: {},
+        claimType: 'test',
+        claimTypeVersion: 1,
+      },
+      iss: 'did:ethr:volta:0x0000000000000000000000000000000000000001',
+    },
+    eip191Jwt: 'skdjnskdjflksdjlkajsdlkajs',
+  };
+  const claim2: RoleEIP191JWT = {
+    payload: {
+      did: 'did:ethr:volta:0x0000000000000000000000000000000000000001',
+      signer: 'did:ethr:volta:0x0000000000000000000000000000000000000001',
+      claimData: {
+        fields: {},
+        claimType: 'test2',
+        claimTypeVersion: 1,
+      },
+      iss: 'did:ethr:volta:0x0000000000000000000000000000000000000001',
+    },
+    eip191Jwt: 'skdjnskdjflksdjlkajsdlkajs',
+  };
+  const { loginStrategy } = preparePassport(
+    provider,
+    ensResolver.address,
+    didContract.address,
+    ensRegistry.address,
+    false,
+    ['test']
+  );
+  const token = await iam.claimsService?.createIdentityProof();
+  const payload = {
+    iss: `did:ethr:${userAddress}`,
+    claimData: {
+      blockNumber: 4242,
+    },
+    sub: '',
+  };
+
+  expect(token).toBeTruthy();
+
+  jest
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    .spyOn((loginStrategy as any).credentialResolver, 'eip191JwtsOf')
+    .mockResolvedValueOnce([claim1, claim2]);
+
+  const consoleListener = jest.spyOn(console, 'log');
+  await loginStrategy?.validate(token, payload, () => {
+    expect(consoleListener).toBeCalledWith(
+      'includeAllRoles: false, verifying only accepted roles'
+    );
+  });
+});
+
+it('Should verify all role claims if includeAllRoles is true', async () => {
+  const claim1: RoleEIP191JWT = {
+    payload: {
+      did: 'did:ethr:volta:0x0000000000000000000000000000000000000001',
+      signer: 'did:ethr:volta:0x0000000000000000000000000000000000000001',
+      claimData: {
+        fields: {},
+        claimType: 'test',
+        claimTypeVersion: 1,
+      },
+      iss: 'did:ethr:volta:0x0000000000000000000000000000000000000001',
+    },
+    eip191Jwt: 'skdjnskdjflksdjlkajsdlkajs',
+  };
+  const claim2: RoleEIP191JWT = {
+    payload: {
+      did: 'did:ethr:volta:0x0000000000000000000000000000000000000001',
+      signer: 'did:ethr:volta:0x0000000000000000000000000000000000000001',
+      claimData: {
+        fields: {},
+        claimType: 'test2',
+        claimTypeVersion: 1,
+      },
+      iss: 'did:ethr:volta:0x0000000000000000000000000000000000000001',
+    },
+    eip191Jwt: 'skdjnskdjflksdjlkajsdlkajs',
+  };
+  const { loginStrategy } = preparePassport(
+    provider,
+    ensResolver.address,
+    didContract.address,
+    ensRegistry.address,
+    true,
+    ['test']
+  );
+  const token = await iam.claimsService?.createIdentityProof();
+  const payload = {
+    iss: `did:ethr:${userAddress}`,
+    claimData: {
+      blockNumber: 4242,
+    },
+    sub: '',
+  };
+
+  expect(token).toBeTruthy();
+
+  jest
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    .spyOn((loginStrategy as any).credentialResolver, 'eip191JwtsOf')
+    .mockResolvedValueOnce([claim1, claim2]);
+
+  const consoleListener = jest.spyOn(console, 'log');
+  await loginStrategy?.validate(token, payload, () => {
+    expect(consoleListener).toBeCalledWith(
+      'includeAllRoles: true, verifying all roles'
+    );
+  });
+});
+
 it('Should filter out malicious claims', async () => {
   const { loginStrategy, credentialResolver } = preparePassport(
     provider,
