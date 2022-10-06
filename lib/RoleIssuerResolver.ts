@@ -2,10 +2,13 @@ import {
   DomainReader,
   IIssuerDefinition,
 } from '@energyweb/credential-governance';
-import { IssuerResolver } from '@energyweb/vc-verification';
 import { providers } from 'ethers';
 import { CacheServerClient } from './cacheServerClient';
-import { EthersProviderIssuerResolver } from '@energyweb/vc-verification';
+import {
+  IssuerResolver,
+  EthersProviderIssuerResolver,
+  IRoleDefinitionCache,
+} from '@energyweb/vc-verification';
 import { Logger } from './Logger';
 
 /**
@@ -40,14 +43,20 @@ export class RoleIssuerResolver implements IssuerResolver {
    * ```typescript
    * const issuerResolver = new RoleIssuerResolver(domainReader, provider, userPrivateKey, cacheServerUrl);
    * const role = 'sampleRole';
-   * const issuers = issuerResolver.getIssuerDefinition(sampleRole);
+   * const issuers = issuerResolver.getIssuerDefinition(sampleRole, roleDefCache);
    * ```
    * @param namespace role for which the issuers need to be fetched
+   * @param roleDefCache Cache to store and fetch RoleDefinition. Cache is updated with retrieved role definition if not present.
    * @returns IIssuerDefinition for the namespace from blockchain contract
    */
   async getIssuerDefinition(
-    namespace: string
+    namespace: string,
+    roleDefCache?: IRoleDefinitionCache
   ): Promise<IIssuerDefinition | undefined> {
+    const cachedRoleDefinition = roleDefCache?.getRoleDefinition(namespace);
+    if (cachedRoleDefinition) {
+      return cachedRoleDefinition.issuer;
+    }
     if (this._cacheServerClient?.isAvailable) {
       const roleDef = await this._cacheServerClient.getRoleDefinition({
         namespace,
@@ -56,6 +65,7 @@ export class RoleIssuerResolver implements IssuerResolver {
         Logger.info(
           `IIssuerDefinition for namespace: ${namespace} fetched from SSI-Hub`
         );
+        roleDefCache?.setRoleDefinition(namespace, roleDef);
         return roleDef.issuer;
       }
     }
