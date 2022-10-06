@@ -4,12 +4,7 @@ import {
   RoleEIP191JWT,
   RolePayload,
   VerifiableCredential,
-} from '@energyweb/vc-verification';
-import { DidStore } from '@ew-did-registry/did-ipfs-store';
-import { RegistrySettings } from '@ew-did-registry/did-resolver-interface';
-import { providers, utils } from 'ethers';
-import { CacheServerClient } from './cacheServerClient';
-import {
+  IRoleCredentialCache,
   IpfsCredentialResolver,
   isEIP191Jwt,
   isVerifiableCredential,
@@ -17,6 +12,10 @@ import {
   filterOutMaliciousClaims,
   isCID,
 } from '@energyweb/vc-verification';
+import { DidStore } from '@ew-did-registry/did-ipfs-store';
+import { RegistrySettings } from '@ew-did-registry/did-resolver-interface';
+import { providers, utils } from 'ethers';
+import { CacheServerClient } from './cacheServerClient';
 import * as jwt from 'jsonwebtoken';
 import { Logger } from './Logger';
 
@@ -60,16 +59,18 @@ export class RoleCredentialResolver implements CredentialResolver {
    *  provider,
    *  registrySettings,
    *  didStore );
-   * const credential = credentialResolver.getCredential('did:ethr:1234', 'sampleRole');
+   * const credential = credentialResolver.getCredential('did:ethr:1234', 'sampleRole', roleCredentialCache);
    * ```
    *
    * @param did subject DID for which the credential needs to be fetched
    * @param namespace role for which the credential needs to be fetched
+   * @param roleCredentialCache Cache to store role credentials
    * @returns
    */
   async getCredential(
     did: string,
-    namespace: string
+    namespace: string,
+    roleCredentialCache?: IRoleCredentialCache
   ): Promise<
     VerifiableCredential<RoleCredentialSubject> | RoleEIP191JWT | undefined
   > {
@@ -77,9 +78,20 @@ export class RoleCredentialResolver implements CredentialResolver {
       | VerifiableCredential<RoleCredentialSubject>
       | RoleEIP191JWT
       | undefined;
-    credential = await this.getVerifiableCredential(did, namespace);
+    const cachedRoleCredential = roleCredentialCache?.getRoleCredential(
+      did,
+      namespace
+    );
+    if (cachedRoleCredential) {
+      return cachedRoleCredential;
+    }
+    credential = await this.getVerifiableCredential(
+      did,
+      namespace,
+      roleCredentialCache
+    );
     if (!credential) {
-      credential = await this.getEIP191JWT(did, namespace);
+      credential = await this.getEIP191JWT(did, namespace, roleCredentialCache);
     }
     return credential;
   }
@@ -92,15 +104,34 @@ export class RoleCredentialResolver implements CredentialResolver {
    *  provider,
    *  registrySettings,
    *  didStore );
-   * const credential = credentialResolver.getVerifiableCredential('did:ethr:1234', 'sampleRole');
+   * const credential = credentialResolver.getVerifiableCredential('did:ethr:1234', 'sampleRole', roleCredentialCache);
    * ```
    *
    * @param did subject DID for which the credential needs to be fetched
    * @param namespace role for which the credential needs to be fetched
+   * @param roleCredentialCache Cache to store role credentials. Cache is updated with all credentials retrieved for the DID
    * @returns
    */
-  async getVerifiableCredential(did: string, namespace: string) {
+  async getVerifiableCredential(
+    did: string,
+    namespace: string,
+    roleCredentialCache?: IRoleCredentialCache
+  ) {
+    const cachedRoleCredential = roleCredentialCache?.getRoleCredential(
+      did,
+      namespace
+    );
+    if (isVerifiableCredential(cachedRoleCredential)) {
+      return cachedRoleCredential;
+    }
     const credentials = await this.credentialsOf(did);
+    credentials.forEach((credential) =>
+      roleCredentialCache?.setRoleCredential(
+        did,
+        credential.credentialSubject.role.namespace,
+        credential
+      )
+    );
     return credentials.find(
       (claim) =>
         claim.credentialSubject.role.namespace === namespace ||
@@ -116,18 +147,33 @@ export class RoleCredentialResolver implements CredentialResolver {
    *  provider,
    *  registrySettings,
    *  didStore );
-   * const credential = credentialResolver.getEIP191JWT('did:ethr:1234', 'sampleRole');
+   * const credential = credentialResolver.getEIP191JWT('did:ethr:1234', 'sampleRole', roleCredentialCache);
    * ```
    *
    * @param did subject DID for which the credential to be fetched
-   * @param role role for which the credential need to be fetched
+   * @param namespace role for which the credential need to be fetched
+   * @param roleCredentialCache Cache to store role credentials. Cache is updated with all credentials retrieved for the DID
    * @returns RoleEIP191JWT
    */
   async getEIP191JWT(
     did: string,
-    namespace: string
+    namespace: string,
+    roleCredentialCache?: IRoleCredentialCache
   ): Promise<RoleEIP191JWT | undefined> {
+    const cachedRoleCredential = roleCredentialCache?.getRoleCredential(
+      did,
+      namespace
+    );
+    if (isEIP191Jwt(cachedRoleCredential)) {
+      return cachedRoleCredential;
+    }
     const eip191Jwts = await this.eip191JwtsOf(did);
+    eip191Jwts.forEach((eip191Jwt) => {
+      const claimType = eip191Jwt?.payload?.claimData?.claimType;
+      if (claimType) {
+        roleCredentialCache?.setRoleCredential(did, claimType, eip191Jwt);
+      }
+    });
     return eip191Jwts.find(
       (jwt) =>
         jwt?.payload?.claimData.claimType === namespace ||

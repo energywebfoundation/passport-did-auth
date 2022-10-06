@@ -5,6 +5,7 @@ import {
 import {
   EthersProviderRevokerResolver,
   RevokerResolver,
+  IRoleDefinitionCache,
 } from '@energyweb/vc-verification';
 import { providers } from 'ethers';
 import { CacheServerClient } from './cacheServerClient';
@@ -42,14 +43,20 @@ export class RoleRevokerResolver implements RevokerResolver {
    * ```typescript
    * const revokerResolver = new RoleRevokerResolver(domainReader, provider, userPrivateKey, cacheServerUrl);
    * const role = 'sampleRole';
-   * const revokers = revokerResolver.getRevokerDefinition(role);
+   * const revokers = revokerResolver.getRevokerDefinition(role, roleDefCache);
    * ```
    * @param namespace role for which revokers need to be fetched
+   * @param roleDefCache Cache to store role definition. Cache is updated with retrieved role definition if not present.
    * @returns IRevokerDefinition for the namespace from blockchain contract
    */
   async getRevokerDefinition(
-    namespace: string
+    namespace: string,
+    roleDefCache?: IRoleDefinitionCache
   ): Promise<IRevokerDefinition | undefined> {
+    const cachedRoleDefinition = roleDefCache?.getRoleDefinition(namespace);
+    if (cachedRoleDefinition) {
+      return cachedRoleDefinition.revoker;
+    }
     if (this._cacheServerClient?.isAvailable) {
       const roleDef = await this._cacheServerClient.getRoleDefinition({
         namespace,
@@ -58,6 +65,7 @@ export class RoleRevokerResolver implements RevokerResolver {
         Logger.info(
           `IRevokerDefinition for namespace: ${namespace} fetched from SSI-Hub`
         );
+        roleDefCache?.setRoleDefinition(namespace, roleDef);
         return roleDef.revoker;
       }
     }
