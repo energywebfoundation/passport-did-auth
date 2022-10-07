@@ -518,7 +518,7 @@ it('Should verify all role claims if includeAllRoles is true', async () => {
     expect(consoleListener).toBeCalledWith(
       'includeAllRoles: true, verifying all roles'
     );
-  });
+  }); 
 });
 
 it('Should filter out malicious claims', async () => {
@@ -529,29 +529,28 @@ it('Should filter out malicious claims', async () => {
     ensRegistry.address
   );
 
-  const claim: RolePayload = {
-    claimData: {
-      fields: {},
-      claimType: 'test',
-      claimTypeVersion: 1,
-    },
-    iss: 'test.roles.org.iam.ewc',
-    signer: 'did:ethr:0x0000000000000000000000000000000000000001',
-  };
+  // const claim: RolePayload = {
+  //   claimData: {
+  //     fields: {},
+  //     claimType: 'test',
+  //     claimTypeVersion: 1,
+  //   },
+  //   iss: 'test.roles.org.iam.ewc',
+  //   signer: 'did:ethr:0x0000000000000000000000000000000000000001',
+  // };
 
   jest
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .spyOn((loginStrategy as any).ipfsStore, 'get')
+    .spyOn((credentialResolver as any)._ipfsStore, 'get')
     .mockResolvedValueOnce('url');
 
-  jest
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .spyOn((loginStrategy as any).didResolver, 'read')
-    .mockResolvedValueOnce({
-      service: [{ id: 'did:ethr:0x0000000000000000000000000000000000000001' }],
-    });
+  // jest
+  //   // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  //   .spyOn((loginStrategy as any).didResolver, 'read')
+  //   .mockResolvedValueOnce({
+  //     service: [{ id: 'did:ethr:0x0000000000000000000000000000000000000001' }],
+  //   });
 
-  jest.spyOn(loginStrategy, 'decodeToken').mockReturnValueOnce(claim);
+  // jest.spyOn(loginStrategy, 'decodeToken').mockReturnValueOnce(claim);
 
   const result = await credentialResolver.eip191JwtsOf(
     'did:ethr:0x0000000000000000000000000000000000000001'

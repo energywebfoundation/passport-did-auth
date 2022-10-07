@@ -11,7 +11,6 @@ import {
 import { lookup, namehash } from './utils';
 import { ITokenPayload } from './LoginStrategy.types';
 import { Methods, getDIDChain, isValidErc1056 } from '@ew-did-registry/did';
-import { DidStore } from '@ew-did-registry/did-ipfs-store';
 import { CacheServerClient } from './cacheServerClient';
 import { ClaimVerifier } from './ClaimVerifier';
 import { IDIDDocument } from '@ew-did-registry/did-resolver-interface';
@@ -49,22 +48,20 @@ export interface LoginStrategyOptions extends StrategyOptions {
   }[];
   didContractAddress: string;
   ensRegistryAddress: string;
-  ipfsUrl?: string;
   acceptedRoles?: string[];
   includeAllRoles?: boolean;
-  jwtSecret: string | Buffer;
+  jwtSecret?: string | Buffer;
   jwtSignOptions?: jwt.SignOptions;
 }
 
 export class LoginStrategy extends BaseStrategy {
   private readonly claimField: string;
-  private readonly jwtSecret: string | Buffer;
+  private readonly jwtSecret?: string | Buffer;
   private readonly jwtSignOptions?: jwt.SignOptions;
   private readonly provider: providers.JsonRpcProvider;
   private readonly numberOfBlocksBack: number;
   private readonly domainReader: DomainReader;
   private readonly didResolver: Resolver;
-  private readonly ipfsStore: DidStore;
   private readonly acceptedRoles: Set<string>;
   private readonly includeAllRoles: boolean = false;
   private readonly cacheServerClient?: CacheServerClient;
@@ -84,7 +81,6 @@ export class LoginStrategy extends BaseStrategy {
       ensResolvers = [],
       didContractAddress,
       ensRegistryAddress,
-      ipfsUrl = 'https://ipfs.infura.io:5001/api/v0/',
       acceptedRoles,
       includeAllRoles,
       ...options
@@ -136,7 +132,6 @@ export class LoginStrategy extends BaseStrategy {
       method: Methods.Erc1056,
     };
     this.didResolver = new Resolver(this.provider, registrySetting);
-    this.ipfsStore = new DidStore(ipfsUrl);
     this.numberOfBlocksBack = numberOfBlocksBack;
     this.jwtSecret = jwtSecret;
     this.acceptedRoles = new Set(acceptedRoles);
@@ -308,8 +303,10 @@ export class LoginStrategy extends BaseStrategy {
         verifiedRoles: uniqueRoles,
       };
       if (this.jwtSecret) {
-        const jwtToken = this.encodeToken(user);
-        return done(undefined, jwtToken);
+        return done(
+          undefined,
+          jwt.sign(user, this.jwtSecret, this.jwtSignOptions)
+        );
       }
       return done(undefined, user);
     } catch (err) {
@@ -321,15 +318,6 @@ export class LoginStrategy extends BaseStrategy {
 
   decodeToken<T>(token: string, options?: jwt.DecodeOptions): T {
     return jwt.decode(token, options) as T;
-  }
-
-  /**
-   *
-   * @param data payload to encode
-   * @param options
-   */
-  encodeToken(data: Record<string, unknown>): string {
-    return jwt.sign(data, this.jwtSecret, this.jwtSignOptions);
   }
 
   /**
