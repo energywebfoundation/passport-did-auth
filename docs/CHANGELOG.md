@@ -1,3 +1,14 @@
+## [2.0.0-alpha.20](https://github.com/energywebfoundation/passport-did-auth/compare/v2.0.0-alpha.19...v2.0.0-alpha.20) (2022-10-07)
+
+
+### ⚠ BREAKING CHANGES
+
+* ipfs url replaced by ipfs params object
+
+### Bug Fixes
+
+* set ipfs headers ([d09a054](https://github.com/energywebfoundation/passport-did-auth/commit/d09a054e85bbc6821aed4e0d378f030e29801fac))
+
 ## [2.0.0-alpha.19](https://github.com/energywebfoundation/passport-did-auth/compare/v2.0.0-alpha.18...v2.0.0-alpha.19) (2022-10-06)
 
 
