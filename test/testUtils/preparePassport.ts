@@ -103,7 +103,7 @@ export const preparePassport = (
     address: didRegistryAddress,
     method: Methods.Erc1056,
   };
-  const didStore = new DidStore('https://ipfs.infura.io:5001/api/v0/');
+  const didStore = new DidStore('http://localhost:8080');
   const domainReader = new DomainReader({
     ensRegistryAddress: ensRegistryAddress,
     provider: provider,
