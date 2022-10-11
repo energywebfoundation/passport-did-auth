@@ -1,3 +1,10 @@
+## [2.0.0-alpha.21](https://github.com/energywebfoundation/passport-did-auth/compare/v2.0.0-alpha.20...v2.0.0-alpha.21) (2022-10-11)
+
+
+### Features
+
+* add diddocument resolution and caching to credential resolver ([19f5708](https://github.com/energywebfoundation/passport-did-auth/commit/19f570849953d09307c67caefc8f79bc32bb9aea))
+
 ## [2.0.0-alpha.20](https://github.com/energywebfoundation/passport-did-auth/compare/v2.0.0-alpha.19...v2.0.0-alpha.20) (2022-10-07)
 
 
