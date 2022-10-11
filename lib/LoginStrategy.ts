@@ -143,8 +143,6 @@ export class LoginStrategy extends BaseStrategy {
       revokerResolver,
       issuerResolver,
       credentialResolver,
-      this.provider,
-      registrySetting,
       verifyProof
     );
     this.issuerVerification = new IssuerVerification(
