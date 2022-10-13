@@ -2,11 +2,7 @@ import { BaseStrategy, StrategyOptions } from './BaseStrategy';
 import { Request } from 'express';
 import * as jwt from 'jsonwebtoken';
 import { providers } from 'ethers';
-import {
-  ethrReg,
-  Resolver,
-  addressOf,
-} from '@ew-did-registry/did-ethr-resolver';
+import { ethrReg, addressOf } from '@ew-did-registry/did-ethr-resolver';
 
 import { lookup, namehash } from './utils';
 import { ITokenPayload } from './LoginStrategy.types';
@@ -61,7 +57,6 @@ export class LoginStrategy extends BaseStrategy {
   private readonly provider: providers.JsonRpcProvider;
   private readonly numberOfBlocksBack: number;
   private readonly domainReader: DomainReader;
-  private readonly didResolver: Resolver;
   private readonly acceptedRoles: Set<string>;
   private readonly includeAllRoles: boolean = false;
   private readonly cacheServerClient?: CacheServerClient;
@@ -131,7 +126,6 @@ export class LoginStrategy extends BaseStrategy {
       address: didContractAddress,
       method: Methods.Erc1056,
     };
-    this.didResolver = new Resolver(this.provider, registrySetting);
     this.numberOfBlocksBack = numberOfBlocksBack;
     this.jwtSecret = jwtSecret;
     this.acceptedRoles = new Set(acceptedRoles);
@@ -159,11 +153,7 @@ export class LoginStrategy extends BaseStrategy {
   }
 
   private async getDidDocument(did: string): Promise<IDIDDocument> {
-    const _didDocument = this.cacheServerClient?.isAvailable
-      ? await this.cacheServerClient.getDidDocument(did)
-      : await this.didResolver.read(did);
-
-    return _didDocument;
+    return this.credentialResolver.getDIDDocument(did);
   }
 
   /**
@@ -230,8 +220,8 @@ export class LoginStrategy extends BaseStrategy {
     const userDid = await proofVerifier.verifyAuthenticationProof(token);
 
     if (!userDid) {
-      Logger.info('Not Verified');
-      return done(undefined, null, 'Not Verified');
+      Logger.info('Not Verified: User signature is not valid');
+      return done(undefined, null, 'Not Verified: User signature is not valid');
     }
 
     const userAddress = addressOf(userDid);
@@ -265,12 +255,14 @@ export class LoginStrategy extends BaseStrategy {
         this.cacheServerClient?.address === userAddress
           ? []
           : await this.credentialResolver.eip191JwtsOf(userDid);
+
       const claimsToVerify = this.includeAllRoles
         ? userClaims
         : userClaims.filter((claim) => {
             const claimType = claim?.payload?.claimData?.claimType;
             return claimType && this.acceptedRoles.has(claimType);
           });
+
       if (this.includeAllRoles && claimsToVerify.length === userClaims.length) {
         Logger.info('includeAllRoles: true, verifying all roles');
       } else {
@@ -284,22 +276,36 @@ export class LoginStrategy extends BaseStrategy {
         this.statuslListEntryVerification
       );
       const uniqueRoles = await verifier.getVerifiedRoles();
+      const user = {
+        did: userDid,
+        verifiedRoles: uniqueRoles,
+        status: true,
+      };
+      this.acceptedRoles.forEach((role) => {
+        const acceptedRole = uniqueRoles.find(
+          (verifiedRole) => verifiedRole.namespace === role
+        );
+        if (!acceptedRole) {
+          uniqueRoles.push({
+            name: role,
+            namespace: role,
+            error: 'Role not found',
+          });
+          user.status = false;
+        } else if (acceptedRole.error) {
+          user.status = false;
+        }
+      });
 
       if (uniqueRoles.length === 0 && this.acceptedRoles.size > 0) {
         return done(undefined, null, 'User does not have any roles.');
-      } else if (
-        this.acceptedRoles &&
-        this.acceptedRoles.size > 0 &&
-        !uniqueRoles.some(({ namespace }) => {
-          return this.acceptedRoles.has(namespace);
-        })
-      ) {
-        return done(undefined, null, 'User does not have an accepted role.');
+      } else if (user.status) {
+        return done(
+          undefined,
+          user,
+          'User either does not have accpeted role credentials or are invalid.'
+        );
       }
-      const user = {
-        did: iss,
-        verifiedRoles: uniqueRoles,
-      };
       if (this.jwtSecret) {
         return done(
           undefined,
