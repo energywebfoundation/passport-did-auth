@@ -3,8 +3,7 @@ import { Request } from 'express';
 import * as jwt from 'jsonwebtoken';
 import { providers } from 'ethers';
 import { ethrReg, addressOf } from '@ew-did-registry/did-ethr-resolver';
-
-import { lookup, namehash } from './utils';
+import { lookup, namehash, RoleStatus } from './utils';
 import { ITokenPayload } from './LoginStrategy.types';
 import { Methods, getDIDChain, isValidErc1056 } from '@ew-did-registry/did';
 import { CacheServerClient } from './cacheServerClient';
@@ -276,30 +275,41 @@ export class LoginStrategy extends BaseStrategy {
         this.statuslListEntryVerification
       );
       const uniqueRoles = await verifier.getVerifiedRoles();
-      const user = {
-        did: userDid,
-        verifiedRoles: uniqueRoles,
-        status: true,
-      };
-      this.acceptedRoles.forEach((role) => {
-        const acceptedRole = uniqueRoles.find(
-          (verifiedRole) => verifiedRole.namespace === role
-        );
-        if (!acceptedRole) {
-          uniqueRoles.push({
-            name: role,
-            namespace: role,
-            error: 'Role not found',
-          });
-          user.status = false;
-        } else if (acceptedRole.error) {
-          user.status = false;
-        }
-      });
 
       if (uniqueRoles.length === 0 && this.acceptedRoles.size > 0) {
         return done(undefined, null, 'User does not have any roles.');
-      } else if (user.status) {
+      }
+      const invalidRoles: RoleStatus[] = [];
+      const validRoles: RoleStatus[] = [];
+      let userValidationStatus = true;
+
+      if (this.acceptedRoles.size > 0) {
+        this.acceptedRoles.forEach((role) => {
+          const acceptedRole = uniqueRoles.find(
+            (verifiedRole) => verifiedRole.namespace === role
+          );
+          if (!acceptedRole) {
+            invalidRoles.push({
+              name: role,
+              namespace: role,
+              error: 'Role credential not found for the user.',
+            });
+            userValidationStatus = false;
+          } else if (acceptedRole.error) {
+            invalidRoles.push(acceptedRole);
+            userValidationStatus = false;
+          } else {
+            validRoles.push(acceptedRole);
+          }
+        });
+      }
+      const user = {
+        did: userDid,
+        validRoles: validRoles,
+        invalidRoles: invalidRoles,
+        status: userValidationStatus,
+      };
+      if (!user.status) {
         return done(
           undefined,
           user,
