@@ -186,8 +186,6 @@ describe('ClaimVerifier', () => {
       revokerResolver,
       issuerResolver,
       credentialResolver,
-      provider,
-      registrySettings,
       verifyCredential
     );
     statusListEntryVerificaiton = new StatusListEntryVerification(
@@ -667,7 +665,10 @@ describe('ClaimVerifier', () => {
       statusListEntryVerificaiton
     );
     const verifiedRoles = await claimverifier.getVerifiedRoles();
-    assert.notEqual(verifiedRoles.length, userclaims.length);
+    assert.strictEqual(
+      verifiedRoles[0].error,
+      'Credential expired: Role manager had expired'
+    );
   });
 
   it('should not verify credential, if it is revoked', async () => {
@@ -765,7 +766,10 @@ describe('ClaimVerifier', () => {
       statusListEntryVerificaiton
     );
     const verifiedRoles = await claimverifier.getVerifiedRoles();
-    assert.strictEqual(verifiedRoles.length, 0);
+    assert.strictEqual(
+      verifiedRoles[0].error,
+      'Credential revoked: Role manager has been revoked.'
+    );
   });
 
   it('should throw, if the credential is revoked by unauthorised revoker', async () => {
