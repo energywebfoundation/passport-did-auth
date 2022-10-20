@@ -2,14 +2,14 @@ import { BaseStrategy, StrategyOptions } from './BaseStrategy';
 import { Request } from 'express';
 import * as jwt from 'jsonwebtoken';
 import { providers } from 'ethers';
-import {
-  ethrReg,
-  Resolver,
-  addressOf,
-} from '@ew-did-registry/did-ethr-resolver';
-
+import { ethrReg, addressOf } from '@ew-did-registry/did-ethr-resolver';
 import { lookup, namehash } from './utils';
-import { ITokenPayload } from './LoginStrategy.types';
+import {
+  AuthorisedUser,
+  ITokenPayload,
+  RoleCredentialStatus,
+  RoleStatus,
+} from './LoginStrategy.types';
 import { Methods, getDIDChain, isValidErc1056 } from '@ew-did-registry/did';
 import { CacheServerClient } from './cacheServerClient';
 import { ClaimVerifier } from './ClaimVerifier';
@@ -61,7 +61,6 @@ export class LoginStrategy extends BaseStrategy {
   private readonly provider: providers.JsonRpcProvider;
   private readonly numberOfBlocksBack: number;
   private readonly domainReader: DomainReader;
-  private readonly didResolver: Resolver;
   private readonly acceptedRoles: Set<string>;
   private readonly includeAllRoles: boolean = false;
   private readonly cacheServerClient?: CacheServerClient;
@@ -131,7 +130,6 @@ export class LoginStrategy extends BaseStrategy {
       address: didContractAddress,
       method: Methods.Erc1056,
     };
-    this.didResolver = new Resolver(this.provider, registrySetting);
     this.numberOfBlocksBack = numberOfBlocksBack;
     this.jwtSecret = jwtSecret;
     this.acceptedRoles = new Set(acceptedRoles);
@@ -159,11 +157,7 @@ export class LoginStrategy extends BaseStrategy {
   }
 
   private async getDidDocument(did: string): Promise<IDIDDocument> {
-    const _didDocument = this.cacheServerClient?.isAvailable
-      ? await this.cacheServerClient.getDidDocument(did)
-      : await this.didResolver.read(did);
-
-    return _didDocument;
+    return this.credentialResolver.getDIDDocument(did);
   }
 
   /**
@@ -230,8 +224,12 @@ export class LoginStrategy extends BaseStrategy {
     const userDid = await proofVerifier.verifyAuthenticationProof(token);
 
     if (!userDid) {
-      Logger.info('Not Verified');
-      return done(undefined, null, 'Not Verified');
+      Logger.info('Not Verified: Authentication proof is not valid');
+      return done(
+        undefined,
+        null,
+        'Not Verified: Authentication proof is not valid'
+      );
     }
 
     const userAddress = addressOf(userDid);
@@ -265,12 +263,14 @@ export class LoginStrategy extends BaseStrategy {
         this.cacheServerClient?.address === userAddress
           ? []
           : await this.credentialResolver.eip191JwtsOf(userDid);
+
       const claimsToVerify = this.includeAllRoles
         ? userClaims
         : userClaims.filter((claim) => {
             const claimType = claim?.payload?.claimData?.claimType;
             return claimType && this.acceptedRoles.has(claimType);
           });
+
       if (this.includeAllRoles && claimsToVerify.length === userClaims.length) {
         Logger.info('includeAllRoles: true, verifying all roles');
       } else {
@@ -287,19 +287,31 @@ export class LoginStrategy extends BaseStrategy {
 
       if (uniqueRoles.length === 0 && this.acceptedRoles.size > 0) {
         return done(undefined, null, 'User does not have any roles.');
-      } else if (
-        this.acceptedRoles &&
-        this.acceptedRoles.size > 0 &&
-        !uniqueRoles.some(({ namespace }) => {
-          return this.acceptedRoles.has(namespace);
-        })
-      ) {
-        return done(undefined, null, 'User does not have an accepted role.');
       }
-      const user = {
-        did: iss,
-        verifiedRoles: uniqueRoles,
-      };
+      let user: AuthorisedUser;
+      if (!this.includeAllRoles && this.acceptedRoles.size > 0) {
+        const { userRoles, authorisationStatus } =
+          this.validateAcceptedRoles(uniqueRoles);
+
+        user = {
+          did: userDid,
+          userRoles: userRoles,
+          authorisationStatus: authorisationStatus,
+        };
+      } else {
+        user = {
+          did: userDid,
+          userRoles: uniqueRoles,
+          authorisationStatus: true,
+        };
+      }
+      if (!user.authorisationStatus) {
+        return done(
+          undefined,
+          user,
+          'User either does not have accpeted role credentials or are invalid.'
+        );
+      }
       if (this.jwtSecret) {
         return done(
           undefined,
@@ -405,5 +417,29 @@ export class LoginStrategy extends BaseStrategy {
     }
 
     return true;
+  }
+
+  /**
+   * Validates if user's role credential is valid or not and sets authorisation status
+   * @param userRoles verified user role credential
+   * @returns
+   */
+  private validateAcceptedRoles(userRoles: RoleStatus[]): {
+    userRoles: RoleStatus[];
+    authorisationStatus: boolean;
+  } {
+    let authorisationStatus = false;
+    this.acceptedRoles.forEach((role) => {
+      const userRole = userRoles.find(
+        (roleStatus) => roleStatus.namespace == role
+      );
+      if (userRole && userRole.status === RoleCredentialStatus.VALID) {
+        authorisationStatus = true;
+      }
+    });
+    return {
+      userRoles,
+      authorisationStatus,
+    };
   }
 }

@@ -81,3 +81,4 @@ export const knownChains = {
 };
 
 export const CredentialRevoked = 'Credential has been revoked';
+export const CredentialExpired = 'Credential has expired';

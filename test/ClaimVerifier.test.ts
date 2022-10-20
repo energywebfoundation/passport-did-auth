@@ -59,6 +59,7 @@ import { RoleIssuerResolver } from '../lib/RoleIssuerResolver';
 import { RoleRevokerResolver } from '../lib/RoleRevokerResolver';
 import { RoleCredentialResolver } from '../lib/RoleCredentialResolver';
 import { StatusListEntryVerification } from '@ew-did-registry/revocation';
+import { RoleCredentialStatus } from '../lib/LoginStrategy.types';
 
 chai.use(chaiAsPromised);
 const expect = chai.expect;
@@ -186,8 +187,6 @@ describe('ClaimVerifier', () => {
       revokerResolver,
       issuerResolver,
       credentialResolver,
-      provider,
-      registrySettings,
       verifyCredential
     );
     statusListEntryVerificaiton = new StatusListEntryVerification(
@@ -667,7 +666,7 @@ describe('ClaimVerifier', () => {
       statusListEntryVerificaiton
     );
     const verifiedRoles = await claimverifier.getVerifiedRoles();
-    assert.notEqual(verifiedRoles.length, userclaims.length);
+    assert.strictEqual(verifiedRoles[0].status, RoleCredentialStatus.EXPIRED);
   });
 
   it('should not verify credential, if it is revoked', async () => {
@@ -765,7 +764,7 @@ describe('ClaimVerifier', () => {
       statusListEntryVerificaiton
     );
     const verifiedRoles = await claimverifier.getVerifiedRoles();
-    assert.strictEqual(verifiedRoles.length, 0);
+    assert.strictEqual(verifiedRoles[0].status, RoleCredentialStatus.REVOKED);
   });
 
   it('should throw, if the credential is revoked by unauthorised revoker', async () => {

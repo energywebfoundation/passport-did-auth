@@ -30,3 +30,28 @@ export interface CredentialFilters {
   isAccepted?: boolean;
   namespace?: string;
 }
+
+export enum RoleCredentialStatus {
+  REVOKED = 'revoked',
+  EXPIRED = 'expired',
+  VALID = 'valid',
+  NOROLE = 'no role credential',
+  UNKNOWN = 'unknown error',
+}
+
+export const ErrorMessageMap = {
+  'Credential has expired': RoleCredentialStatus.EXPIRED,
+  'Credential has been revoked': RoleCredentialStatus.REVOKED,
+};
+
+export interface RoleStatus {
+  name: string;
+  namespace: string;
+  status: RoleCredentialStatus;
+}
+
+export interface AuthorisedUser {
+  did: string;
+  userRoles: RoleStatus[];
+  authorisationStatus: boolean;
+}
