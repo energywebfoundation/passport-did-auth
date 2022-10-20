@@ -81,9 +81,4 @@ export const knownChains = {
 };
 
 export const CredentialRevoked = 'Credential has been revoked';
-
-export interface RoleStatus {
-  name: string;
-  namespace: string;
-  error: string;
-}
+export const CredentialExpired = 'Credential has expired';

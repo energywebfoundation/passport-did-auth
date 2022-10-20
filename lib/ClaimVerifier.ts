@@ -3,12 +3,14 @@ import {
   RevocationVerification,
   RoleEIP191JWT,
   RolePayload,
+  VerificationResult,
 } from '@energyweb/vc-verification';
 import { IRoleDefinitionV2 } from '@energyweb/credential-governance';
 import { Logger } from './Logger';
 import { StatusList2021Entry } from '@ew-did-registry/credentials-interface';
 import { StatusListEntryVerification } from '@ew-did-registry/revocation';
-import { CredentialRevoked } from './utils';
+import { CredentialExpired, CredentialRevoked } from './utils';
+import { RoleCredentialStatus, ErrorMessageMap } from './LoginStrategy.types';
 
 export class ClaimVerifier {
   constructor(
@@ -22,7 +24,7 @@ export class ClaimVerifier {
   ) {}
 
   public async getVerifiedRoles(): Promise<
-    { name: string; namespace: string; error: string }[]
+    { name: string; namespace: string; status: RoleCredentialStatus }[]
   > {
     const roles = await Promise.all(
       this.claims.map(async (claim) =>
@@ -32,7 +34,7 @@ export class ClaimVerifier {
     const filteredRoles = roles.filter(Boolean) as {
       name: IRoleDefinitionV2['roleName'];
       namespace: RoleEIP191JWT['payload']['claimData']['claimType'];
-      error: string;
+      status: RoleCredentialStatus;
     }[];
     const uniqueRoles = [
       ...new Set(filteredRoles.map((r) => JSON.stringify(r))),
@@ -49,7 +51,7 @@ export class ClaimVerifier {
   private async verifyRole(credential: Required<RoleEIP191JWT>): Promise<{
     name: IRoleDefinitionV2['roleName'];
     namespace: RoleEIP191JWT['payload']['claimData']['claimType'];
-    error: string;
+    status: RoleCredentialStatus;
   } | null> {
     if (!credential.payload) {
       Logger.info('Invalid role credential: RolePayload does not exist');
@@ -66,11 +68,12 @@ export class ClaimVerifier {
       return null;
     }
     const roleStatus = await this.checkRoleStatus(credential.payload);
-    if (!roleStatus.status) {
+    if (!roleStatus.verified) {
       return {
         name: role.roleName,
         namespace: credentialClaimData.claimType,
-        error: roleStatus.error,
+        status:
+          ErrorMessageMap[roleStatus.error] ?? RoleCredentialStatus.UNKNOWN,
       };
     }
     if (role.version !== credentialClaimData.claimTypeVersion) {
@@ -87,7 +90,7 @@ export class ClaimVerifier {
       return {
         name: role.roleName,
         namespace: credentialClaimData.claimType,
-        error: '',
+        status: RoleCredentialStatus.VALID,
       };
     }
     return null;
@@ -100,7 +103,7 @@ export class ClaimVerifier {
    */
   private async checkRoleStatus(
     rolePayload: RolePayload
-  ): Promise<{ status: boolean; error: string }> {
+  ): Promise<VerificationResult> {
     if (rolePayload.exp && rolePayload.exp * 1000 < Date.now()) {
       Logger.info(
         `Credential expired: Role ${
@@ -108,8 +111,8 @@ export class ClaimVerifier {
         } had expiration date of ${new Date(rolePayload.exp).toISOString()} UTC`
       );
       return {
-        status: false,
-        error: `Credential expired: Role ${rolePayload.claimData.claimType} had expired`,
+        verified: false,
+        error: CredentialExpired,
       };
     }
     try {
@@ -133,13 +136,13 @@ export class ClaimVerifier {
             `Credential revoked: Role ${rolePayload.claimData.claimType} has been revoked.`
           );
           return {
-            status: false,
-            error: `Credential revoked: Role ${rolePayload.claimData.claimType} has been revoked.`,
+            verified: false,
+            error: CredentialRevoked,
           };
         }
         throw new Error(error.message);
       }
     }
-    return { status: true, error: '' };
+    return { verified: true, error: '' };
   }
 }

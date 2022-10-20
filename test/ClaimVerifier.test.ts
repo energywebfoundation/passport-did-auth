@@ -59,6 +59,7 @@ import { RoleIssuerResolver } from '../lib/RoleIssuerResolver';
 import { RoleRevokerResolver } from '../lib/RoleRevokerResolver';
 import { RoleCredentialResolver } from '../lib/RoleCredentialResolver';
 import { StatusListEntryVerification } from '@ew-did-registry/revocation';
+import { RoleCredentialStatus } from '../lib/LoginStrategy.types';
 
 chai.use(chaiAsPromised);
 const expect = chai.expect;
@@ -665,10 +666,7 @@ describe('ClaimVerifier', () => {
       statusListEntryVerificaiton
     );
     const verifiedRoles = await claimverifier.getVerifiedRoles();
-    assert.strictEqual(
-      verifiedRoles[0].error,
-      'Credential expired: Role manager had expired'
-    );
+    assert.strictEqual(verifiedRoles[0].status, RoleCredentialStatus.EXPIRED);
   });
 
   it('should not verify credential, if it is revoked', async () => {
@@ -766,10 +764,7 @@ describe('ClaimVerifier', () => {
       statusListEntryVerificaiton
     );
     const verifiedRoles = await claimverifier.getVerifiedRoles();
-    assert.strictEqual(
-      verifiedRoles[0].error,
-      'Credential revoked: Role manager has been revoked.'
-    );
+    assert.strictEqual(verifiedRoles[0].status, RoleCredentialStatus.REVOKED);
   });
 
   it('should throw, if the credential is revoked by unauthorised revoker', async () => {

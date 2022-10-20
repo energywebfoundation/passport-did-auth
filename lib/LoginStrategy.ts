@@ -3,8 +3,13 @@ import { Request } from 'express';
 import * as jwt from 'jsonwebtoken';
 import { providers } from 'ethers';
 import { ethrReg, addressOf } from '@ew-did-registry/did-ethr-resolver';
-import { lookup, namehash, RoleStatus } from './utils';
-import { ITokenPayload } from './LoginStrategy.types';
+import { lookup, namehash } from './utils';
+import {
+  AuthorisedUser,
+  ITokenPayload,
+  RoleCredentialStatus,
+  RoleStatus,
+} from './LoginStrategy.types';
 import { Methods, getDIDChain, isValidErc1056 } from '@ew-did-registry/did';
 import { CacheServerClient } from './cacheServerClient';
 import { ClaimVerifier } from './ClaimVerifier';
@@ -219,8 +224,12 @@ export class LoginStrategy extends BaseStrategy {
     const userDid = await proofVerifier.verifyAuthenticationProof(token);
 
     if (!userDid) {
-      Logger.info('Not Verified: User signature is not valid');
-      return done(undefined, null, 'Not Verified: User signature is not valid');
+      Logger.info('Not Verified: Authentication proof is not valid');
+      return done(
+        undefined,
+        null,
+        'Not Verified: Authentication proof is not valid'
+      );
     }
 
     const userAddress = addressOf(userDid);
@@ -279,37 +288,24 @@ export class LoginStrategy extends BaseStrategy {
       if (uniqueRoles.length === 0 && this.acceptedRoles.size > 0) {
         return done(undefined, null, 'User does not have any roles.');
       }
-      const invalidRoles: RoleStatus[] = [];
-      const validRoles: RoleStatus[] = [];
-      let userValidationStatus = true;
+      let user: AuthorisedUser;
+      if (!this.includeAllRoles && this.acceptedRoles.size > 0) {
+        const { userRoles, authorisationStatus } =
+          this.validateAcceptedRoles(uniqueRoles);
 
-      if (this.acceptedRoles.size > 0) {
-        this.acceptedRoles.forEach((role) => {
-          const acceptedRole = uniqueRoles.find(
-            (verifiedRole) => verifiedRole.namespace === role
-          );
-          if (!acceptedRole) {
-            invalidRoles.push({
-              name: role,
-              namespace: role,
-              error: 'Role credential not found for the user.',
-            });
-            userValidationStatus = false;
-          } else if (acceptedRole.error) {
-            invalidRoles.push(acceptedRole);
-            userValidationStatus = false;
-          } else {
-            validRoles.push(acceptedRole);
-          }
-        });
+        user = {
+          did: userDid,
+          userRoles: userRoles,
+          authorisationStatus: authorisationStatus,
+        };
+      } else {
+        user = {
+          did: userDid,
+          userRoles: uniqueRoles,
+          authorisationStatus: true,
+        };
       }
-      const user = {
-        did: userDid,
-        validRoles: validRoles,
-        invalidRoles: invalidRoles,
-        status: userValidationStatus,
-      };
-      if (!user.status) {
+      if (!user.authorisationStatus) {
         return done(
           undefined,
           user,
@@ -421,5 +417,29 @@ export class LoginStrategy extends BaseStrategy {
     }
 
     return true;
+  }
+
+  /**
+   * Validates if user's role credential is valid or not and sets authorisation status
+   * @param userRoles verified user role credential
+   * @returns
+   */
+  private validateAcceptedRoles(userRoles: RoleStatus[]): {
+    userRoles: RoleStatus[];
+    authorisationStatus: boolean;
+  } {
+    let authorisationStatus = false;
+    this.acceptedRoles.forEach((role) => {
+      const userRole = userRoles.find(
+        (roleStatus) => roleStatus.namespace == role
+      );
+      if (userRole && userRole.status === RoleCredentialStatus.VALID) {
+        authorisationStatus = true;
+      }
+    });
+    return {
+      userRoles,
+      authorisationStatus,
+    };
   }
 }

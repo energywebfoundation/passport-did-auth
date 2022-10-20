@@ -227,7 +227,7 @@ it('Should reject invalid issuer', async () => {
   const consoleListener = jest.spyOn(console, 'log');
   await loginStrategy?.validate(token, payload, () => {
     expect(consoleListener).toBeCalledWith(
-      'Not Verified: User signature is not valid'
+      'Not Verified: Authentication proof is not valid'
     );
   });
 });
@@ -257,7 +257,7 @@ it('Should reject invalid token', async () => {
   const consoleListener = jest.spyOn(console, 'log');
   await loginStrategy?.validate(token, payload, () => {
     expect(consoleListener).toBeCalledWith(
-      'Not Verified: User signature is not valid'
+      'Not Verified: Authentication proof is not valid'
     );
   });
 });
@@ -318,7 +318,6 @@ it('Should support old format did for off chain claims', async () => {
       did: 'did:ethr:volta:0x0000000000000000000000000000000000000001',
       signer: 'did:ethr:volta:0x0000000000000000000000000000000000000001',
       claimData: {
-        fields: {},
         claimType: 'test',
         claimTypeVersion: 1,
       },
@@ -339,7 +338,7 @@ it('Should support old format did for off chain claims', async () => {
     {
       eip191Jwt: 'skdjnskdjflksdjlkajsdlkajs',
       payload: {
-        claimData: { claimType: 'test', claimTypeVersion: 1, fields: {} },
+        claimData: { claimType: 'test', claimTypeVersion: 1 },
         did: 'did:ethr:volta:0x0000000000000000000000000000000000000001',
         iss: 'did:ethr:volta:0x0000000000000000000000000000000000000001',
         signer: 'did:ethr:volta:0x0000000000000000000000000000000000000001',
@@ -409,7 +408,6 @@ it('Should verify only accepted roles if includeAllRoles is false', async () => 
       did: 'did:ethr:volta:0x0000000000000000000000000000000000000001',
       signer: 'did:ethr:volta:0x0000000000000000000000000000000000000001',
       claimData: {
-        fields: {},
         claimType: 'test',
         claimTypeVersion: 1,
       },
@@ -422,7 +420,6 @@ it('Should verify only accepted roles if includeAllRoles is false', async () => 
       did: 'did:ethr:volta:0x0000000000000000000000000000000000000001',
       signer: 'did:ethr:volta:0x0000000000000000000000000000000000000001',
       claimData: {
-        fields: {},
         claimType: 'test2',
         claimTypeVersion: 1,
       },
@@ -468,7 +465,6 @@ it('Should verify all role claims if includeAllRoles is true', async () => {
       did: 'did:ethr:volta:0x0000000000000000000000000000000000000001',
       signer: 'did:ethr:volta:0x0000000000000000000000000000000000000001',
       claimData: {
-        fields: {},
         claimType: 'test',
         claimTypeVersion: 1,
       },
@@ -481,7 +477,6 @@ it('Should verify all role claims if includeAllRoles is true', async () => {
       did: 'did:ethr:volta:0x0000000000000000000000000000000000000001',
       signer: 'did:ethr:volta:0x0000000000000000000000000000000000000001',
       claimData: {
-        fields: {},
         claimType: 'test2',
         claimTypeVersion: 1,
       },
@@ -531,7 +526,6 @@ it('Should filter out malicious claims', async () => {
 
   // const claim: RolePayload = {
   //   claimData: {
-  //     fields: {},
   //     claimType: 'test',
   //     claimTypeVersion: 1,
   //   },
