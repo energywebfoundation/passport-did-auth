@@ -1,3 +1,13 @@
+## [2.0.0-alpha.22](https://github.com/energywebfoundation/passport-did-auth/compare/v2.0.0-alpha.21...v2.0.0-alpha.22) (2022-10-20)
+
+
+### Features
+
+* code refactoring ([2d25f40](https://github.com/energywebfoundation/passport-did-auth/commit/2d25f405176b2022663bbcd4b9a2507d05a4ee8b))
+* return reason for failed authorisation ([0249a25](https://github.com/energywebfoundation/passport-did-auth/commit/0249a256ed4f351d9262bc4cfa2639b28b788655))
+* return valid and invalid roles after authentication ([c9aabb8](https://github.com/energywebfoundation/passport-did-auth/commit/c9aabb8e1a9d154d3d946ee4f2380dc8a1bd55bb))
+* update tests ([b5a0436](https://github.com/energywebfoundation/passport-did-auth/commit/b5a04369dc022c415e36106ae94de08e93318cad))
+
 ## [2.0.0-alpha.21](https://github.com/energywebfoundation/passport-did-auth/compare/v2.0.0-alpha.20...v2.0.0-alpha.21) (2022-10-11)
 
 
