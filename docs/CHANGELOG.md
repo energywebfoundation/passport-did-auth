@@ -1,3 +1,10 @@
+## [2.0.0-alpha.23](https://github.com/energywebfoundation/passport-did-auth/compare/v2.0.0-alpha.22...v2.0.0-alpha.23) (2022-10-21)
+
+
+### Bug Fixes
+
+* export types ([4b69c1b](https://github.com/energywebfoundation/passport-did-auth/commit/4b69c1b21c3b468a1c21a579a7c78d0dc85c617b))
+
 ## [2.0.0-alpha.22](https://github.com/energywebfoundation/passport-did-auth/compare/v2.0.0-alpha.21...v2.0.0-alpha.22) (2022-10-20)
 
 
