@@ -19,8 +19,14 @@ import {
   VOLTA_RESOLVER_V2_ADDRESS,
 } from '@energyweb/credential-governance';
 import { ethrReg } from '@ew-did-registry/did-ethr-resolver';
+import {
+  RoleCredentialStatus,
+  AuthorisedUser,
+  RoleStatus,
+} from './lib/LoginStrategy.types';
 
 export {
+  AuthorisedUser,
   BaseStrategy,
   DidStore,
   DomainReader,
@@ -33,8 +39,10 @@ export {
   Methods,
   RegistrySettings,
   RoleCredentialResolver,
+  RoleCredentialStatus,
   RoleIssuerResolver,
   RoleRevokerResolver,
+  RoleStatus,
   ResolverContractType,
   VOLTA_CHAIN_ID,
   VOLTA_ERC_1056_ADDRESS,
