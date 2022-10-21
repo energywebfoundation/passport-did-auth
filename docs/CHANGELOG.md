@@ -1,3 +1,10 @@
+## [2.0.0-alpha.24](https://github.com/energywebfoundation/passport-did-auth/compare/v2.0.0-alpha.23...v2.0.0-alpha.24) (2022-10-21)
+
+
+### Documentation
+
+* update readme ([ff781a8](https://github.com/energywebfoundation/passport-did-auth/commit/ff781a86fdc6803dc6b30367b4487009bf7ac3e2))
+
 ## [2.0.0-alpha.23](https://github.com/energywebfoundation/passport-did-auth/compare/v2.0.0-alpha.22...v2.0.0-alpha.23) (2022-10-21)
 
 
