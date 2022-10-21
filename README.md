@@ -79,7 +79,7 @@ Addresses for deployed contracts are exported by [`@energyweb/credential-governa
 
 It is also possible to provide own implementation of these resolvers by implementing these [`Interfaces`](https://github.com/energywebfoundation/ew-credentials/tree/develop/packages/vc-verification/src/resolver). The purpose of these resolvers are to resolve authorities responsible for issuance and revocation of these role credentials.
 
-Check configurations / parameters for [`LoginStrategy`](./lib/LoginStrategy.ts/)
+To be able to use `LoginStrategy` to authorise DIDs based on role credentials, one can provide one of the two values -  either flag `includeAllRoles` (_verifies all the role credential issued to given DID_) attribute to `true` or provide set of `acceptedRoles` (_DID needs to have atleast one of the metioned role credential issued to it_) while initialising `LoginStrategy`. `includeAllRoles` will override `acceptedRoles` in case both values are provided. Check other configurations / parameters for [`LoginStrategy`](./lib/LoginStrategy.ts/)
 
 ```Typescript
 import {
