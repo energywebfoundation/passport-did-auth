@@ -25,7 +25,7 @@ export const getServer = (
 
   server.post(
     '/login',
-    passport.authenticate(LOGIN_STRATEGY),
+    passport.authenticate(LOGIN_STRATEGY, { session: false }),
     async (req, res) => {
       return res.send({ token: req.user });
     }
