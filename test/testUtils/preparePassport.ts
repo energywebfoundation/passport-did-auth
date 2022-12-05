@@ -9,7 +9,7 @@ import { ethrReg } from '@ew-did-registry/did-ethr-resolver';
 import { DidStore } from '@ew-did-registry/did-ipfs-store';
 import { RegistrySettings } from '@ew-did-registry/did-resolver-interface';
 import { providers } from 'ethers';
-import passport, { PassportStatic } from 'passport';
+import passport from 'passport';
 import { Strategy, ExtractJwt } from 'passport-jwt';
 import { LoginStrategyOptions, LoginStrategy } from '../../lib/LoginStrategy';
 import { verifyCredential } from 'didkit-wasm-node';
@@ -84,7 +84,7 @@ export const preparePassport = (
   includeAllRoles?: boolean,
   acceptedRoles?: string[]
 ): Partial<{
-  passport: PassportStatic;
+  passport: passport.PassportStatic;
   LOGIN_STRATEGY: string;
   loginStrategy: LoginStrategy;
   credentialResolver: CredentialResolver;
