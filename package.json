@@ -57,15 +57,15 @@
     "cockatiel": "^2.0.2",
     "eth-ens-namehash": "^2.0.8",
     "ethereumjs-abi": "^0.6.8",
-    "ethers": "^5.7.0",
+    "ethers": "^5.7.2",
     "ganache-cli": "^6.12.2",
     "js-sha3": "^0.8.0",
     "jsonwebtoken": "^8.5.1",
     "multiformats": "^9.7.0",
     "passport": "0.6.0",
     "passport-strategy": "^1.0.0",
-    "redact-pii": "^3.2.3",
-    "typescript": "4.7.4"
+    "redact-pii": "^3.4.0",
+    "typescript": "4.9.4"
   },
   "devDependencies": {
     "@babel/core": "^7.12.10",
@@ -88,7 +88,7 @@
     "@typescript-eslint/eslint-plugin": "^5.9.1",
     "@typescript-eslint/parser": "^5.9.1",
     "babel-jest": "^29.1.0",
-    "chai": "^4.3.4",
+    "chai": "^4.3.7",
     "chai-arrays": "2.2.0",
     "chai-as-promised": "7.1.1",
     "conventional-changelog-conventionalcommits": "^4.6.3",
@@ -117,8 +117,8 @@
     "supertest": "^6.1.6",
     "ts-node": "^10.9.1",
     "typechain": "^5.2.0",
-    "typedoc": "^0.23.0",
-    "typedoc-plugin-markdown": "^3.0.11",
+    "typedoc": "^0.23.21",
+    "typedoc-plugin-markdown": "^3.14.0",
     "wait-on": "^6.0.1"
   },
   "husky": {
