@@ -1,3 +1,10 @@
+## [2.0.0-alpha.25](https://github.com/energywebfoundation/passport-did-auth/compare/v2.0.0-alpha.24...v2.0.0-alpha.25) (2022-12-09)
+
+
+### Bug Fixes
+
+* upgrade dependencies ([189d258](https://github.com/energywebfoundation/passport-did-auth/commit/189d258c53894c6f350dcad4401d094989516f75))
+
 ## [2.0.0-alpha.24](https://github.com/energywebfoundation/passport-did-auth/compare/v2.0.0-alpha.23...v2.0.0-alpha.24) (2022-10-21)
 
 
