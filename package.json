@@ -39,9 +39,9 @@
   },
   "homepage": "https://github.com/energywebfoundation/passport-did-auth#readme",
   "dependencies": {
-    "@energyweb/credential-governance": "2.2.1-alpha.307.0",
-    "@energyweb/onchain-claims": "2.2.1-alpha.307.0",
-    "@energyweb/vc-verification": "2.2.1-alpha.307.0",
+    "@energyweb/credential-governance": "2.2.1-alpha.313.0",
+    "@energyweb/onchain-claims": "2.2.1-alpha.313.0",
+    "@energyweb/vc-verification": "2.2.1-alpha.313.0",
     "@ensdomains/ens-contracts": "0.0.8",
     "@ethersproject/providers": "5.4.4",
     "@ew-did-registry/claims": "0.8.1-alpha.1037.0",
