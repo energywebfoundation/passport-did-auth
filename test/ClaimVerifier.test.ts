@@ -47,7 +47,7 @@ import {
   IUpdateData,
 } from '@ew-did-registry/did-resolver-interface';
 import { Keys } from '@ew-did-registry/keys';
-import { spawnIpfs, shutdownIpfs } from './testUtils/setUpIpfs';
+import { spawnIpfsDaemon, shutDownIpfsDaemon } from './testUtils/ipfs-daemon';
 import {
   adminStatusList,
   managerStatusList,
@@ -100,14 +100,13 @@ let managerDid: string;
 let adminOperator: Operator;
 let managerOperator: Operator;
 let providerSettings: ProviderSettings;
+let ipfsUrl: string;
 let didStore: DidStore;
 
 const validity = 10 * 60 * 1000;
 jest.setTimeout(84000);
 
 describe('ClaimVerifier', () => {
-  let cluster: ChildProcess;
-
   beforeAll(async function () {
     provider = new JsonRpcProvider(rpcUrl);
     deployer = provider.getSigner(0);
@@ -139,16 +138,16 @@ describe('ClaimVerifier', () => {
   });
 
   afterEach(async () => {
-    shutdownIpfs(cluster);
+    await shutDownIpfsDaemon();
   });
 
   beforeEach(async function () {
     roleFactory = new DomainTransactionFactoryV2({
       domainResolverAddress: ensResolver.address,
     });
-    cluster = await spawnIpfs();
+    ipfsUrl = await spawnIpfsDaemon();
 
-    didStore = new DidStore('http://localhost:8080');
+    didStore = new DidStore(ipfsUrl);
 
     registrySettings = {
       method: Methods.Erc1056,

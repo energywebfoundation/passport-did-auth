@@ -12,6 +12,7 @@ import {
 } from './LoginStrategy.types';
 import { Methods, getDIDChain, isValidErc1056 } from '@ew-did-registry/did';
 import { CacheServerClient } from './cacheServerClient';
+import { DidStore } from '@ew-did-registry/did-ipfs-store';
 import { ClaimVerifier } from './ClaimVerifier';
 import { IDIDDocument } from '@ew-did-registry/did-resolver-interface';
 import { ProofVerifier } from '@ew-did-registry/claims';
@@ -48,6 +49,7 @@ export interface LoginStrategyOptions extends StrategyOptions {
   }[];
   didContractAddress: string;
   ensRegistryAddress: string;
+  ipfsUrl?: string;
   acceptedRoles?: string[];
   includeAllRoles?: boolean;
   jwtSecret?: string | Buffer;
@@ -61,6 +63,7 @@ export class LoginStrategy extends BaseStrategy {
   private readonly provider: providers.JsonRpcProvider;
   private readonly numberOfBlocksBack: number;
   private readonly domainReader: DomainReader;
+  private readonly ipfsStore: DidStore;
   private readonly acceptedRoles: Set<string>;
   private readonly includeAllRoles: boolean = false;
   private readonly cacheServerClient?: CacheServerClient;
@@ -80,6 +83,7 @@ export class LoginStrategy extends BaseStrategy {
       ensResolvers = [],
       didContractAddress,
       ensRegistryAddress,
+      ipfsUrl = 'https://ipfs.infura.io:5001/api/v0/',
       acceptedRoles,
       includeAllRoles,
       ...options
@@ -137,6 +141,7 @@ export class LoginStrategy extends BaseStrategy {
       this.includeAllRoles = includeAllRoles;
     }
     this.jwtSignOptions = jwtSignOptions;
+    this.ipfsStore = new DidStore(ipfsUrl);
     this.revocationVerification = new RevocationVerification(
       revokerResolver,
       issuerResolver,
