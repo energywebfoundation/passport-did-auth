@@ -1,3 +1,10 @@
+## [2.0.0-alpha.26](https://github.com/energywebfoundation/passport-did-auth/compare/v2.0.0-alpha.25...v2.0.0-alpha.26) (2023-01-17)
+
+
+### Bug Fixes
+
+* downgrade didstore to v0.7.1-alpha.816.0 ([c7eae95](https://github.com/energywebfoundation/passport-did-auth/commit/c7eae9557df9b26b08da278701505023a0cc4676))
+
 ## [2.0.0-alpha.25](https://github.com/energywebfoundation/passport-did-auth/compare/v2.0.0-alpha.24...v2.0.0-alpha.25) (2022-12-09)
 
 
