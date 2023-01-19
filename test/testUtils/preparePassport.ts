@@ -93,6 +93,10 @@ export const preparePassport = (
     jwtSecret: private_pem_secret,
     name: LOGIN_STRATEGY,
     rpcUrl: `http://localhost:8544`,
+    jwtSignOptions: {
+      algorithm: 'RS256',
+      noTimestamp: true,
+    },
     didContractAddress: didRegistryAddress,
     ensRegistryAddress: ensRegistryAddress,
     includeAllRoles: includeAllRoles,
