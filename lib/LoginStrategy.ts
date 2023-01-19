@@ -318,10 +318,7 @@ export class LoginStrategy extends BaseStrategy {
         );
       }
       if (this.jwtSecret) {
-        return done(
-          undefined,
-          sign(user, this.jwtSecret, this.jwtSignOptions)
-        );
+        return done(undefined, sign(user, this.jwtSecret, this.jwtSignOptions));
       }
       return done(undefined, user);
     } catch (err) {
