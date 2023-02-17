@@ -1,5 +1,4 @@
 import { providers } from 'ethers';
-import { getServer } from './testUtils/server';
 import { preparePassport } from './testUtils/preparePassport';
 import {
   setChainConfig,
@@ -10,16 +9,8 @@ import {
   setCacheConfig,
 } from 'iam-client-lib';
 import ServerMock from 'mock-http-server';
-import { assert } from 'chai';
-import {
-  DIDAttribute,
-  Encoding,
-  PubKeyType,
-} from '@ew-did-registry/did-resolver-interface';
-
-import request from 'supertest';
 import { JWT } from '@ew-did-registry/jwt';
-import { Keys, KeyType } from '@ew-did-registry/keys';
+import { Keys } from '@ew-did-registry/keys';
 
 import {
   assetsManager,
@@ -35,6 +26,8 @@ import {
 } from './setup_contracts';
 import { RoleEIP191JWT } from '@energyweb/vc-verification';
 import { Chain } from '@ew-did-registry/did';
+import { ISiweMessagePayload } from '../lib/LoginStrategy.types';
+import { addressOf } from '@ew-did-registry/did-ethr-resolver';
 
 const GANACHE_PORT = 8544;
 const rpcUrl = `http://localhost:${GANACHE_PORT}`;
@@ -62,6 +55,21 @@ interface IAM {
 }
 
 const iam: IAM = {};
+
+const sampleSiwePayload: ISiweMessagePayload = {
+  domain: 'login.xyz',
+  address: '0x9D85ca56217D2bb651b00f15e694EB7E713637D4',
+  statement: 'Sign-In With Ethereum Example Statement',
+  uri: 'https://login.xyz',
+  version: '1',
+  nonce: 'bTyXgcQxn2htgkjJn',
+  issuedAt: '2022-01-27T17:09:38.578Z',
+  chainId: 1,
+  expirationTime: '2100-01-07T14:31:43.952Z',
+};
+
+const token =
+  '0xdc35c7f8ba2720df052e0092556456127f00f7707eaa8e3bbff7e56774e7f2e05a093cfc9e02964c33d86e8e066e221b7d153d27e5a2e97ccd5ca7d3f2ce06cb1b';
 
 const server = new ServerMock(
   { host: 'localhost', port: 9000 },
@@ -131,78 +139,22 @@ afterAll(async () => {
   await asyncStop();
 });
 
-it('Verifies asset authentication', async () => {
-  // Register an asset
-  const assetAddress = await iam.assetService?.registerAsset();
-  assert.exists(assetAddress);
-
-  // Create a key
-  const assetKeys = new Keys();
-
-  // Add new key to asset's DID Document
-  const assetDid = `did:ethr:volta:${assetAddress}`;
-  getOwnedAssets.mockResolvedValueOnce([
-    { document: { id: assetDid }, id: assetDid },
-  ]);
-  const isDIdDocUpdated = await iam.didRegistry?.updateDocument({
-    didAttribute: DIDAttribute.PublicKey,
-    did: assetDid,
-    data: {
-      algo: KeyType.Secp256k1,
-      encoding: Encoding.HEX,
-      type: PubKeyType.SignatureAuthentication2018,
-      value: { tag: 'key-1', publicKey: `0x${assetKeys.publicKey}` },
-    },
-  });
-  assert.isTrue(isDIdDocUpdated, 'The asset has not been added to document');
-  const token = await iam.claimsService?.createDelegateProof(
-    assetKeys.privateKey,
-    assetDid
-  );
-  const identityToken = token;
-  const server = getServer(
-    provider,
-    ensResolver.address,
-    didContract.address,
-    ensRegistry.address
-  );
-  const connection = server.listen(4242, () => {
-    console.log('Test Server is ready and listening on port 4242');
-  });
-  const response = await request(server).post('/login').send({ identityToken });
-  expect(response.statusCode).toBe(200);
-  expect(response.body.token).toBeDefined();
-  connection.close();
-});
-
-it('Should authenticate issuer signature', async () => {
+it('Should authenticate issuer signature with Siwe', async () => {
   const { loginStrategy } = preparePassport(
     provider,
     ensResolver.address,
     didContract.address,
     ensRegistry.address
   );
-  const token = await iam.claimsService?.createIdentityProof();
-  const payload = {
-    iss: `did:ethr:${userAddress}`,
-    claimData: {
-      blockNumber: 4242,
-    },
-    sub: '',
-  };
-
   expect(token).toBeTruthy();
 
-  await loginStrategy?.validate(token, payload, (_, user) => {
+  await loginStrategy?.validate(token, sampleSiwePayload, (_, user) => {
     const jwt = new JWT(new Keys({ privateKey: userPrivKey }));
-    const decodedIdentity = jwt.decode(token) as {
-      [key: string]: string;
-    };
     const decodedVerifiedUser = jwt.decode(user as string) as {
       [key: string]: string | object;
     };
-    expect(decodedVerifiedUser.did).toBe(
-      loginStrategy.didUnification(decodedIdentity.did)
+    expect(addressOf(decodedVerifiedUser.did as string)).toBe(
+      sampleSiwePayload.address
     );
   });
 });
@@ -214,137 +166,50 @@ it('Should reject invalid issuer', async () => {
     didContract.address,
     ensRegistry.address
   );
-  const token = await iam.claimsService?.createIdentityProof();
+  const siwePayloadWithDifferentUser = { ...sampleSiwePayload };
+  siwePayloadWithDifferentUser.address =
+    '0x627306090abaB3A6e1400e9345bC60c78a8BEf57';
   expect(token).toBeTruthy();
-  const payload = {
-    iss: secondDid,
-    claimData: {
-      blockNumber: 4242,
-    },
-    sub: '',
-  };
 
-  const consoleListener = jest.spyOn(console, 'log');
-  await loginStrategy?.validate(token, payload, () => {
-    expect(consoleListener).toBeCalledWith(
-      'Not Verified: Authentication proof is not valid'
+  await loginStrategy?.validate(token, siwePayloadWithDifferentUser, (err) => {
+    expect(err.message).toEqual(
+      'Signature does not match address of the message.'
     );
   });
 });
 
 it('Should reject invalid token', async () => {
-  const { connectToCacheServer } = await initWithPrivateKeySigner(
-    secondPrivKey,
-    rpcUrl
-  );
-  const { connectToDidRegistry } = await connectToCacheServer();
-  const { claimsService } = await connectToDidRegistry();
   const { loginStrategy } = preparePassport(
     provider,
     ensResolver.address,
     didContract.address,
     ensRegistry.address
   );
-  const token = await claimsService.createIdentityProof();
-  const payload = {
-    iss: userDid,
-    claimData: {
-      blockNumber: 4242,
-    },
-    sub: '',
-  };
+  const wrongToken =
+    '0xc2539ace78f13c7eb8c0852d38d269a6f97bebd9f7872097d2e3137b541f8bf50176062a46eeea83086bd2721423fb5755a932ff6ccc046ed482d14e4576042f1c';
 
-  const consoleListener = jest.spyOn(console, 'log');
-  await loginStrategy?.validate(token, payload, () => {
-    expect(consoleListener).toBeCalledWith(
-      'Not Verified: Authentication proof is not valid'
+  await loginStrategy?.validate(wrongToken, sampleSiwePayload, (err) => {
+    expect(err.message).toEqual(
+      'Signature does not match address of the message.'
     );
   });
 });
 
 it('Should reject invalid token payload', async () => {
-  const { connectToCacheServer } = await initWithPrivateKeySigner(
-    secondPrivKey,
-    rpcUrl
-  );
-  const { connectToDidRegistry } = await connectToCacheServer();
-  const { claimsService } = await connectToDidRegistry();
   const { loginStrategy } = preparePassport(
     provider,
     ensResolver.address,
     didContract.address,
     ensRegistry.address
   );
-  const token = await claimsService.createIdentityProof();
-  const payload = {
-    iss: 'abcdef',
-    claimData: {
-      blockNumber: 4242,
-    },
-    sub: '',
-  };
-
+  const wrongPayload = { ...sampleSiwePayload };
+  delete wrongPayload.nonce;
   const consoleListener = jest.spyOn(console, 'log');
-  await loginStrategy?.validate(token, payload, () => {
+  await loginStrategy?.validate(token, wrongPayload, (err) => {
     expect(consoleListener).toBeCalledWith('Token payload is not valid');
   });
-});
-
-it('Should add volta to old did address format', () => {
-  const { loginStrategy } = preparePassport(
-    provider,
-    ensResolver.address,
-    didContract.address,
-    ensRegistry.address
-  );
-
-  expect(
-    loginStrategy.didUnification(
-      'did:ethr:0x0000000000000000000000000000000000000001'
-    )
-  ).toBe('did:ethr:volta:0x0000000000000000000000000000000000000001');
-});
-
-it('Should support old format did for off chain claims', async () => {
-  const { credentialResolver } = preparePassport(
-    provider,
-    ensResolver.address,
-    didContract.address,
-    ensRegistry.address
-  );
-
-  const claim: RoleEIP191JWT = {
-    payload: {
-      did: 'did:ethr:volta:0x0000000000000000000000000000000000000001',
-      signer: 'did:ethr:volta:0x0000000000000000000000000000000000000001',
-      claimData: {
-        claimType: 'test',
-        claimTypeVersion: 1,
-      },
-      iss: 'did:ethr:volta:0x0000000000000000000000000000000000000001',
-    },
-    eip191Jwt: 'skdjnskdjflksdjlkajsdlkajs',
-  };
-
-  jest
-    .spyOn((credentialResolver as any)._ipfsCredentialResolver, 'eip191JwtsOf')
-    .mockReturnValueOnce([claim]);
-
-  const result = await credentialResolver.eip191JwtsOf(
-    'did:ethr:0x0000000000000000000000000000000000000001'
-  );
-
-  expect(result).toEqual([
-    {
-      eip191Jwt: 'skdjnskdjflksdjlkajsdlkajs',
-      payload: {
-        claimData: { claimType: 'test', claimTypeVersion: 1 },
-        did: 'did:ethr:volta:0x0000000000000000000000000000000000000001',
-        iss: 'did:ethr:volta:0x0000000000000000000000000000000000000001',
-        signer: 'did:ethr:volta:0x0000000000000000000000000000000000000001',
-      },
-    },
-  ]);
+  const delay = (ms) => new Promise((res) => setTimeout(res, ms));
+  await delay(10000);
 });
 
 it('Should not validate issuer if no accepted roles found', async () => {
@@ -356,23 +221,11 @@ it('Should not validate issuer if no accepted roles found', async () => {
     false,
     ['test']
   );
-  const token = await iam.claimsService?.createIdentityProof();
-  const payload = {
-    iss: `did:ethr:${userAddress}`,
-    claimData: {
-      blockNumber: 4242,
-    },
-    sub: '',
-  };
 
   expect(token).toBeTruthy();
-
-  await loginStrategy?.validate(token, payload, (_, user, err) => {
+  console.log(sampleSiwePayload);
+  await loginStrategy?.validate(token, sampleSiwePayload, (_, user, err) => {
     const jwt = new JWT(new Keys({ privateKey: userPrivKey }));
-    const decodedVerifiedUser = jwt.decode(user as string) as {
-      [key: string]: string | object;
-    };
-    console.log(decodedVerifiedUser.verifiedRoles);
     expect(err).toEqual('User does not have any roles.');
   });
 });
@@ -385,18 +238,9 @@ it('Should validate user with no roles if no accepted roles defined', async () =
     ensRegistry.address,
     false
   );
-  const token = await iam.claimsService?.createIdentityProof();
-  const payload = {
-    iss: `did:ethr:${userAddress}`,
-    claimData: {
-      blockNumber: 4242,
-    },
-    sub: '',
-  };
-
   expect(token).toBeTruthy();
 
-  await loginStrategy?.validate(token, payload, (_, user, err) => {
+  await loginStrategy?.validate(token, sampleSiwePayload, (err, user) => {
     expect(err).toBe(undefined);
     expect(user);
   });
@@ -435,15 +279,6 @@ it('Should verify only accepted roles if includeAllRoles is false', async () => 
     false,
     ['test']
   );
-  const token = await iam.claimsService?.createIdentityProof();
-  const payload = {
-    iss: `did:ethr:${userAddress}`,
-    claimData: {
-      blockNumber: 4242,
-    },
-    sub: '',
-  };
-
   expect(token).toBeTruthy();
 
   jest
@@ -452,7 +287,7 @@ it('Should verify only accepted roles if includeAllRoles is false', async () => 
     .mockResolvedValueOnce([claim1, claim2]);
 
   const consoleListener = jest.spyOn(console, 'log');
-  await loginStrategy?.validate(token, payload, () => {
+  await loginStrategy?.validate(token, sampleSiwePayload, () => {
     expect(consoleListener).toBeCalledWith(
       'includeAllRoles: false, verifying only accepted roles'
     );
@@ -492,15 +327,6 @@ it('Should verify all role claims if includeAllRoles is true', async () => {
     true,
     ['test']
   );
-  const token = await iam.claimsService?.createIdentityProof();
-  const payload = {
-    iss: `did:ethr:${userAddress}`,
-    claimData: {
-      blockNumber: 4242,
-    },
-    sub: '',
-  };
-
   expect(token).toBeTruthy();
 
   jest
@@ -509,48 +335,11 @@ it('Should verify all role claims if includeAllRoles is true', async () => {
     .mockResolvedValueOnce([claim1, claim2]);
 
   const consoleListener = jest.spyOn(console, 'log');
-  await loginStrategy?.validate(token, payload, () => {
+  await loginStrategy?.validate(token, sampleSiwePayload, () => {
     expect(consoleListener).toBeCalledWith(
       'includeAllRoles: true, verifying all roles'
     );
   });
-});
-
-it('Should filter out malicious claims', async () => {
-  const { credentialResolver } = preparePassport(
-    provider,
-    ensResolver.address,
-    didContract.address,
-    ensRegistry.address
-  );
-
-  // const claim: RolePayload = {
-  //   claimData: {
-  //     claimType: 'test',
-  //     claimTypeVersion: 1,
-  //   },
-  //   iss: 'test.roles.org.iam.ewc',
-  //   signer: 'did:ethr:0x0000000000000000000000000000000000000001',
-  // };
-
-  jest
-    .spyOn((credentialResolver as any)._ipfsStore, 'get')
-    .mockResolvedValueOnce('url');
-
-  // jest
-  //   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  //   .spyOn((loginStrategy as any).didResolver, 'read')
-  //   .mockResolvedValueOnce({
-  //     service: [{ id: 'did:ethr:0x0000000000000000000000000000000000000001' }],
-  //   });
-
-  // jest.spyOn(loginStrategy, 'decodeToken').mockReturnValueOnce(claim);
-
-  const result = await credentialResolver.eip191JwtsOf(
-    'did:ethr:0x0000000000000000000000000000000000000001'
-  );
-
-  expect(result).toEqual([]);
 });
 
 it('Should reject invalid payload', async () => {
@@ -562,38 +351,29 @@ it('Should reject invalid payload', async () => {
   );
 
   const results = [
-    loginStrategy.isTokenPayload({}), // Empty payload,
-    loginStrategy.isTokenPayload(''), // String instead of object,
-    loginStrategy.isTokenPayload(function () {
+    loginStrategy.isSiweMessagePayload({}), // Empty payload,
+    loginStrategy.isSiweMessagePayload(''), // String instead of object,
+    loginStrategy.isSiweMessagePayload(function () {
       return true;
     }), // Function instead of object,
-    loginStrategy.isTokenPayload({
-      claimData: {
-        blockNumber: 4242,
-      },
-    }), // missing keys,
-    loginStrategy.isTokenPayload({
-      iss: 'did:ethr:0x0000000000000000000000000000000000000001',
-      claimData: {},
-    }), // missing keys in nested object,
-    loginStrategy.isTokenPayload({
-      iss: 1,
-      claimData: {
-        blockNumber: 4242,
-      },
+    loginStrategy.isSiweMessagePayload({
+      domain: 'energyweb.org',
+    }), // missing attributes,
+    loginStrategy.isSiweMessagePayload({
+      domain: 'energyweb.org',
+      nonce: 'kjasndkjah8323',
+    }), // missing attributes,
+    loginStrategy.isSiweMessagePayload({
+      domain: 1,
+      address: '0x9D85ca56217D2bb651b00f15e694EB7E713637D4',
+      statement: 'Sign-In With Ethereum Example Statement',
+      uri: 'https://login.xyz',
+      version: '1',
+      nonce: 'bTyXgcQxn2htgkjJn',
+      issuedAt: '2022-01-27T17:09:38.578Z',
+      chainId: 1,
+      expirationTime: '2100-01-07T14:31:43.952Z',
     }), // wrong type,
-    loginStrategy.isTokenPayload({
-      iss: 'asd',
-      claimData: {
-        blockNumber: 4242,
-      },
-    }), // wrong iss DID,
-    loginStrategy.isTokenPayload({
-      iss: 'did:ethr:0x0000000000000000000000000000000000000001',
-      claimData: {
-        blockNumber: 'tomato',
-      },
-    }), // wrong nested properties type,
   ];
 
   expect(results.every((x) => !x)).toBeTruthy();

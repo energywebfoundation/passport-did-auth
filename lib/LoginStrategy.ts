@@ -9,6 +9,7 @@ import {
   ITokenPayload,
   RoleCredentialStatus,
   RoleStatus,
+  ISiweMessagePayload,
 } from './LoginStrategy.types';
 import { Methods, getDIDChain, isValidErc1056 } from '@ew-did-registry/did';
 import { CacheServerClient } from './cacheServerClient';
@@ -32,6 +33,8 @@ import {
   VerificationResult,
 } from '@energyweb/vc-verification';
 import { StatusListEntryVerification } from '@ew-did-registry/revocation';
+import { SiweMessage, SiweResponse } from 'siwe';
+import { hasIn } from 'lodash';
 
 const { JsonRpcProvider } = providers;
 const { abi: abi1056 } = ethrReg;
@@ -205,14 +208,32 @@ export class LoginStrategy extends BaseStrategy {
    */
   async validate(
     token: string,
-    payload: ITokenPayload,
+    payload: ITokenPayload | ISiweMessagePayload,
     done: (err?: Error, user?: unknown, info?: unknown) => void
   ): Promise<void> {
-    if (!this.isTokenPayload(payload)) {
+    if (this.isEIP191TokenPayload(payload)) {
+      return this.verifyEIP191Token(token, payload, done);
+    }
+    if (this.isSiweMessagePayload(payload)) {
+      return this.verifySiweToken(token, payload, done);
+    } else {
       Logger.info('Token payload is not valid');
       return done(undefined, null, 'Token payload is not valid');
     }
+  }
 
+  /**
+   * Verifies EIP191 Token and payload
+   * @param token signature
+   * @param payload EIP191 payload
+   * @param done
+   * @returns
+   */
+  private async verifyEIP191Token(
+    token: string,
+    payload: ITokenPayload,
+    done: (err?: Error, user?: unknown, info?: unknown) => void
+  ): Promise<void> {
     const iss = this.didUnification(payload.iss);
 
     let userDoc: IDIDDocument;
@@ -237,8 +258,6 @@ export class LoginStrategy extends BaseStrategy {
       );
     }
 
-    const userAddress = addressOf(userDid);
-
     try {
       // TODO: remove parseInt (it's only for backward compatibility)
       const claimBlockNumber =
@@ -256,6 +275,49 @@ export class LoginStrategy extends BaseStrategy {
       return done(error);
     }
 
+    return await this.getVerifiedAcceptedRoles(userDid, done);
+  }
+
+  /**
+   * Verifies Siwe Message and signature
+   * @param token signature
+   * @param payload Siwe payload
+   * @param done
+   * @returns
+   */
+  private async verifySiweToken(
+    token: string,
+    payload: ISiweMessagePayload,
+    done: (err?: Error, user?: unknown, info?: unknown) => void
+  ): Promise<void> {
+    const userDid = this.didUnification(`did:ethr:${payload.address}`);
+    const siwe = new SiweMessage(payload);
+    try {
+      await siwe.verify({
+        signature: token,
+        domain: payload.domain,
+        nonce: payload.nonce,
+        time: payload.issuedAt,
+      });
+    } catch (error) {
+      const err = error as SiweResponse;
+      const errorMessage = err.error?.type;
+      return done(new Error(errorMessage));
+    }
+    return this.getVerifiedAcceptedRoles(userDid, done);
+  }
+
+  /**
+   * Fetches verified roles based on the userDID and configured accepted roles
+   * @param userDid user DID
+   * @param done
+   * @returns
+   */
+  private async getVerifiedAcceptedRoles(
+    userDid: string,
+    done: (err?: Error, user?: unknown, info?: unknown) => void
+  ): Promise<void> {
+    const userAddress = addressOf(userDid);
     try {
       /*
        * getUserClaims attempts to retrieve claims from cache-server
@@ -388,7 +450,7 @@ export class LoginStrategy extends BaseStrategy {
     return `${didParts[0]}:${didParts[1]}:${chainName}:${didParts[2]}`;
   }
 
-  isTokenPayload(payload: unknown): payload is ITokenPayload {
+  isEIP191TokenPayload(payload: unknown): payload is ITokenPayload {
     if (!payload) return false;
     if (typeof payload !== 'object') return false;
 
@@ -421,6 +483,28 @@ export class LoginStrategy extends BaseStrategy {
       return false;
     }
 
+    return true;
+  }
+
+  isSiweMessagePayload(payload: unknown): payload is ISiweMessagePayload {
+    if (!payload) return false;
+    if (typeof payload !== 'object') return false;
+    const payloadKeys = Object.keys(payload);
+    if (
+      !hasIn(payload, 'domain') &&
+      !hasIn(payload, 'nonce') &&
+      !hasIn(payload, 'uri') &&
+      !hasIn(payload, 'address')
+    ) {
+      return false;
+    }
+    if (
+      typeof payload['domain'] !== 'string' ||
+      typeof payload['nonce'] !== 'string' ||
+      typeof payload['uri'] !== 'string'
+    ) {
+      return false;
+    }
     return true;
   }
 

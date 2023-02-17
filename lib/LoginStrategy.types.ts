@@ -26,6 +26,20 @@ export interface ITokenPayload {
   iss: string;
 }
 
+export interface ISiweMessagePayload {
+  domain: string;
+  address: string;
+  statement?: string;
+  uri: string;
+  version: string;
+  chainId: number;
+  nonce: string;
+  issuedAt?: string;
+  expirationTime?: string;
+  notBefore?: string;
+  requestId?: string;
+}
+
 export interface CredentialFilters {
   isAccepted?: boolean;
   namespace?: string;
