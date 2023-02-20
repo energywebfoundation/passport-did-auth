@@ -486,7 +486,9 @@ export class LoginStrategy extends BaseStrategy {
     return true;
   }
 
-  isSiweMessagePayload(payload: unknown): payload is Partial<SiweMessagePayload> {
+  isSiweMessagePayload(
+    payload: unknown
+  ): payload is Partial<SiweMessagePayload> {
     if (!payload) return false;
     if (typeof payload !== 'object') return false;
     if (
