@@ -1,17 +1,8 @@
 import { providers } from 'ethers';
 import { preparePassport } from './testUtils/preparePassport';
-import {
-  setChainConfig,
-  initWithPrivateKeySigner,
-  ClaimsService,
-  AssetsService,
-  DidRegistry,
-  setCacheConfig,
-} from 'iam-client-lib';
+import { setChainConfig, setCacheConfig } from 'iam-client-lib';
 import ServerMock from 'mock-http-server';
-import { JWT } from '@ew-did-registry/jwt';
-import { Keys } from '@ew-did-registry/keys';
-
+import { decode } from 'jsonwebtoken';
 import {
   assetsManager,
   claimManager,
@@ -26,37 +17,17 @@ import {
 } from './setup_contracts';
 import { RoleEIP191JWT } from '@energyweb/vc-verification';
 import { Chain } from '@ew-did-registry/did';
-import { ISiweMessagePayload } from '../lib/LoginStrategy.types';
 import { addressOf } from '@ew-did-registry/did-ethr-resolver';
+import type { SiweMessage as SiweMessagePayload } from 'siwe';
 
 const GANACHE_PORT = 8544;
 const rpcUrl = `http://localhost:${GANACHE_PORT}`;
 
 const provider = new providers.JsonRpcProvider(rpcUrl);
 
-// funded private key for 0x627306090abaB3A6e1400e9345bC60c78a8BEf57
-// ganache with "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat" mnemonic
-const userPrivKey =
-  '0xc87509a1c067bbde78beb793e6fa76530b6382a4c0241e5e4a9ec0a0f44dc0d3';
-const userAddress = '0x627306090abaB3A6e1400e9345bC60c78a8BEf57';
-const userDid = `did:ethr:volta:${userAddress}`;
-
-const secondPrivKey =
-  'ae6ae8e5ccbfb04590405997ee2d52d2b330726137b875053c36d94e974d162f';
-const secondAddress = '0xf17f52151EbEF6C7334FAD080c5704D77216b732';
-const secondDid = `did:ethr:volta:${secondAddress}`;
-
 jest.setTimeout(84000);
 
-interface IAM {
-  claimsService?: ClaimsService;
-  assetService?: AssetsService;
-  didRegistry?: DidRegistry;
-}
-
-const iam: IAM = {};
-
-const sampleSiwePayload: ISiweMessagePayload = {
+const sampleSiwePayload: Partial<SiweMessagePayload> = {
   domain: 'login.xyz',
   address: '0x9D85ca56217D2bb651b00f15e694EB7E713637D4',
   statement: 'Sign-In With Ethereum Example Statement',
@@ -77,8 +48,6 @@ const server = new ServerMock(
 );
 const asyncStart = () => new Promise((resolve) => server.start(resolve));
 const asyncStop = () => new Promise((resolve) => server.stop(resolve));
-
-let getOwnedAssets: jest.SpyInstance;
 
 beforeAll(async () => {
   await deployDidRegistry();
@@ -116,23 +85,6 @@ beforeAll(async () => {
     url: 'http://localhost:9000/',
     cacheServerSupportsAuth: false,
   });
-
-  const { connectToCacheServer } = await initWithPrivateKeySigner(
-    userPrivKey,
-    rpcUrl
-  );
-  const { connectToDidRegistry, assetsService } = await connectToCacheServer();
-
-  const { claimsService, didRegistry } = await connectToDidRegistry();
-  iam.claimsService = claimsService;
-  iam.assetService = assetsService;
-  iam.didRegistry = didRegistry;
-
-  jest
-    .spyOn(iam.assetService, 'getAssetById')
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .mockResolvedValue(undefined as any);
-  getOwnedAssets = jest.spyOn(iam.assetService, 'getOwnedAssets');
 });
 
 afterAll(async () => {
@@ -149,8 +101,7 @@ it('Should authenticate issuer signature with Siwe', async () => {
   expect(token).toBeTruthy();
 
   await loginStrategy?.validate(token, sampleSiwePayload, (_, user) => {
-    const jwt = new JWT(new Keys({ privateKey: userPrivKey }));
-    const decodedVerifiedUser = jwt.decode(user as string) as {
+    const decodedVerifiedUser = decode(user as string) as {
       [key: string]: string | object;
     };
     expect(addressOf(decodedVerifiedUser.did as string)).toBe(
@@ -205,7 +156,7 @@ it('Should reject invalid token payload', async () => {
   const wrongPayload = { ...sampleSiwePayload };
   delete wrongPayload.nonce;
   const consoleListener = jest.spyOn(console, 'log');
-  await loginStrategy?.validate(token, wrongPayload, (err) => {
+  await loginStrategy?.validate(token, wrongPayload, () => {
     expect(consoleListener).toBeCalledWith('Token payload is not valid');
   });
   const delay = (ms) => new Promise((res) => setTimeout(res, ms));
@@ -225,7 +176,6 @@ it('Should not validate issuer if no accepted roles found', async () => {
   expect(token).toBeTruthy();
   console.log(sampleSiwePayload);
   await loginStrategy?.validate(token, sampleSiwePayload, (_, user, err) => {
-    const jwt = new JWT(new Keys({ privateKey: userPrivKey }));
     expect(err).toEqual('User does not have any roles.');
   });
 });
