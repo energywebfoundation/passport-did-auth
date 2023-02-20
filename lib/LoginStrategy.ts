@@ -9,7 +9,6 @@ import {
   ITokenPayload,
   RoleCredentialStatus,
   RoleStatus,
-  ISiweMessagePayload,
 } from './LoginStrategy.types';
 import { Methods, getDIDChain, isValidErc1056 } from '@ew-did-registry/did';
 import { CacheServerClient } from './cacheServerClient';
@@ -34,6 +33,7 @@ import {
 } from '@energyweb/vc-verification';
 import { StatusListEntryVerification } from '@ew-did-registry/revocation';
 import { SiweMessage, SiweResponse } from 'siwe';
+import type { SiweMessage as SiweMessagePayload } from 'siwe';
 import { hasIn } from 'lodash';
 
 const { JsonRpcProvider } = providers;
@@ -208,7 +208,7 @@ export class LoginStrategy extends BaseStrategy {
    */
   async validate(
     token: string,
-    payload: ITokenPayload | ISiweMessagePayload,
+    payload: ITokenPayload | Partial<SiweMessagePayload>,
     done: (err?: Error, user?: unknown, info?: unknown) => void
   ): Promise<void> {
     if (this.isEIP191TokenPayload(payload)) {
@@ -287,7 +287,7 @@ export class LoginStrategy extends BaseStrategy {
    */
   private async verifySiweToken(
     token: string,
-    payload: ISiweMessagePayload,
+    payload: Partial<SiweMessagePayload>,
     done: (err?: Error, user?: unknown, info?: unknown) => void
   ): Promise<void> {
     const userDid = this.didUnification(`did:ethr:${payload.address}`);
@@ -486,14 +486,13 @@ export class LoginStrategy extends BaseStrategy {
     return true;
   }
 
-  isSiweMessagePayload(payload: unknown): payload is ISiweMessagePayload {
+  isSiweMessagePayload(payload: unknown): payload is Partial<SiweMessagePayload> {
     if (!payload) return false;
     if (typeof payload !== 'object') return false;
-    const payloadKeys = Object.keys(payload);
     if (
-      !hasIn(payload, 'domain') &&
-      !hasIn(payload, 'nonce') &&
-      !hasIn(payload, 'uri') &&
+      !hasIn(payload, 'domain') ||
+      !hasIn(payload, 'nonce') ||
+      !hasIn(payload, 'uri') ||
       !hasIn(payload, 'address')
     ) {
       return false;
