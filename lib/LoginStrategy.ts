@@ -57,6 +57,7 @@ export interface LoginStrategyOptions extends StrategyOptions {
   includeAllRoles?: boolean;
   jwtSecret?: string | Buffer;
   jwtSignOptions?: jwt.SignOptions;
+  siweMessageUri?: string;
 }
 
 export class LoginStrategy extends BaseStrategy {
@@ -73,6 +74,7 @@ export class LoginStrategy extends BaseStrategy {
   private readonly issuerVerification: IssuerVerification;
   private readonly revocationVerification: RevocationVerification;
   private readonly statuslListEntryVerification: StatusListEntryVerification;
+  private readonly siweMessageUri?: string;
 
   constructor(
     {
@@ -89,6 +91,7 @@ export class LoginStrategy extends BaseStrategy {
       ipfsUrl = 'https://ipfs.infura.io:5001/api/v0/',
       acceptedRoles,
       includeAllRoles,
+      siweMessageUri,
       ...options
     }: LoginStrategyOptions,
     issuerResolver: IssuerResolver,
@@ -104,6 +107,7 @@ export class LoginStrategy extends BaseStrategy {
   ) {
     super(options);
     this.claimField = claimField;
+    this.siweMessageUri = siweMessageUri;
     this.provider = new JsonRpcProvider(rpcUrl);
     this.domainReader = new DomainReader({
       ensRegistryAddress,
@@ -290,6 +294,14 @@ export class LoginStrategy extends BaseStrategy {
     payload: Partial<SiweMessagePayload>,
     done: (err?: Error, user?: unknown, info?: unknown) => void
   ): Promise<void> {
+    if (this.siweMessageUri && this.siweMessageUri !== payload.uri) {
+      Logger.info('uri in siwe message payload is incorrect');
+      return done(
+        new Error('uri in siwe message payload is incorrect'),
+        undefined,
+        null
+      );
+    }
     const userDid = this.didUnification(`did:ethr:${payload.address}`);
     const siwe = new SiweMessage(payload);
     try {

@@ -182,6 +182,26 @@ it('Should reject invalid token payload', async () => {
   });
 });
 
+it('Should reject token payload with wrong uri', async () => {
+  const wrongPayload = { ...sampleSiwePayload };
+  const { loginStrategy } = preparePassport(
+    provider,
+    ensResolver.address,
+    didContract.address,
+    ensRegistry.address,
+    false,
+    [],
+    'https://login.abc'
+  );
+  const consoleListener = jest.spyOn(console, 'log');
+  await loginStrategy?.validate(token, wrongPayload, (err) => {
+    expect(consoleListener).toBeCalledWith(
+      'uri in siwe message payload is incorrect'
+    );
+    expect(err.message).toBe('uri in siwe message payload is incorrect');
+  });
+});
+
 it('Should not validate issuer if no accepted roles found', async () => {
   const { loginStrategy } = preparePassport(
     provider,
@@ -193,7 +213,6 @@ it('Should not validate issuer if no accepted roles found', async () => {
   );
 
   expect(token).toBeTruthy();
-  console.log(sampleSiwePayload);
   await loginStrategy?.validate(token, sampleSiwePayload, (_, user, err) => {
     expect(err).toEqual('User does not have any roles.');
   });
