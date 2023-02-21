@@ -23,6 +23,7 @@ import {
   RoleCredentialStatus,
   AuthorisedUser,
   RoleStatus,
+  SiweReqPayload
 } from './lib/LoginStrategy.types';
 
 export {
@@ -44,6 +45,7 @@ export {
   RoleRevokerResolver,
   RoleStatus,
   ResolverContractType,
+  SiweReqPayload,
   VOLTA_CHAIN_ID,
   VOLTA_ERC_1056_ADDRESS,
   VOLTA_ENS_REGISTRY_ADDRESS,

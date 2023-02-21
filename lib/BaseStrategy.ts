@@ -2,7 +2,7 @@
 import { Strategy } from 'passport';
 import { Request } from 'express';
 import { inherits } from 'util';
-import { SiweMessageReqPayload } from './LoginStrategy.types';
+import { SiweReqPayload } from './LoginStrategy.types';
 
 export interface StrategyOptions {
   name: string;
@@ -41,7 +41,7 @@ export abstract class BaseStrategy extends Strategy {
    * @param req object that encapsules request to protected endpoint
    * @returns encoded siwe signature and message
    */
-  abstract extractSiwe(req: Request): SiweMessageReqPayload;
+  abstract extractSiwe(req: Request): SiweReqPayload | null;
   /**
    * @abstract
    * @description decodes token payload
@@ -80,7 +80,7 @@ export abstract class BaseStrategy extends Strategy {
     if (token) {
       const tokenPayload = this.decodeToken(token);
       this.validate(token, tokenPayload, verified);
-    } else if (siweObject.signature && siweObject.message) {
+    } else if (siweObject) {
       this.validate(siweObject.signature, siweObject.message, verified);
     } else {
       return this.fail('Missing credentials', 400);

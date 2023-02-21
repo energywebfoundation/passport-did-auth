@@ -9,7 +9,7 @@ import {
   ITokenPayload,
   RoleCredentialStatus,
   RoleStatus,
-  SiweMessageReqPayload,
+  SiweReqPayload,
 } from './LoginStrategy.types';
 import { Methods, getDIDChain, isValidErc1056 } from '@ew-did-registry/did';
 import { CacheServerClient } from './cacheServerClient';
@@ -430,20 +430,15 @@ export class LoginStrategy extends BaseStrategy {
    * @param req
    * @returns {string} siwe object - message and signature
    */
-  extractSiwe(req: Request): SiweMessageReqPayload {
-    if (req.body.identity)
+  extractSiwe(req: Request): SiweReqPayload | null {
+    if (req.body.message && req.body.signature) {
       return {
-        signature:
-          lookup(req.body.identity, 'signature') ||
-          lookup(req.query, 'signature'),
-        message: req.body.message,
+        signature: req.body.signature,
+        message: new SiweMessage(req.body.message),
       };
-
-    return {
-      signature:
-        lookup(req.body, 'signature') || lookup(req.query, 'signature'),
-      message: req.body.message,
-    };
+    } else {
+      return null;
+    }
   }
 
   async getRoleDefinition(

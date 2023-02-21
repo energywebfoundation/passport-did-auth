@@ -27,9 +27,9 @@ export interface ITokenPayload {
   iss: string;
 }
 
-export interface SiweMessageReqPayload {
-  signature: string | null;
-  message: Partial<SiweMessagePayload> | null;
+export interface SiweReqPayload {
+  signature: string;
+  message: Partial<SiweMessagePayload>;
 }
 
 export interface CredentialFilters {
