@@ -9,6 +9,7 @@ import {
   ITokenPayload,
   RoleCredentialStatus,
   RoleStatus,
+  SiweMessageReqPayload,
 } from './LoginStrategy.types';
 import { Methods, getDIDChain, isValidErc1056 } from '@ew-did-registry/did';
 import { CacheServerClient } from './cacheServerClient';
@@ -34,7 +35,6 @@ import {
 import { StatusListEntryVerification } from '@ew-did-registry/revocation';
 import { SiweMessage, SiweResponse } from 'siwe';
 import type { SiweMessage as SiweMessagePayload } from 'siwe';
-import { hasIn } from 'lodash';
 
 const { JsonRpcProvider } = providers;
 const { abi: abi1056 } = ethrReg;
@@ -413,6 +413,27 @@ export class LoginStrategy extends BaseStrategy {
     );
   }
 
+  /**
+   * extracts siwe message and signature either from request body or query
+   * @param req
+   * @returns {string} siwe object - message and signature
+   */
+  extractSiwe(req: Request): SiweMessageReqPayload {
+    if (req.body.identity)
+      return {
+        signature:
+          lookup(req.body.identity, 'signature') ||
+          lookup(req.query, 'signature'),
+        message: req.body.message,
+      };
+
+    return {
+      signature:
+        lookup(req.body, 'signature') || lookup(req.query, 'signature'),
+      message: req.body.message,
+    };
+  }
+
   async getRoleDefinition(
     namespace: string
   ): Promise<IRoleDefinitionV2 | null> {
@@ -491,18 +512,12 @@ export class LoginStrategy extends BaseStrategy {
   ): payload is Partial<SiweMessagePayload> {
     if (!payload) return false;
     if (typeof payload !== 'object') return false;
+    const castedPayload = payload as SiweMessage;
     if (
-      !hasIn(payload, 'domain') ||
-      !hasIn(payload, 'nonce') ||
-      !hasIn(payload, 'uri') ||
-      !hasIn(payload, 'address')
-    ) {
-      return false;
-    }
-    if (
-      typeof payload['domain'] !== 'string' ||
-      typeof payload['nonce'] !== 'string' ||
-      typeof payload['uri'] !== 'string'
+      typeof castedPayload.domain !== 'string' ||
+      typeof castedPayload.nonce !== 'string' ||
+      typeof castedPayload.uri !== 'string' ||
+      typeof castedPayload.address !== 'string'
     ) {
       return false;
     }

@@ -1,4 +1,5 @@
 import { providers } from 'ethers';
+import { getServer } from './testUtils/server';
 import { preparePassport } from './testUtils/preparePassport';
 import { setChainConfig, setCacheConfig } from 'iam-client-lib';
 import ServerMock from 'mock-http-server';
@@ -19,6 +20,7 @@ import { RoleEIP191JWT } from '@energyweb/vc-verification';
 import { Chain } from '@ew-did-registry/did';
 import { addressOf } from '@ew-did-registry/did-ethr-resolver';
 import type { SiweMessage as SiweMessagePayload } from 'siwe';
+import request from 'supertest';
 
 const GANACHE_PORT = 8544;
 const rpcUrl = `http://localhost:${GANACHE_PORT}`;
@@ -91,6 +93,25 @@ afterAll(async () => {
   await asyncStop();
 });
 
+it('Should be able to login with siwe', async () => {
+  const signature = token;
+  const server = getServer(
+    provider,
+    ensResolver.address,
+    didContract.address,
+    ensRegistry.address
+  );
+  const connection = server.listen(4242, () => {
+    console.log('Test Server is ready and listening on port 4242');
+  });
+  const response = await request(server)
+    .post('/login')
+    .send({ signature: signature, message: sampleSiwePayload });
+  expect(response.statusCode).toBe(200);
+  expect(response.body.token).toBeDefined();
+  connection.close();
+});
+
 it('Should authenticate issuer signature with Siwe', async () => {
   const { loginStrategy } = preparePassport(
     provider,
@@ -159,8 +180,6 @@ it('Should reject invalid token payload', async () => {
   await loginStrategy?.validate(token, wrongPayload, () => {
     expect(consoleListener).toBeCalledWith('Token payload is not valid');
   });
-  const delay = (ms) => new Promise((res) => setTimeout(res, ms));
-  await delay(10000);
 });
 
 it('Should not validate issuer if no accepted roles found', async () => {

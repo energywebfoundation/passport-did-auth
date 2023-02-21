@@ -1,5 +1,6 @@
 import { IRoleDefinitionV2 } from '@energyweb/credential-governance';
 import { VerifiablePresentation } from '@ew-did-registry/credentials-interface';
+import type { SiweMessage as SiweMessagePayload } from 'siwe';
 
 export { IRoleDefinitionV2 };
 
@@ -26,18 +27,9 @@ export interface ITokenPayload {
   iss: string;
 }
 
-export interface ISiweMessagePayload {
-  domain: string;
-  address: string;
-  statement?: string;
-  uri: string;
-  version: string;
-  chainId: number;
-  nonce: string;
-  issuedAt?: string;
-  expirationTime?: string;
-  notBefore?: string;
-  requestId?: string;
+export interface SiweMessageReqPayload {
+  signature: string | null;
+  message: Partial<SiweMessagePayload> | null;
 }
 
 export interface CredentialFilters {
