@@ -23,7 +23,7 @@ import {
   RoleCredentialStatus,
   AuthorisedUser,
   RoleStatus,
-  SiweReqPayload
+  SiweReqPayload,
 } from './lib/LoginStrategy.types';
 
 export {
@@ -51,3 +51,5 @@ export {
   VOLTA_ENS_REGISTRY_ADDRESS,
   VOLTA_RESOLVER_V2_ADDRESS,
 };
+
+export * from './lib/errors';

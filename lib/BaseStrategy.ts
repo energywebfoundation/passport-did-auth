@@ -3,6 +3,7 @@ import { Strategy } from 'passport';
 import { Request } from 'express';
 import { inherits } from 'util';
 import { SiweReqPayload } from './LoginStrategy.types';
+import { InvalidSiweMessage } from './errors';
 
 export interface StrategyOptions {
   name: string;
@@ -67,7 +68,14 @@ export abstract class BaseStrategy extends Strategy {
    */
   authenticate(req: Request): void {
     const token = this.extractToken(req);
-    const siweObject = this.extractSiwe(req);
+    let siweObject: SiweReqPayload | null;
+    try {
+      siweObject = this.extractSiwe(req);
+    } catch (e) {
+      throw new InvalidSiweMessage(
+        `Message ${req.body.message} can not be parsed to SiweMessage`
+      );
+    }
     const verified = (err, user, info) => {
       if (err) {
         return this.error(err);
