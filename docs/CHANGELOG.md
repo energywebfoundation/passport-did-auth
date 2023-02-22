@@ -1,3 +1,23 @@
+## [2.0.0-alpha.27](https://github.com/energywebfoundation/passport-did-auth/compare/v2.0.0-alpha.26...v2.0.0-alpha.27) (2023-02-22)
+
+
+### Features
+
+* add support for siwe ([677201a](https://github.com/energywebfoundation/passport-did-auth/commit/677201a08680497e5a0dfc3489bdc772b19a43a4))
+* add validation check for siwe message uri ([a17ad4b](https://github.com/energywebfoundation/passport-did-auth/commit/a17ad4b012a05c9a0e8f21e963f2b4e19f9260fc))
+* update authenticate to handle login via siwe ([0dbc1c3](https://github.com/energywebfoundation/passport-did-auth/commit/0dbc1c3a0c0d01946dd0844ab855951d63fa6ca0))
+
+
+### Bug Fixes
+
+* code lint error ([210ae06](https://github.com/energywebfoundation/passport-did-auth/commit/210ae0665641d367260528576be974534eb7e911))
+* use type siwemessage ([2895345](https://github.com/energywebfoundation/passport-did-auth/commit/2895345f97cacdefa89683031d7ca1055a117547))
+
+
+### Documentation
+
+* update docs for loginstrategy ([b5c9afe](https://github.com/energywebfoundation/passport-did-auth/commit/b5c9afe56b7ebcdf6ca7853c34f1b60d5c74e1ff))
+
 ## [2.0.0-alpha.26](https://github.com/energywebfoundation/passport-did-auth/compare/v2.0.0-alpha.25...v2.0.0-alpha.26) (2023-01-17)
 
 
