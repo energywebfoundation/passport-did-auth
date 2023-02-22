@@ -9,6 +9,7 @@ import {
   ITokenPayload,
   RoleCredentialStatus,
   RoleStatus,
+  SiweReqPayload,
 } from './LoginStrategy.types';
 import { Methods, getDIDChain, isValidErc1056 } from '@ew-did-registry/did';
 import { CacheServerClient } from './cacheServerClient';
@@ -32,6 +33,8 @@ import {
   VerificationResult,
 } from '@energyweb/vc-verification';
 import { StatusListEntryVerification } from '@ew-did-registry/revocation';
+import { SiweMessage, SiweResponse } from 'siwe';
+import type { SiweMessage as SiweMessagePayload } from 'siwe';
 
 const { JsonRpcProvider } = providers;
 const { abi: abi1056 } = ethrReg;
@@ -54,6 +57,7 @@ export interface LoginStrategyOptions extends StrategyOptions {
   includeAllRoles?: boolean;
   jwtSecret?: string | Buffer;
   jwtSignOptions?: jwt.SignOptions;
+  siweMessageUri?: string;
 }
 
 export class LoginStrategy extends BaseStrategy {
@@ -70,6 +74,7 @@ export class LoginStrategy extends BaseStrategy {
   private readonly issuerVerification: IssuerVerification;
   private readonly revocationVerification: RevocationVerification;
   private readonly statuslListEntryVerification: StatusListEntryVerification;
+  private readonly siweMessageUri?: string;
 
   constructor(
     {
@@ -86,6 +91,7 @@ export class LoginStrategy extends BaseStrategy {
       ipfsUrl = 'https://ipfs.infura.io:5001/api/v0/',
       acceptedRoles,
       includeAllRoles,
+      siweMessageUri,
       ...options
     }: LoginStrategyOptions,
     issuerResolver: IssuerResolver,
@@ -101,6 +107,7 @@ export class LoginStrategy extends BaseStrategy {
   ) {
     super(options);
     this.claimField = claimField;
+    this.siweMessageUri = siweMessageUri;
     this.provider = new JsonRpcProvider(rpcUrl);
     this.domainReader = new DomainReader({
       ensRegistryAddress,
@@ -205,14 +212,32 @@ export class LoginStrategy extends BaseStrategy {
    */
   async validate(
     token: string,
-    payload: ITokenPayload,
+    payload: ITokenPayload | Partial<SiweMessagePayload>,
     done: (err?: Error, user?: unknown, info?: unknown) => void
   ): Promise<void> {
-    if (!this.isTokenPayload(payload)) {
+    if (this.isEIP191TokenPayload(payload)) {
+      return this.verifyEIP191Token(token, payload, done);
+    }
+    if (this.isSiweMessagePayload(payload)) {
+      return this.verifySiweToken(token, payload, done);
+    } else {
       Logger.info('Token payload is not valid');
       return done(undefined, null, 'Token payload is not valid');
     }
+  }
 
+  /**
+   * Verifies EIP191 Token and payload
+   * @param token signature
+   * @param payload EIP191 payload
+   * @param done
+   * @returns
+   */
+  private async verifyEIP191Token(
+    token: string,
+    payload: ITokenPayload,
+    done: (err?: Error, user?: unknown, info?: unknown) => void
+  ): Promise<void> {
     const iss = this.didUnification(payload.iss);
 
     let userDoc: IDIDDocument;
@@ -237,8 +262,6 @@ export class LoginStrategy extends BaseStrategy {
       );
     }
 
-    const userAddress = addressOf(userDid);
-
     try {
       // TODO: remove parseInt (it's only for backward compatibility)
       const claimBlockNumber =
@@ -256,6 +279,57 @@ export class LoginStrategy extends BaseStrategy {
       return done(error);
     }
 
+    return await this.getVerifiedAcceptedRoles(userDid, done);
+  }
+
+  /**
+   * Verifies Siwe Message and signature
+   * @param token signature
+   * @param payload Siwe payload
+   * @param done
+   * @returns
+   */
+  private async verifySiweToken(
+    token: string,
+    payload: Partial<SiweMessagePayload>,
+    done: (err?: Error, user?: unknown, info?: unknown) => void
+  ): Promise<void> {
+    if (this.siweMessageUri && this.siweMessageUri !== payload.uri) {
+      Logger.info('uri in siwe message payload is incorrect');
+      return done(
+        new Error('uri in siwe message payload is incorrect'),
+        undefined,
+        null
+      );
+    }
+    const userDid = this.didUnification(`did:ethr:${payload.address}`);
+    const siwe = new SiweMessage(payload);
+    try {
+      await siwe.verify({
+        signature: token,
+        domain: payload.domain,
+        nonce: payload.nonce,
+        time: payload.issuedAt,
+      });
+    } catch (error) {
+      const err = error as SiweResponse;
+      const errorMessage = err.error?.type;
+      return done(new Error(errorMessage));
+    }
+    return this.getVerifiedAcceptedRoles(userDid, done);
+  }
+
+  /**
+   * Fetches verified roles based on the userDID and configured accepted roles
+   * @param userDid user DID
+   * @param done
+   * @returns
+   */
+  private async getVerifiedAcceptedRoles(
+    userDid: string,
+    done: (err?: Error, user?: unknown, info?: unknown) => void
+  ): Promise<void> {
+    const userAddress = addressOf(userDid);
     try {
       /*
        * getUserClaims attempts to retrieve claims from cache-server
@@ -351,6 +425,22 @@ export class LoginStrategy extends BaseStrategy {
     );
   }
 
+  /**
+   * extracts siwe message and signature either from request body or query
+   * @param req
+   * @returns {string} siwe object - message and signature
+   */
+  extractSiwe(req: Request): SiweReqPayload | null {
+    if (req.body.message && req.body.signature) {
+      return {
+        signature: req.body.signature,
+        message: new SiweMessage(req.body.message),
+      };
+    } else {
+      return null;
+    }
+  }
+
   async getRoleDefinition(
     namespace: string
   ): Promise<IRoleDefinitionV2 | null> {
@@ -388,7 +478,7 @@ export class LoginStrategy extends BaseStrategy {
     return `${didParts[0]}:${didParts[1]}:${chainName}:${didParts[2]}`;
   }
 
-  isTokenPayload(payload: unknown): payload is ITokenPayload {
+  isEIP191TokenPayload(payload: unknown): payload is ITokenPayload {
     if (!payload) return false;
     if (typeof payload !== 'object') return false;
 
@@ -421,6 +511,23 @@ export class LoginStrategy extends BaseStrategy {
       return false;
     }
 
+    return true;
+  }
+
+  isSiweMessagePayload(
+    payload: unknown
+  ): payload is Partial<SiweMessagePayload> {
+    if (!payload) return false;
+    if (typeof payload !== 'object') return false;
+    const castedPayload = payload as SiweMessage;
+    if (
+      typeof castedPayload.domain !== 'string' ||
+      typeof castedPayload.nonce !== 'string' ||
+      typeof castedPayload.uri !== 'string' ||
+      typeof castedPayload.address !== 'string'
+    ) {
+      return false;
+    }
     return true;
   }
 

@@ -82,7 +82,8 @@ export const preparePassport = (
   didRegistryAddress: string,
   ensRegistryAddress: string,
   includeAllRoles?: boolean,
-  acceptedRoles?: string[]
+  acceptedRoles?: string[],
+  siweMessageUri?: string
 ): Partial<{
   passport: passport.PassportStatic;
   LOGIN_STRATEGY: string;
@@ -97,6 +98,7 @@ export const preparePassport = (
     ensRegistryAddress: ensRegistryAddress,
     includeAllRoles: includeAllRoles,
     acceptedRoles: acceptedRoles,
+    siweMessageUri: siweMessageUri,
   };
   const registrySettings: RegistrySettings = {
     abi: ethrReg.abi,
