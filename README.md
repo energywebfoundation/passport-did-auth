@@ -68,18 +68,9 @@ end
 
 This class provides implementation for verification of issued roles credential. The verification ensures that the credentials were issued by the authorised issuers and are neither revoked nor expired. LoginStrategy can be configured to authenticate only EnergyWeb Roles.
 
-LoginStrategy relies on [`IssuerVerification`](https://github.com/energywebfoundation/ew-credentials/blob/develop/packages/vc-verification/src/verifier/issuer-verification.ts) internally for verification of the roles credential. 
+To know more about `LoginStrategy` initialization check [How to configure LoginStrategy](./configure-loginstrategy.md).
 
-In order to use LoginStrategy, one needs to intialise and provide :
-[`RoleIssuerResolver`](./lib/RoleIssuerResolver.ts/)
-[`RoleRevokerResolver`](./lib/RoleRevokerResolver.ts/)
-[`RoleCredentialResolver`](./lib/RoleCredentialResolver.ts/)
-
-Addresses for deployed contracts are exported by [`@energyweb/credential-governance`](https://github.com/energywebfoundation/ew-credentials/blob/develop/packages/credential-governance/src/chain-constants.ts). One can choose the addresses based on the chain they want to operate upon.
-
-It is also possible to provide own implementation of these resolvers by implementing these [`Interfaces`](https://github.com/energywebfoundation/ew-credentials/tree/develop/packages/vc-verification/src/resolver). The purpose of these resolvers are to resolve authorities responsible for issuance and revocation of these role credentials.
-
-To be able to use `LoginStrategy` to authorise DIDs based on role credentials, one can provide one of the two values -  either flag `includeAllRoles` (_verifies all the role credential issued to given DID_) attribute to `true` or provide set of `acceptedRoles` (_DID needs to have atleast one of the metioned role credential issued to it_) while initialising `LoginStrategy`. `includeAllRoles` will override `acceptedRoles` in case both values are provided. Check other configurations / parameters for [`LoginStrategy`](./lib/LoginStrategy.ts/)
+#### Example LoginStrategy Initialisation
 
 ```Typescript
 import {
@@ -171,8 +162,12 @@ passport.use(
     return _done(null, _payload);
   })
 );
+```
 
-const token = 'askjad...';
+### Login with EIP191 Jwt token (Sign-in with Ethereum)
+
+```typescript
+const token = 'askjad...'; // EIP191 signed JWT
 const payload = {
   iss: `did:ethr:volta:0x1224....`,
   claimData: {
@@ -183,21 +178,30 @@ const payload = {
 
 await loginStrategy.validate(token, payload);
 ```
-
-## Token payload structure
-
-Token payload should have following structure
-
-```Typescript
-{
-  claimData: {
-    blockNumber: number;
-  };
-  iss: string;
-}
-```
-
 where the `iss` is DID of the subject and `blockNumber` is block number (or height) of the most recently mined block.
+
+### Login with SIWE (Sign-in with Ethereum)
+
+* While login with SIWE, one must initialise LoginStrategy with `siweMessageUri` (one of the attribute of `LoginStrategyOptions`).
+
+```typescript
+const token = '0xdc35c7f8ba2720df052e0092556456127f00f7707eaa8e3bbff7e56774e7f2e05a093cfc9e02964c33d86e8e066e221b7d153d27e5a2e97ccd5ca7d3f2ce06cb1b'; // EIP712 signature
+
+const sampleSiwePayload: Partial<SiweMessagePayload> = {
+  domain: 'login.xyz',
+  address: '0x9D85ca56217D2bb651b00f15e694EB7E713637D4',
+  statement: 'Sign-In With Ethereum Example Statement',
+  uri: 'https://login.xyz',
+  version: '1',
+  nonce: 'bTyXgcQxn2htgkjJn',
+  issuedAt: '2022-01-27T17:09:38.578Z',
+  chainId: 1,
+  expirationTime: '2100-01-07T14:31:43.952Z',
+};
+
+await loginStrategy.validate(token, payload);
+```
+> Read more about Sign-In with Ethereum [here](https://docs.login.xyz)
 
 ### Prerequisities
 
