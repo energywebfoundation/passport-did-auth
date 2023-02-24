@@ -1,3 +1,12 @@
+## [2.0.0-alpha.28](https://github.com/energywebfoundation/passport-did-auth/compare/v2.0.0-alpha.27...v2.0.0-alpha.28) (2023-02-24)
+
+
+### Bug Fixes
+
+* code linting error ([2053da1](https://github.com/energywebfoundation/passport-did-auth/commit/2053da157724c971f6232666f5e58661cd162aa3))
+* update implementation specific to jsonwebtoken ([775212a](https://github.com/energywebfoundation/passport-did-auth/commit/775212ab384460553686fa93963304c0f4fd0be8))
+* use jwtsignoptions for test cases ([48ac9b5](https://github.com/energywebfoundation/passport-did-auth/commit/48ac9b5c202ae56b5eea70e0a8ed7573395ddae6))
+
 ## [2.0.0-alpha.27](https://github.com/energywebfoundation/passport-did-auth/compare/v2.0.0-alpha.26...v2.0.0-alpha.27) (2023-02-22)
 
 
