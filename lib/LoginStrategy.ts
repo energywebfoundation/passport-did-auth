@@ -1,6 +1,6 @@
 import { BaseStrategy, StrategyOptions } from './BaseStrategy';
 import { Request } from 'express';
-import * as jwt from 'jsonwebtoken';
+import { decode, SignOptions, DecodeOptions, sign } from 'jsonwebtoken';
 import { providers } from 'ethers';
 import { ethrReg, addressOf } from '@ew-did-registry/did-ethr-resolver';
 import { lookup, namehash } from './utils';
@@ -56,14 +56,14 @@ export interface LoginStrategyOptions extends StrategyOptions {
   acceptedRoles?: string[];
   includeAllRoles?: boolean;
   jwtSecret?: string | Buffer;
-  jwtSignOptions?: jwt.SignOptions;
+  jwtSignOptions?: SignOptions;
   siweMessageUri?: string;
 }
 
 export class LoginStrategy extends BaseStrategy {
   private readonly claimField: string;
   private readonly jwtSecret?: string | Buffer;
-  private readonly jwtSignOptions?: jwt.SignOptions;
+  private readonly jwtSignOptions?: SignOptions;
   private readonly provider: providers.JsonRpcProvider;
   private readonly numberOfBlocksBack: number;
   private readonly domainReader: DomainReader;
@@ -392,10 +392,7 @@ export class LoginStrategy extends BaseStrategy {
         );
       }
       if (this.jwtSecret) {
-        return done(
-          undefined,
-          jwt.sign(user, this.jwtSecret, this.jwtSignOptions)
-        );
+        return done(undefined, sign(user, this.jwtSecret, this.jwtSignOptions));
       }
       return done(undefined, user);
     } catch (err) {
@@ -405,8 +402,8 @@ export class LoginStrategy extends BaseStrategy {
     }
   }
 
-  decodeToken<T>(token: string, options?: jwt.DecodeOptions): T {
-    return jwt.decode(token, options) as T;
+  decodeToken<T>(token: string, options?: DecodeOptions): T {
+    return decode(token, options) as T;
   }
 
   /**
