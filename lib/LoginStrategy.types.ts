@@ -1,5 +1,6 @@
 import { IRoleDefinitionV2 } from '@energyweb/credential-governance';
 import { VerifiablePresentation } from '@ew-did-registry/credentials-interface';
+import type { SiweMessage as SiweMessagePayload } from 'siwe';
 
 export { IRoleDefinitionV2 };
 
@@ -24,6 +25,11 @@ export interface ITokenPayload {
     blockNumber: number;
   };
   iss: string;
+}
+
+export interface SiweReqPayload {
+  signature: string;
+  message: Partial<SiweMessagePayload>;
 }
 
 export interface CredentialFilters {

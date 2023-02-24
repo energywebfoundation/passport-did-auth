@@ -562,33 +562,33 @@ it('Should reject invalid payload', async () => {
   );
 
   const results = [
-    loginStrategy.isTokenPayload({}), // Empty payload,
-    loginStrategy.isTokenPayload(''), // String instead of object,
-    loginStrategy.isTokenPayload(function () {
+    loginStrategy.isEIP191TokenPayload({}), // Empty payload,
+    loginStrategy.isEIP191TokenPayload(''), // String instead of object,
+    loginStrategy.isEIP191TokenPayload(function () {
       return true;
     }), // Function instead of object,
-    loginStrategy.isTokenPayload({
+    loginStrategy.isEIP191TokenPayload({
       claimData: {
         blockNumber: 4242,
       },
     }), // missing keys,
-    loginStrategy.isTokenPayload({
+    loginStrategy.isEIP191TokenPayload({
       iss: 'did:ethr:0x0000000000000000000000000000000000000001',
       claimData: {},
     }), // missing keys in nested object,
-    loginStrategy.isTokenPayload({
+    loginStrategy.isEIP191TokenPayload({
       iss: 1,
       claimData: {
         blockNumber: 4242,
       },
     }), // wrong type,
-    loginStrategy.isTokenPayload({
+    loginStrategy.isEIP191TokenPayload({
       iss: 'asd',
       claimData: {
         blockNumber: 4242,
       },
     }), // wrong iss DID,
-    loginStrategy.isTokenPayload({
+    loginStrategy.isEIP191TokenPayload({
       iss: 'did:ethr:0x0000000000000000000000000000000000000001',
       claimData: {
         blockNumber: 'tomato',
