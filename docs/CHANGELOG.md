@@ -1,3 +1,10 @@
+## [2.0.0-alpha.29](https://github.com/energywebfoundation/passport-did-auth/compare/v2.0.0-alpha.28...v2.0.0-alpha.29) (2023-03-01)
+
+
+### Features
+
+* login strategy login to ssi-hub with siwe ([c816b1c](https://github.com/energywebfoundation/passport-did-auth/commit/c816b1cc767d2fffdeecc9d8e92f02e84d3e96cc))
+
 ## [2.0.0-alpha.28](https://github.com/energywebfoundation/passport-did-auth/compare/v2.0.0-alpha.27...v2.0.0-alpha.28) (2023-02-24)
 
 
