@@ -58,6 +58,7 @@ export interface LoginStrategyOptions extends StrategyOptions {
   jwtSecret?: string | Buffer;
   jwtSignOptions?: SignOptions;
   siweMessageUri?: string;
+  chainName?: string;
 }
 
 export class LoginStrategy extends BaseStrategy {
@@ -92,6 +93,7 @@ export class LoginStrategy extends BaseStrategy {
       acceptedRoles,
       includeAllRoles,
       siweMessageUri,
+      chainName,
       ...options
     }: LoginStrategyOptions,
     issuerResolver: IssuerResolver,
@@ -133,6 +135,7 @@ export class LoginStrategy extends BaseStrategy {
         privateKey,
         provider: this.provider,
         url: cacheServerUrl,
+        chainName: chainName,
       });
       this.cacheServerClient.login();
     }
@@ -464,7 +467,6 @@ export class LoginStrategy extends BaseStrategy {
     if (foundChainInfo) return did;
 
     const didParts = did.split(':');
-
     let chainName = 'volta';
     if (
       this.cacheServerClient?.isAvailable &&
