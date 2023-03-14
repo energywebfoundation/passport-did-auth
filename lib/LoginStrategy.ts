@@ -304,7 +304,7 @@ export class LoginStrategy extends BaseStrategy {
       );
     }
     let userDid;
-    if ((await this.getChainName(this.provider)) === 'ewc') {
+    if (payload.chainId === EWC_CHAIN_ID) {
       userDid = this.didUnification(`did:ethr:ewc:${payload.address}`);
     } else {
       userDid = this.didUnification(`did:ethr:volta:${payload.address}`);
@@ -478,15 +478,6 @@ export class LoginStrategy extends BaseStrategy {
       chainName = this.cacheServerClient?.chainName;
     }
     return `${didParts[0]}:${didParts[1]}:${chainName}:${didParts[2]}`;
-  }
-
-  /**
-   * @param {providers.JsonRpcProvider} provider
-   * @returns {string} name of the chain provider is connected to
-   */
-  async getChainName(provider: providers.JsonRpcProvider): Promise<string> {
-    const chainID = (await provider.getNetwork()).chainId;
-    return chainID === EWC_CHAIN_ID ? 'ewc' : 'volta';
   }
 
   isEIP191TokenPayload(payload: unknown): payload is ITokenPayload {
