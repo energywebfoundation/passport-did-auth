@@ -22,6 +22,7 @@ import {
   DomainReader,
   ResolverContractType,
   IRoleDefinitionV2,
+  EWC_CHAIN_ID,
 } from '@energyweb/credential-governance';
 import { knownResolvers } from './defaultConfig';
 import {
@@ -58,7 +59,6 @@ export interface LoginStrategyOptions extends StrategyOptions {
   jwtSecret?: string | Buffer;
   jwtSignOptions?: SignOptions;
   siweMessageUri?: string;
-  chainName?: string;
 }
 
 export class LoginStrategy extends BaseStrategy {
@@ -93,7 +93,6 @@ export class LoginStrategy extends BaseStrategy {
       acceptedRoles,
       includeAllRoles,
       siweMessageUri,
-      chainName,
       ...options
     }: LoginStrategyOptions,
     issuerResolver: IssuerResolver,
@@ -135,7 +134,6 @@ export class LoginStrategy extends BaseStrategy {
         privateKey,
         provider: this.provider,
         url: cacheServerUrl,
-        chainName: chainName,
       });
       this.cacheServerClient.login();
     }
@@ -305,7 +303,12 @@ export class LoginStrategy extends BaseStrategy {
         null
       );
     }
-    const userDid = this.didUnification(`did:ethr:${payload.address}`);
+    let userDid;
+    if ((await this.getChainName(this.provider)) === 'ewc') {
+      userDid = this.didUnification(`did:ethr:ewc:${payload.address}`);
+    } else {
+      userDid = this.didUnification(`did:ethr:volta:${payload.address}`);
+    }
     const siwe = new SiweMessage(payload);
     try {
       await siwe.verify({
@@ -475,6 +478,15 @@ export class LoginStrategy extends BaseStrategy {
       chainName = this.cacheServerClient?.chainName;
     }
     return `${didParts[0]}:${didParts[1]}:${chainName}:${didParts[2]}`;
+  }
+
+  /**
+   * @param {providers.JsonRpcProvider} provider
+   * @returns {string} name of the chain provider is connected to
+   */
+  async getChainName(provider: providers.JsonRpcProvider): Promise<string> {
+    const chainID = (await provider.getNetwork()).chainId;
+    return chainID === EWC_CHAIN_ID ? 'ewc' : 'volta';
   }
 
   isEIP191TokenPayload(payload: unknown): payload is ITokenPayload {
