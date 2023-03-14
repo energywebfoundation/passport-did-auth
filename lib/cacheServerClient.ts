@@ -23,7 +23,7 @@ export class CacheServerClient {
   private readonly url: string;
 
   public readonly address: string;
-  public chainName: string | undefined;
+  public chainName?: string;
 
   public get isAvailable(): boolean {
     return this._isAvailable;
@@ -33,15 +33,12 @@ export class CacheServerClient {
     url,
     privateKey,
     provider,
-    chainName,
   }: {
     url: string;
     privateKey: string;
     provider: providers.Provider;
-    chainName?: string;
   }) {
     const wallet = new Wallet(privateKey, provider);
-    this.chainName = chainName;
     this.address = wallet.address;
     this.signer = wallet;
     this.httpClient = axios.create({
