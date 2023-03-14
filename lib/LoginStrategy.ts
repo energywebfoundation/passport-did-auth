@@ -13,7 +13,6 @@ import {
 } from './LoginStrategy.types';
 import { Methods, getDIDChain, isValidErc1056 } from '@ew-did-registry/did';
 import { CacheServerClient } from './cacheServerClient';
-import { DidStore } from '@ew-did-registry/did-ipfs-store';
 import { ClaimVerifier } from './ClaimVerifier';
 import { IDIDDocument } from '@ew-did-registry/did-resolver-interface';
 import { ProofVerifier } from '@ew-did-registry/claims';
@@ -22,7 +21,6 @@ import {
   DomainReader,
   ResolverContractType,
   IRoleDefinitionV2,
-  EWC_CHAIN_ID,
 } from '@energyweb/credential-governance';
 import { knownResolvers } from './defaultConfig';
 import {
@@ -68,7 +66,6 @@ export class LoginStrategy extends BaseStrategy {
   private readonly provider: providers.JsonRpcProvider;
   private readonly numberOfBlocksBack: number;
   private readonly domainReader: DomainReader;
-  private readonly ipfsStore: DidStore;
   private readonly acceptedRoles: Set<string>;
   private readonly includeAllRoles: boolean = false;
   private readonly cacheServerClient?: CacheServerClient;
@@ -89,7 +86,6 @@ export class LoginStrategy extends BaseStrategy {
       ensResolvers = [],
       didContractAddress,
       ensRegistryAddress,
-      ipfsUrl = 'https://ipfs.infura.io:5001/api/v0/',
       acceptedRoles,
       includeAllRoles,
       siweMessageUri,
@@ -149,7 +145,6 @@ export class LoginStrategy extends BaseStrategy {
       this.includeAllRoles = includeAllRoles;
     }
     this.jwtSignOptions = jwtSignOptions;
-    this.ipfsStore = new DidStore(ipfsUrl);
     this.revocationVerification = new RevocationVerification(
       revokerResolver,
       issuerResolver,
@@ -303,12 +298,7 @@ export class LoginStrategy extends BaseStrategy {
         null
       );
     }
-    let userDid;
-    if (payload.chainId === EWC_CHAIN_ID) {
-      userDid = this.didUnification(`did:ethr:ewc:${payload.address}`);
-    } else {
-      userDid = this.didUnification(`did:ethr:volta:${payload.address}`);
-    }
+    const userDid = this.didUnification(`did:ethr:${payload.address}`);
     const siwe = new SiweMessage(payload);
     try {
       await siwe.verify({
@@ -470,6 +460,7 @@ export class LoginStrategy extends BaseStrategy {
     if (foundChainInfo) return did;
 
     const didParts = did.split(':');
+
     let chainName = 'volta';
     if (
       this.cacheServerClient?.isAvailable &&
