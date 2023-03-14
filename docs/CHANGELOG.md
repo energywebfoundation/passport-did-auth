@@ -1,3 +1,12 @@
+## [2.0.0-alpha.30](https://github.com/energywebfoundation/passport-did-auth/compare/v2.0.0-alpha.29...v2.0.0-alpha.30) (2023-03-14)
+
+
+### Bug Fixes
+
+* add chainName to LoginStrategyOptions and set on cache client config ([7c0baec](https://github.com/energywebfoundation/passport-did-auth/commit/7c0baecf95cdc5d3d5a53c015f5e7ac5c6cc2c72))
+* update did with chain name for siwe verification ([53a8215](https://github.com/energywebfoundation/passport-did-auth/commit/53a821552d15aeba1138147a91795fd44b9bab05))
+* use chainid from siwe payload ([0308638](https://github.com/energywebfoundation/passport-did-auth/commit/0308638a78fa6938e760d612cc0f7bbb0d6a737f))
+
 ## [2.0.0-alpha.29](https://github.com/energywebfoundation/passport-did-auth/compare/v2.0.0-alpha.28...v2.0.0-alpha.29) (2023-03-01)
 
 
