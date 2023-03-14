@@ -22,6 +22,7 @@ import {
   DomainReader,
   ResolverContractType,
   IRoleDefinitionV2,
+  EWC_CHAIN_ID,
 } from '@energyweb/credential-governance';
 import { knownResolvers } from './defaultConfig';
 import {
@@ -302,7 +303,12 @@ export class LoginStrategy extends BaseStrategy {
         null
       );
     }
-    const userDid = this.didUnification(`did:ethr:${payload.address}`);
+    let userDid;
+    if (payload.chainId === EWC_CHAIN_ID) {
+      userDid = this.didUnification(`did:ethr:ewc:${payload.address}`);
+    } else {
+      userDid = this.didUnification(`did:ethr:volta:${payload.address}`);
+    }
     const siwe = new SiweMessage(payload);
     try {
       await siwe.verify({
@@ -464,7 +470,6 @@ export class LoginStrategy extends BaseStrategy {
     if (foundChainInfo) return did;
 
     const didParts = did.split(':');
-
     let chainName = 'volta';
     if (
       this.cacheServerClient?.isAvailable &&
