@@ -1,4 +1,4 @@
-import { providers } from 'ethers';
+import { providers, Wallet } from 'ethers';
 import { getServer } from './testUtils/server';
 import { preparePassport } from './testUtils/preparePassport';
 import { setChainConfig, setCacheConfig } from 'iam-client-lib';
@@ -19,13 +19,14 @@ import {
 import { RoleEIP191JWT } from '@energyweb/vc-verification';
 import { Chain } from '@ew-did-registry/did';
 import { addressOf } from '@ew-did-registry/did-ethr-resolver';
-import type { SiweMessage as SiweMessagePayload } from 'siwe';
+import { SiweMessage as SiweMessagePayload } from 'siwe';
 import request from 'supertest';
 
 const GANACHE_PORT = 8544;
 const rpcUrl = `http://localhost:${GANACHE_PORT}`;
 
 const provider = new providers.JsonRpcProvider(rpcUrl);
+const wallet = Wallet.createRandom().connect(provider);
 
 jest.setTimeout(84000);
 
@@ -129,6 +130,44 @@ it('Should authenticate issuer signature with Siwe', async () => {
       sampleSiwePayload.address
     );
   });
+});
+
+it('Should authenticate issuer signature with Siwe for ewc chain', async () => {
+  const { loginStrategy } = preparePassport(
+    provider,
+    ensResolver.address,
+    didContract.address,
+    ensRegistry.address
+  );
+  const sampleSiwePayloadWithEwcChainID = new SiweMessagePayload({
+    domain: 'login.xyz',
+    address: wallet.address,
+    statement: 'Sign-In With Ethereum Example Statement',
+    uri: 'https://login.xyz',
+    version: '1',
+    nonce: 'bTyXgcQxn2htgkjJn',
+    issuedAt: '2022-01-27T17:09:38.578Z',
+    chainId: 246,
+    expirationTime: '2100-01-07T14:31:43.952Z',
+  });
+  const signature = await wallet.signMessage(
+    sampleSiwePayloadWithEwcChainID.prepareMessage()
+  );
+  expect(signature).toBeTruthy();
+
+  await loginStrategy?.validate(
+    signature,
+    sampleSiwePayloadWithEwcChainID,
+    (_, user) => {
+      const decodedVerifiedUser = decode(user as string) as {
+        [key: string]: string | object;
+      };
+      expect(addressOf(decodedVerifiedUser.did as string)).toBe(
+        sampleSiwePayloadWithEwcChainID.address
+      );
+      expect(decodedVerifiedUser.did).toContain('ewc');
+    }
+  );
 });
 
 it('Should reject invalid issuer', async () => {
