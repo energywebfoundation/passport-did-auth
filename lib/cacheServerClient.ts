@@ -1,21 +1,30 @@
 import axios, { AxiosError, AxiosInstance, AxiosResponse } from 'axios';
 import base64url from 'base64url';
-import { Signer, Wallet, utils, providers } from 'ethers';
-import { OffchainClaim, IRole, IRoleDefinition } from './LoginStrategy.types';
+import { Signer, Wallet, providers } from 'ethers';
+import { IRole } from './LoginStrategy.types';
 import { Policy } from 'cockatiel';
-import { IDIDDocument } from '@ew-did-registry/did-resolver-interface';
-import { knownChains } from './utils';
+import { inspect } from 'util';
+import {
+  IDIDDocument,
+  IServiceEndpoint,
+} from '@ew-did-registry/did-resolver-interface';
+import { IRoleDefinitionV2 } from '@energyweb/credential-governance';
 import { Logger } from './Logger';
+import { Agent as HttpAgent } from 'http';
+import { Agent as HttpsAgent } from 'https';
+import { SiweMessage } from 'siwe';
 
 export class CacheServerClient {
   private readonly signer: Signer;
   private readonly httpClient: AxiosInstance;
-  private readonly provider: providers.JsonRpcProvider;
   private failedRequests: Array<(token: string) => void> = [];
   private isAlreadyFetchingAccessToken = false;
   private _isAvailable = false;
+  private readonly url: string;
 
   public readonly address: string;
+  public chainName?: string;
+
   public get isAvailable(): boolean {
     return this._isAvailable;
   }
@@ -27,19 +36,23 @@ export class CacheServerClient {
   }: {
     url: string;
     privateKey: string;
-    provider: providers.JsonRpcProvider;
+    provider: providers.Provider;
   }) {
     const wallet = new Wallet(privateKey, provider);
     this.address = wallet.address;
     this.signer = wallet;
-    this.provider = provider;
-    this.httpClient = axios.create({ baseURL: url });
+    this.httpClient = axios.create({
+      baseURL: url,
+      httpAgent: new HttpAgent({ keepAlive: true }),
+      httpsAgent: new HttpsAgent({ keepAlive: true }),
+    });
     this.httpClient.interceptors.response.use(function (
       response: AxiosResponse
     ) {
       return response;
     },
     this.handleUnauthorized);
+    this.url = url;
   }
 
   async login(): Promise<string> {
@@ -47,7 +60,7 @@ export class CacheServerClient {
     retry.onFailure(({ reason }) => {
       Logger.warn(
         `DID login strategy was not able to login to cache server due to ${JSON.stringify(
-          reason,
+          inspect(reason),
           null,
           4
         )}`
@@ -60,35 +73,36 @@ export class CacheServerClient {
       );
     });
     const token = await retry.execute(async () => {
-      const [address, blockNumber, chainId] = await Promise.all([
-        this.signer.getAddress(),
-        this.provider.getBlockNumber(),
-        this.signer.getChainId(),
-      ]);
+      const {
+        data: { nonce },
+      } = await this.httpClient.post<{ nonce: string }>('/login/siwe/initiate');
+      const uri = new URL('/v1/login/siwe/verify', new URL(this.url).origin)
+        .href;
+      const message = new SiweMessage({
+        nonce,
+        domain: new URL(this.url).host,
+        address: await this.signer.getAddress(),
+        uri,
+        version: '1',
+        chainId: await this.signer.getChainId(),
+      }).prepareMessage();
 
-      const { arrayify, keccak256 } = utils;
-      const { encodedHeader, encodedPayload } =
-        this.createLoginTokenHeadersAndPayload({
-          address,
-          blockNumber,
-          chainName: knownChains[chainId],
-        });
-      const msg = `0x${Buffer.from(
-        `${encodedHeader}.${encodedPayload}`
-      ).toString('hex')}`;
-      const sig = await this.signer.signMessage(arrayify(keccak256(msg)));
-      const encodedSignature = base64url(sig);
-      const { data } = await this.httpClient.post<{ token: string }>('/login', {
-        identityToken: `${encodedHeader}.${encodedPayload}.${encodedSignature}`,
-      });
+      const signature = await this.signer.signMessage(message);
+
+      const { data } = await this.httpClient.post<{ token: string }>(
+        '/login/siwe/verify',
+        {
+          message,
+          signature,
+        }
+      );
       this.httpClient.defaults.headers.common[
         'Authorization'
       ] = `Bearer ${data.token}`;
       this._isAvailable = true;
-
       return data.token;
     });
-    return token as string;
+    return token;
   }
 
   handleSuccessfulReLogin(token: string): void {
@@ -161,13 +175,13 @@ export class CacheServerClient {
     namespace,
   }: {
     namespace: string;
-  }): Promise<IRoleDefinition> {
+  }): Promise<IRoleDefinitionV2> {
     const { data } = await this.httpClient.get<IRole>(`/role/${namespace}`);
     return data.definition;
   }
 
-  async getOffchainClaims({ did }: { did: string }): Promise<OffchainClaim[]> {
-    const { data } = await this.httpClient.get<{ service: OffchainClaim[] }>(
+  async getRoleCredentials(did: string): Promise<IServiceEndpoint[]> {
+    const { data } = await this.httpClient.get<{ service: IServiceEndpoint[] }>(
       `/DID/${did}?includeClaims=true`
     );
     return data.service;

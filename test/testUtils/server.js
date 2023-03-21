@@ -4,8 +4,18 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const { preparePassport } = require('./preparePassport');
 
-export const getServer = (didRegistryAddress) => {
-  const { passport, LOGIN_STRATEGY } = preparePassport(didRegistryAddress);
+export const getServer = (
+  provider,
+  ensResolverAddress,
+  didRegistryAddress,
+  ensRegistryAddress
+) => {
+  const { passport, LOGIN_STRATEGY } = preparePassport(
+    provider,
+    ensResolverAddress,
+    didRegistryAddress,
+    ensRegistryAddress
+  );
   const server = express();
 
   server.use(passport.initialize(), cors({ origin: true, credentials: true }));
@@ -15,7 +25,7 @@ export const getServer = (didRegistryAddress) => {
 
   server.post(
     '/login',
-    passport.authenticate(LOGIN_STRATEGY),
+    passport.authenticate(LOGIN_STRATEGY, { session: false }),
     async (req, res) => {
       return res.send({ token: req.user });
     }

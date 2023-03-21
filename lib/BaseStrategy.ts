@@ -2,7 +2,8 @@
 import { Strategy } from 'passport';
 import { Request } from 'express';
 import { inherits } from 'util';
-import { OffchainClaim } from './LoginStrategy.types';
+import { SiweReqPayload } from './LoginStrategy.types';
+import { InvalidSiweMessage } from './errors';
 
 export interface StrategyOptions {
   name: string;
@@ -36,19 +37,20 @@ export abstract class BaseStrategy extends Strategy {
   abstract extractToken(req: Request): string | null;
   /**
    * @abstract
+   * @description extracts siwe signature and message from request
+   *
+   * @param req object that encapsules request to protected endpoint
+   * @returns encoded siwe signature and message
+   */
+  abstract extractSiwe(req: Request): SiweReqPayload | null;
+  /**
+   * @abstract
    * @description decodes token payload
    *
    * @param token encoded payload
    * @returns decoded payload fields
    */
   abstract decodeToken(token: string): string | { [key: string]: any };
-  /**
-   * @abstract
-   * @description fetches claims published by the did
-   *
-   * @param did
-   */
-  abstract offchainClaimsOf(did: string): Promise<OffchainClaim[]>;
 
   /**
    * @constructor
@@ -66,10 +68,14 @@ export abstract class BaseStrategy extends Strategy {
    */
   authenticate(req: Request): void {
     const token = this.extractToken(req);
-    if (!token) {
-      return this.fail('Missing credentials', 400);
+    let siweObject: SiweReqPayload | null;
+    try {
+      siweObject = this.extractSiwe(req);
+    } catch (e) {
+      throw new InvalidSiweMessage(
+        `Message ${req.body.message} can not be parsed to SiweMessage`
+      );
     }
-    const tokenPayload = this.decodeToken(token);
     const verified = (err, user, info) => {
       if (err) {
         return this.error(err);
@@ -79,7 +85,14 @@ export abstract class BaseStrategy extends Strategy {
       }
       this.success(user, info);
     };
-    this.validate(token, tokenPayload, verified);
+    if (token) {
+      const tokenPayload = this.decodeToken(token);
+      this.validate(token, tokenPayload, verified);
+    } else if (siweObject) {
+      this.validate(siweObject.signature, siweObject.message, verified);
+    } else {
+      return this.fail('Missing credentials', 400);
+    }
   }
 }
 

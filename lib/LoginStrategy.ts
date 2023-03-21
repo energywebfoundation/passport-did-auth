@@ -1,31 +1,43 @@
 import { BaseStrategy, StrategyOptions } from './BaseStrategy';
 import { Request } from 'express';
-import * as jwt from 'jsonwebtoken';
+import { decode, SignOptions, DecodeOptions, sign } from 'jsonwebtoken';
 import { providers } from 'ethers';
+import { ethrReg, addressOf } from '@ew-did-registry/did-ethr-resolver';
+import { lookup, namehash } from './utils';
 import {
-  ethrReg,
-  Resolver,
-  VoltaAddress1056,
-  addressOf,
-} from '@ew-did-registry/did-ethr-resolver';
-
-import { isOffchainClaim, lookup, namehash } from './utils';
-import {
-  OffchainClaim,
-  IRoleDefinition,
+  AuthorisedUser,
   ITokenPayload,
+  RoleCredentialStatus,
+  RoleStatus,
+  SiweReqPayload,
 } from './LoginStrategy.types';
-import { PublicResolver__factory } from '../ethers/factories/PublicResolver__factory';
-import { PublicResolver } from '../ethers/PublicResolver';
-import { Methods } from '@ew-did-registry/did';
-import { DidStore } from '@ew-did-registry/did-ipfs-store';
+import { Methods, getDIDChain, isValidErc1056 } from '@ew-did-registry/did';
 import { CacheServerClient } from './cacheServerClient';
+import { DidStore } from '@ew-did-registry/did-ipfs-store';
 import { ClaimVerifier } from './ClaimVerifier';
 import { IDIDDocument } from '@ew-did-registry/did-resolver-interface';
 import { ProofVerifier } from '@ew-did-registry/claims';
 import { Logger } from './Logger';
-//import { Logger } from "@ethersproject/logger";
+import {
+  DomainReader,
+  ResolverContractType,
+  IRoleDefinitionV2,
+  EWC_CHAIN_ID,
+} from '@energyweb/credential-governance';
+import { knownResolvers } from './defaultConfig';
+import {
+  CredentialResolver,
+  IssuerResolver,
+  IssuerVerification,
+  RevocationVerification,
+  RevokerResolver,
+  VerificationResult,
+} from '@energyweb/vc-verification';
+import { StatusListEntryVerification } from '@ew-did-registry/revocation';
+import { SiweMessage, SiweResponse } from 'siwe';
+import type { SiweMessage as SiweMessagePayload } from 'siwe';
 
+const { JsonRpcProvider } = providers;
 const { abi: abi1056 } = ethrReg;
 
 export interface LoginStrategyOptions extends StrategyOptions {
@@ -34,25 +46,36 @@ export interface LoginStrategyOptions extends StrategyOptions {
   cacheServerUrl?: string;
   privateKey?: string;
   numberOfBlocksBack?: number;
-  ensResolverAddress?: string;
-  didContractAddress?: string;
+  ensResolvers?: {
+    chainId: number;
+    resolverType: ResolverContractType;
+    address: string;
+  }[];
+  didContractAddress: string;
+  ensRegistryAddress: string;
   ipfsUrl?: string;
   acceptedRoles?: string[];
-  jwtSecret: string | Buffer;
-  jwtSignOptions?: jwt.SignOptions;
+  includeAllRoles?: boolean;
+  jwtSecret?: string | Buffer;
+  jwtSignOptions?: SignOptions;
+  siweMessageUri?: string;
 }
 
 export class LoginStrategy extends BaseStrategy {
   private readonly claimField: string;
-  private readonly jwtSecret: string | Buffer;
-  private readonly jwtSignOptions?: jwt.SignOptions;
+  private readonly jwtSecret?: string | Buffer;
+  private readonly jwtSignOptions?: SignOptions;
   private readonly provider: providers.JsonRpcProvider;
   private readonly numberOfBlocksBack: number;
-  private readonly ensResolver: PublicResolver;
-  private readonly didResolver: Resolver;
+  private readonly domainReader: DomainReader;
   private readonly ipfsStore: DidStore;
   private readonly acceptedRoles: Set<string>;
+  private readonly includeAllRoles: boolean = false;
   private readonly cacheServerClient?: CacheServerClient;
+  private readonly issuerVerification: IssuerVerification;
+  private readonly revocationVerification: RevocationVerification;
+  private readonly statuslListEntryVerification: StatusListEntryVerification;
+  private readonly siweMessageUri?: string;
 
   constructor(
     {
@@ -63,23 +86,44 @@ export class LoginStrategy extends BaseStrategy {
       numberOfBlocksBack = 4,
       jwtSecret,
       jwtSignOptions,
-      ensResolverAddress = '0x0a97e07c4Df22e2e31872F20C5BE191D5EFc4680',
-      didContractAddress = VoltaAddress1056,
+      ensResolvers = [],
+      didContractAddress,
+      ensRegistryAddress,
       ipfsUrl = 'https://ipfs.infura.io:5001/api/v0/',
       acceptedRoles,
+      includeAllRoles,
+      siweMessageUri,
       ...options
     }: LoginStrategyOptions,
+    issuerResolver: IssuerResolver,
+    revokerResolver: RevokerResolver,
+    private credentialResolver: CredentialResolver,
+    verifyProof: (
+      vc: string,
+      proof_options: string
+    ) => Promise<VerificationResult>,
 
     /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
     _nestJsCB?: VoidFunction // Added just for nestjs compatibility
   ) {
     super(options);
     this.claimField = claimField;
-    this.provider = new providers.JsonRpcProvider(rpcUrl);
-    this.ensResolver = PublicResolver__factory.connect(
-      ensResolverAddress,
-      this.provider
-    );
+    this.siweMessageUri = siweMessageUri;
+    this.provider = new JsonRpcProvider(rpcUrl);
+    this.domainReader = new DomainReader({
+      ensRegistryAddress,
+      provider: this.provider,
+    });
+
+    knownResolvers
+      .concat(ensResolvers)
+      .forEach(({ chainId, resolverType, address }) =>
+        this.domainReader.addKnownResolver({
+          chainId,
+          address,
+          type: resolverType,
+        })
+      );
     if (cacheServerUrl && !privateKey) {
       throw new Error(
         'You need to provide privateKey of an accepted account to login to cache server'
@@ -98,20 +142,35 @@ export class LoginStrategy extends BaseStrategy {
       address: didContractAddress,
       method: Methods.Erc1056,
     };
-    this.didResolver = new Resolver(this.provider, registrySetting);
-    this.ipfsStore = new DidStore(ipfsUrl);
     this.numberOfBlocksBack = numberOfBlocksBack;
     this.jwtSecret = jwtSecret;
     this.acceptedRoles = new Set(acceptedRoles);
+    if (includeAllRoles) {
+      this.includeAllRoles = includeAllRoles;
+    }
     this.jwtSignOptions = jwtSignOptions;
+    this.ipfsStore = new DidStore(ipfsUrl);
+    this.revocationVerification = new RevocationVerification(
+      revokerResolver,
+      issuerResolver,
+      credentialResolver,
+      verifyProof
+    );
+    this.issuerVerification = new IssuerVerification(
+      issuerResolver,
+      credentialResolver,
+      this.provider,
+      registrySetting,
+      this.revocationVerification,
+      verifyProof
+    );
+    this.statuslListEntryVerification = new StatusListEntryVerification(
+      verifyProof
+    );
   }
 
   private async getDidDocument(did: string): Promise<IDIDDocument> {
-    const _didDocument = this.cacheServerClient?.isAvailable
-      ? await this.cacheServerClient.getDidDocument(did)
-      : await this.didResolver.read(did);
-
-    return _didDocument;
+    return this.credentialResolver.getDIDDocument(did);
   }
 
   /**
@@ -119,19 +178,73 @@ export class LoginStrategy extends BaseStrategy {
    * * Authenticate user
    * * Check that token is not expired
    * * User has enrolled with at least one role
+   *
+   * ```typescript
+   * const loginStrategy = new LoginStrategy(
+   * loginStrategyOptions,
+   * issuerResolver,
+   * revokerResolver,
+   * credentialResolver,
+   * verifyCredential
+   * );
+   *
+   * passport.use(loginStrategy);
+   * passport.use(
+   *   new Strategy(jwtOptions, (_payload, _done) => {
+   *     return _done(null, _payload);
+   *   })
+   * );
+   *
+   * const token = 'askjad...';
+   * const payload = {
+   *   iss: `did:ethr:volta:0x1224....`,
+   *   claimData: {
+   *     blockNumber: 4242,
+   *   },
+   *   sub: '',
+   * };
+   *
+   * await loginStrategy.validate(token, payload);
+   * ```
+   *
    * @param token
    * @param payload
    * @callback done on successful validation is called with encoded {did, verifiedRoles} object
    */
   async validate(
     token: string,
+    payload: ITokenPayload | Partial<SiweMessagePayload>,
+    done: (err?: Error, user?: unknown, info?: unknown) => void
+  ): Promise<void> {
+    if (this.isEIP191TokenPayload(payload)) {
+      return this.verifyEIP191Token(token, payload, done);
+    }
+    if (this.isSiweMessagePayload(payload)) {
+      return this.verifySiweToken(token, payload, done);
+    } else {
+      Logger.info('Token payload is not valid');
+      return done(undefined, null, 'Token payload is not valid');
+    }
+  }
+
+  /**
+   * Verifies EIP191 Token and payload
+   * @param token signature
+   * @param payload EIP191 payload
+   * @param done
+   * @returns
+   */
+  private async verifyEIP191Token(
+    token: string,
     payload: ITokenPayload,
     done: (err?: Error, user?: unknown, info?: unknown) => void
   ): Promise<void> {
+    const iss = this.didUnification(payload.iss);
+
     let userDoc: IDIDDocument;
 
     try {
-      userDoc = await this.getDidDocument(payload.iss);
+      userDoc = await this.getDidDocument(iss);
     } catch (err) {
       const error: Error = err as Error;
       Logger.error(`error getting DID document: ${error}`);
@@ -142,18 +255,22 @@ export class LoginStrategy extends BaseStrategy {
     const userDid = await proofVerifier.verifyAuthenticationProof(token);
 
     if (!userDid) {
-      Logger.info('Not Verified');
-      return done(undefined, null, 'Not Verified');
+      Logger.info('Not Verified: Authentication proof is not valid');
+      return done(
+        undefined,
+        null,
+        'Not Verified: Authentication proof is not valid'
+      );
     }
 
-    const userAddress = addressOf(userDid);
-
     try {
+      // TODO: remove parseInt (it's only for backward compatibility)
+      const claimBlockNumber =
+        typeof payload.claimData.blockNumber === 'number'
+          ? payload.claimData.blockNumber
+          : parseInt(payload.claimData.blockNumber);
       const latestBlock = await this.provider.getBlockNumber();
-      if (
-        !payload.claimData.blockNumber ||
-        latestBlock - this.numberOfBlocksBack >= payload.claimData.blockNumber
-      ) {
+      if (latestBlock - this.numberOfBlocksBack >= claimBlockNumber) {
         Logger.info('Claim outdated');
         return done(undefined, null, 'Claim outdated');
       }
@@ -163,6 +280,62 @@ export class LoginStrategy extends BaseStrategy {
       return done(error);
     }
 
+    return await this.getVerifiedAcceptedRoles(userDid, done);
+  }
+
+  /**
+   * Verifies Siwe Message and signature
+   * @param token signature
+   * @param payload Siwe payload
+   * @param done
+   * @returns
+   */
+  private async verifySiweToken(
+    token: string,
+    payload: Partial<SiweMessagePayload>,
+    done: (err?: Error, user?: unknown, info?: unknown) => void
+  ): Promise<void> {
+    if (this.siweMessageUri && this.siweMessageUri !== payload.uri) {
+      Logger.info('uri in siwe message payload is incorrect');
+      return done(
+        new Error('uri in siwe message payload is incorrect'),
+        undefined,
+        null
+      );
+    }
+    let userDid;
+    if (payload.chainId === EWC_CHAIN_ID) {
+      userDid = this.didUnification(`did:ethr:ewc:${payload.address}`);
+    } else {
+      userDid = this.didUnification(`did:ethr:volta:${payload.address}`);
+    }
+    const siwe = new SiweMessage(payload);
+    try {
+      await siwe.verify({
+        signature: token,
+        domain: payload.domain,
+        nonce: payload.nonce,
+        time: payload.issuedAt,
+      });
+    } catch (error) {
+      const err = error as SiweResponse;
+      const errorMessage = err.error?.type;
+      return done(new Error(errorMessage));
+    }
+    return this.getVerifiedAcceptedRoles(userDid, done);
+  }
+
+  /**
+   * Fetches verified roles based on the userDID and configured accepted roles
+   * @param userDid user DID
+   * @param done
+   * @returns
+   */
+  private async getVerifiedAcceptedRoles(
+    userDid: string,
+    done: (err?: Error, user?: unknown, info?: unknown) => void
+  ): Promise<void> {
+    const userAddress = addressOf(userDid);
     try {
       /*
        * getUserClaims attempts to retrieve claims from cache-server
@@ -174,32 +347,58 @@ export class LoginStrategy extends BaseStrategy {
       const userClaims =
         this.cacheServerClient?.address === userAddress
           ? []
-          : await this.offchainClaimsOf(userDid);
+          : await this.credentialResolver.eip191JwtsOf(userDid);
+
+      const claimsToVerify = this.includeAllRoles
+        ? userClaims
+        : userClaims.filter((claim) => {
+            const claimType = claim?.payload?.claimData?.claimType;
+            return claimType && this.acceptedRoles.has(claimType);
+          });
+
+      if (this.includeAllRoles && claimsToVerify.length === userClaims.length) {
+        Logger.info('includeAllRoles: true, verifying all roles');
+      } else {
+        Logger.info('includeAllRoles: false, verifying only accepted roles');
+      }
       const verifier = new ClaimVerifier(
-        userClaims,
+        claimsToVerify,
         this.getRoleDefinition.bind(this),
-        this.offchainClaimsOf.bind(this),
-        this.getDidDocument.bind(this)
+        this.issuerVerification,
+        this.revocationVerification,
+        this.statuslListEntryVerification
       );
       const uniqueRoles = await verifier.getVerifiedRoles();
 
-      if (
-        this.acceptedRoles &&
-        this.acceptedRoles.size > 0 &&
-        uniqueRoles.length > 0 &&
-        !uniqueRoles.some(({ namespace }) => {
-          return this.acceptedRoles.has(namespace);
-        })
-      ) {
-        return done(undefined, null, 'User does not have an accepted role.');
+      if (uniqueRoles.length === 0 && this.acceptedRoles.size > 0) {
+        return done(undefined, null, 'User does not have any roles.');
       }
-      const user = {
-        did: payload.iss,
-        verifiedRoles: uniqueRoles,
-      };
+      let user: AuthorisedUser;
+      if (!this.includeAllRoles && this.acceptedRoles.size > 0) {
+        const { userRoles, authorisationStatus } =
+          this.validateAcceptedRoles(uniqueRoles);
+
+        user = {
+          did: userDid,
+          userRoles: userRoles,
+          authorisationStatus: authorisationStatus,
+        };
+      } else {
+        user = {
+          did: userDid,
+          userRoles: uniqueRoles,
+          authorisationStatus: true,
+        };
+      }
+      if (!user.authorisationStatus) {
+        return done(
+          undefined,
+          user,
+          'User either does not have accpeted role credentials or are invalid.'
+        );
+      }
       if (this.jwtSecret) {
-        const jwtToken = this.encodeToken(user);
-        return done(undefined, jwtToken);
+        return done(undefined, sign(user, this.jwtSecret, this.jwtSignOptions));
       }
       return done(undefined, user);
     } catch (err) {
@@ -209,24 +408,13 @@ export class LoginStrategy extends BaseStrategy {
     }
   }
 
-  decodeToken<T>(token: string, options?: jwt.DecodeOptions): T {
-    return jwt.decode(token, options) as T;
+  decodeToken<T>(token: string, options?: DecodeOptions): T {
+    return decode(token, options) as T;
   }
 
   /**
-   *
-   * @param data payload to encode
-   * @param options
-   */
-  encodeToken(data: Record<string, unknown>): string {
-    return jwt.sign(data, this.jwtSecret, this.jwtSignOptions);
-  }
-
-  /**
-   * @description extracts encoded payload either from request body or query
-   *
+   * extracts encoded payload either from request body or query
    * @param req
-   *
    * @returns {string} encoded claim
    */
   extractToken(req: Request): string | null {
@@ -240,35 +428,132 @@ export class LoginStrategy extends BaseStrategy {
     );
   }
 
-  async getRoleDefinition(namespace: string): Promise<IRoleDefinition> {
+  /**
+   * extracts siwe message and signature either from request body or query
+   * @param req
+   * @returns {string} siwe object - message and signature
+   */
+  extractSiwe(req: Request): SiweReqPayload | null {
+    if (req.body.message && req.body.signature) {
+      return {
+        signature: req.body.signature,
+        message: new SiweMessage(req.body.message),
+      };
+    } else {
+      return null;
+    }
+  }
+
+  async getRoleDefinition(
+    namespace: string
+  ): Promise<IRoleDefinitionV2 | null> {
     if (this.cacheServerClient?.isAvailable) {
       return this.cacheServerClient.getRoleDefinition({ namespace });
     }
-    const namespaceHash = namehash(namespace);
-    const definition = await this.ensResolver.text(namespaceHash, 'metadata');
 
-    return JSON.parse(definition) as IRoleDefinition;
+    const definition = await this.domainReader.read({
+      node: namehash(namespace),
+    });
+    return DomainReader.isRoleDefinitionV2(definition) ? definition : null;
+  }
+
+  async verifyIssuer(issuer: string, role: string) {
+    return this.issuerVerification.verifyIssuer(issuer, role);
   }
 
   /**
-   * @param did
-   * @returns
-   *
-   * @todo use iam-lib
+   * @param {string} did
+   * @returns {string} DID address in format "did:" method-name ":" method-specific-id ":" address
    */
-  async offchainClaimsOf(did: string): Promise<OffchainClaim[]> {
-    if (this.cacheServerClient?.isAvailable) {
-      return this.cacheServerClient.getOffchainClaims({ did });
+  didUnification(did: string): string {
+    const { foundChainInfo } = getDIDChain(did);
+    if (foundChainInfo) return did;
+
+    const didParts = did.split(':');
+    let chainName = 'volta';
+    if (
+      this.cacheServerClient?.isAvailable &&
+      this.cacheServerClient?.chainName
+    ) {
+      chainName = this.cacheServerClient?.chainName;
     }
-    const didDocument = await this.didResolver.read(did);
-    const services = didDocument.service || [];
-    return await Promise.all(
-      services
-        .map(async ({ serviceEndpoint }) => {
-          const claimToken = await this.ipfsStore.get(serviceEndpoint);
-          return this.decodeToken<OffchainClaim>(claimToken);
-        })
-        .filter(isOffchainClaim)
-    );
+    return `${didParts[0]}:${didParts[1]}:${chainName}:${didParts[2]}`;
+  }
+
+  isEIP191TokenPayload(payload: unknown): payload is ITokenPayload {
+    if (!payload) return false;
+    if (typeof payload !== 'object') return false;
+
+    const payloadKeys = Object.keys(payload);
+    if (!payloadKeys.includes('iss') || !payloadKeys.includes('claimData')) {
+      return false;
+    }
+
+    if (typeof payload['claimData'] !== 'object') return false;
+
+    const claimDatKeys = Object.keys(payload['claimData']);
+    if (!claimDatKeys.includes('blockNumber')) {
+      return false;
+    }
+
+    // TODO: remove `string` type (it's only for backward compatibility)
+    const blockNumberType = typeof payload['claimData']['blockNumber'];
+    if (!['string', 'number'].includes(blockNumberType)) {
+      return false;
+    }
+
+    if (
+      blockNumberType === 'string' &&
+      isNaN(payload['claimData']['blockNumber'])
+    ) {
+      return false;
+    }
+
+    if (typeof payload['iss'] !== 'string' || !isValidErc1056(payload['iss'])) {
+      return false;
+    }
+
+    return true;
+  }
+
+  isSiweMessagePayload(
+    payload: unknown
+  ): payload is Partial<SiweMessagePayload> {
+    if (!payload) return false;
+    if (typeof payload !== 'object') return false;
+    const castedPayload = payload as SiweMessage;
+    if (
+      typeof castedPayload.domain !== 'string' ||
+      typeof castedPayload.nonce !== 'string' ||
+      typeof castedPayload.uri !== 'string' ||
+      typeof castedPayload.address !== 'string'
+    ) {
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Validates if user's role credential is valid or not and sets authorisation status
+   * @param userRoles verified user role credential
+   * @returns
+   */
+  private validateAcceptedRoles(userRoles: RoleStatus[]): {
+    userRoles: RoleStatus[];
+    authorisationStatus: boolean;
+  } {
+    let authorisationStatus = false;
+    this.acceptedRoles.forEach((role) => {
+      const userRole = userRoles.find(
+        (roleStatus) => roleStatus.namespace == role
+      );
+      if (userRole && userRole.status === RoleCredentialStatus.VALID) {
+        authorisationStatus = true;
+      }
+    });
+    return {
+      userRoles,
+      authorisationStatus,
+    };
   }
 }
