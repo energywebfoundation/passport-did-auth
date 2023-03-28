@@ -1,3 +1,10 @@
+### [2.0.1-alpha.1](https://github.com/energywebfoundation/passport-did-auth/compare/v2.0.0...v2.0.1-alpha.1) (2023-03-28)
+
+
+### Bug Fixes
+
+* **LoginStrategy:** remove IPFS store from constructor and remove import ([#373](https://github.com/energywebfoundation/passport-did-auth/issues/373)) ([643f410](https://github.com/energywebfoundation/passport-did-auth/commit/643f410ca37363272fb64485777bd4c8ad100d22))
+
 ## [2.0.0](https://github.com/energywebfoundation/passport-did-auth/compare/v1.2.1...v2.0.0) (2023-03-21)
 
 
