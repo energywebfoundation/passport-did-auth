@@ -43,7 +43,6 @@
     "@energyweb/onchain-claims": "^2.2.1-alpha.319.0",
     "@energyweb/vc-verification": "^2.2.1-alpha.319.0",
     "@ensdomains/ens-contracts": "^0.0.21",
-    "@ethersproject/providers": "5.4.4",
     "@ew-did-registry/claims": "0.8.1-alpha.1037.0",
     "@ew-did-registry/did": "0.8.1-alpha.1037.0",
     "@ew-did-registry/did-document": "0.8.1-alpha.1037.0",
