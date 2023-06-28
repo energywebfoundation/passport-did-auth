@@ -2,6 +2,7 @@
   "compilerOptions": {
     "esModuleInterop": true,
     "resolveJsonModule": true,
+    "allowJs": true
   },
   "include": [
     "**/*.test.ts",
