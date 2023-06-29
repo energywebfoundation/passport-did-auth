@@ -1,3 +1,13 @@
+### [2.0.1-alpha.2](https://github.com/energywebfoundation/passport-did-auth/compare/v2.0.1-alpha.1...v2.0.1-alpha.2) (2023-06-29)
+
+
+### Bug Fixes
+
+* install type defs for test utils ([e6dcb66](https://github.com/energywebfoundation/passport-did-auth/commit/e6dcb66bbfb7e970e2fc566242f589677df416ed))
+* login to test ssi-hub ([e439cd6](https://github.com/energywebfoundation/passport-did-auth/commit/e439cd69d29353e4de4371172e806fe4136c71d0))
+* resolve json in tests ([d59e6c9](https://github.com/energywebfoundation/passport-did-auth/commit/d59e6c97c1a8ae495330bfb73ac96c78c9b4fc84))
+* uninstall @ethersproject/providers ([1f7a174](https://github.com/energywebfoundation/passport-did-auth/commit/1f7a17442a599c1cb9a9c5defefadec7e1e7ce50))
+
 ### [2.0.1-alpha.1](https://github.com/energywebfoundation/passport-did-auth/compare/v2.0.0...v2.0.1-alpha.1) (2023-03-28)
 
 
