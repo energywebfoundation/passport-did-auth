@@ -8,6 +8,7 @@ import {
   AssetsService,
   DidRegistry,
   setCacheConfig,
+  CacheClient,
 } from 'iam-client-lib';
 import ServerMock from 'mock-http-server';
 import { assert } from 'chai';
@@ -108,14 +109,17 @@ beforeAll(async () => {
     url: 'http://localhost:9000/',
     cacheServerSupportsAuth: false,
   });
-
+  // eslint-disable-next-line
+  jest.spyOn(CacheClient.prototype, 'login').mockImplementation(async () => {});
   const { connectToCacheServer } = await initWithPrivateKeySigner(
     userPrivKey,
     rpcUrl
   );
   const { connectToDidRegistry, assetsService } = await connectToCacheServer();
 
-  const { claimsService, didRegistry } = await connectToDidRegistry();
+  const { claimsService, didRegistry } = await connectToDidRegistry({
+    host: 'ipfs is not used in these test',
+  });
   iam.claimsService = claimsService;
   iam.assetService = assetsService;
   iam.didRegistry = didRegistry;
@@ -238,7 +242,9 @@ it('Should reject invalid token', async () => {
     rpcUrl
   );
   const { connectToDidRegistry } = await connectToCacheServer();
-  const { claimsService } = await connectToDidRegistry();
+  const { claimsService } = await connectToDidRegistry({
+    host: 'ipfs is not used in these tests',
+  });
   const { loginStrategy } = preparePassport(
     provider,
     ensResolver.address,

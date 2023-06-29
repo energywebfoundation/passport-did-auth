@@ -1,6 +1,13 @@
 {
   "compilerOptions": {
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "allowJs": true
   },
-  "include": ["**/*.test.ts", "LoginStrategy.eip191token.test.ts", "LoginStrategy.siwetoken.test1.ts", "ClaimVerifier.test.ts"]
+  "include": [
+    "**/*.test.ts",
+    "LoginStrategy.eip191token.test.ts",
+    "LoginStrategy.siwetoken.test1.ts",
+    "ClaimVerifier.test.ts"
+  ]
 }
