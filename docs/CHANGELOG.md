@@ -1,3 +1,10 @@
+### [2.0.1-alpha.3](https://github.com/energywebfoundation/passport-did-auth/compare/v2.0.1-alpha.2...v2.0.1-alpha.3) (2023-06-29)
+
+
+### Bug Fixes
+
+* update [@ew-did-registry](https://github.com/ew-did-registry)@0.8.1-alpha.1140.0 ([eb2598a](https://github.com/energywebfoundation/passport-did-auth/commit/eb2598a9e3e65ade7f07b734c0ef07559825b9f2))
+
 ### [2.0.1-alpha.2](https://github.com/energywebfoundation/passport-did-auth/compare/v2.0.1-alpha.1...v2.0.1-alpha.2) (2023-06-29)
 
 
