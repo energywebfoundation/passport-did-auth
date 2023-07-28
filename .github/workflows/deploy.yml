@@ -45,7 +45,7 @@ jobs:
         run: npm run test
 
       - name: Publish ${{ github.ref }}
-        uses: codfish/semantic-release-action@v1
+        uses: codfish/semantic-release-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GH_PUSH_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
