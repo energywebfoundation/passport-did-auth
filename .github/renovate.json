@@ -1,6 +1,6 @@
 {
   "extends": ["github>energywebfoundation/shared-configs"],
-  "assignees": ["nichonien", "JGiter"],
-  "reviewers": ["jrhender", "nichonien", "JGiter"],
+  "assignees": ["jrhender", "JGiter"],
+  "reviewers": ["jrhender", "JGiter"],
   "ignoreDeps": ["@ew-did-registry/did-ipfs-store"]
 }
