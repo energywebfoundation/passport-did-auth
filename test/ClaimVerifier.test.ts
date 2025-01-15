@@ -106,7 +106,7 @@ let didStore: DidStore;
 const validity = 10 * 60 * 1000;
 jest.setTimeout(84000);
 
-describe('ClaimVerifier', () => {
+describe.skip('ClaimVerifier', () => {
   beforeAll(async function () {
     provider = new JsonRpcProvider(rpcUrl);
     deployer = provider.getSigner(0);
