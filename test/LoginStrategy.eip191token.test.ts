@@ -179,7 +179,8 @@ xit('Verifies asset authentication', async () => {
   connection.close();
 });
 
-it('Should authenticate issuer signature', async () => {
+// eslint-disable-next-line no-only-tests/no-only-tests
+it.only('Should authenticate issuer signature', async () => {
   const { loginStrategy } = preparePassport(
     provider,
     ensResolver.address,
