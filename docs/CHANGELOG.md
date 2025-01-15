@@ -1,3 +1,10 @@
+## [2.1.0-alpha.1](https://github.com/energywebfoundation/passport-did-auth/compare/v2.0.1-alpha.3...v2.1.0-alpha.1) (2025-01-15)
+
+
+### Features
+
+* **deps:** update vc-verification lib to version with IPFS timeout ([#400](https://github.com/energywebfoundation/passport-did-auth/issues/400)) ([21f9c0b](https://github.com/energywebfoundation/passport-did-auth/commit/21f9c0ba633a857e59e585bae10b9497e8244fb6))
+
 ### [2.0.1-alpha.3](https://github.com/energywebfoundation/passport-did-auth/compare/v2.0.1-alpha.2...v2.0.1-alpha.3) (2023-06-29)
 
 
