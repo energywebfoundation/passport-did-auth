@@ -397,7 +397,10 @@ export class LoginStrategy extends BaseStrategy {
         );
       }
       console.log(`JH: reached sign: ${this.jwtSecret}`)
+      console.log(`JH: sign options: ${JSON.stringify(this.jwtSignOptions)}`)
+      console.log(`JH: signed user: ${user}`)
       if (this.jwtSecret) {
+        console.log(`JH: signing user`)
         return done(undefined, sign(user, this.jwtSecret, this.jwtSignOptions));
       }
       return done(undefined, user);
