@@ -135,7 +135,7 @@ afterAll(async () => {
   await asyncStop();
 });
 
-xit('Verifies asset authentication', async () => {
+it('Verifies asset authentication', async () => {
   // Register an asset
   const assetAddress = await iam.assetService?.registerAsset();
   assert.exists(assetAddress);
@@ -179,8 +179,7 @@ xit('Verifies asset authentication', async () => {
   connection.close();
 });
 
-// eslint-disable-next-line no-only-tests/no-only-tests
-it.only('Should authenticate issuer signature', async () => {
+it('Should authenticate issuer signature', async () => {
   const { loginStrategy } = preparePassport(
     provider,
     ensResolver.address,
