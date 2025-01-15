@@ -398,10 +398,12 @@ export class LoginStrategy extends BaseStrategy {
       }
       console.log(`JH: reached sign: ${this.jwtSecret}`)
       console.log(`JH: sign options: ${JSON.stringify(this.jwtSignOptions)}`)
-      console.log(`JH: signed user: ${user}`)
+      console.log(`JH: signed user: ${JSON.stringify(user)}`)
       if (this.jwtSecret) {
         console.log(`JH: signing user`)
-        return done(undefined, sign(user, this.jwtSecret, this.jwtSignOptions));
+        const signed = sign(user, this.jwtSecret, this.jwtSignOptions)
+        console.log(`JH: was able to sign`)
+        return done(undefined, signed);
       }
       return done(undefined, user);
     } catch (err) {
