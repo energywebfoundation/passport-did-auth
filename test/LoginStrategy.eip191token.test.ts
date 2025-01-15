@@ -198,6 +198,7 @@ it('Should authenticate issuer signature', async () => {
   expect(token).toBeTruthy();
 
   await loginStrategy?.validate(token, payload, (_, user) => {
+    console.info(`JH validated user log: ${user}`)
     const jwt = new JWT(new Keys({ privateKey: userPrivKey }));
     const decodedIdentity = jwt.decode(token) as {
       [key: string]: string;
