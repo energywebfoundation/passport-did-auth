@@ -56,7 +56,7 @@
     "cockatiel": "2.0.2",
     "eth-ens-namehash": "2.0.8",
     "ethereumjs-abi": "0.6.8",
-    "ethers": "5.7.2",
+    "ethers": "6.0.0",
     "ganache-cli": "6.12.2",
     "js-sha3": "0.8.0",
     "jsonwebtoken": "9.0.0",
