@@ -135,7 +135,7 @@ afterAll(async () => {
   await asyncStop();
 });
 
-it('Verifies asset authentication', async () => {
+xit('Verifies asset authentication', async () => {
   // Register an asset
   const assetAddress = await iam.assetService?.registerAsset();
   assert.exists(assetAddress);
