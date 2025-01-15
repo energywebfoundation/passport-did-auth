@@ -364,13 +364,16 @@ export class LoginStrategy extends BaseStrategy {
         this.revocationVerification,
         this.statuslListEntryVerification
       );
+      console.log(`JH: getting verified roles`)
       const uniqueRoles = await verifier.getVerifiedRoles();
 
       if (uniqueRoles.length === 0 && this.acceptedRoles.size > 0) {
         return done(undefined, null, 'User does not have any roles.');
       }
       let user: AuthorisedUser;
+      console.log(`JH: validating roles`)
       if (!this.includeAllRoles && this.acceptedRoles.size > 0) {
+        console.log(`JH: there are some accepted roles`)
         const { userRoles, authorisationStatus } =
           this.validateAcceptedRoles(uniqueRoles);
 
@@ -393,6 +396,7 @@ export class LoginStrategy extends BaseStrategy {
           'User either does not have accpeted role credentials or are invalid.'
         );
       }
+      console.log(`JH: reached sign: ${this.jwtSecret}`)
       if (this.jwtSecret) {
         return done(undefined, sign(user, this.jwtSecret, this.jwtSignOptions));
       }
