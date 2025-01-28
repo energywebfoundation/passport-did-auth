@@ -51,7 +51,7 @@
     "@ew-did-registry/did-resolver-interface": "0.8.1-alpha.1140.0",
     "@ew-did-registry/jwt": "0.8.1-alpha.1140.0",
     "@ew-did-registry/keys": "0.8.1-alpha.1140.0",
-    "axios": "0.27.0",
+    "axios": "1.6.3",
     "base64url": "3.0.1",
     "cockatiel": "2.0.2",
     "eth-ens-namehash": "2.0.8",
