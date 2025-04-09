@@ -26,6 +26,7 @@ import {
 import { knownResolvers } from './defaultConfig';
 import {
   CredentialResolver,
+  DIDDocumentCache,
   IssuerResolver,
   IssuerVerification,
   RevocationVerification,
@@ -275,8 +276,10 @@ export class LoginStrategy extends BaseStrategy {
       Logger.error(`Provider err: ${error}`);
       return done(error);
     }
+    const didDocCache = new DIDDocumentCache();
+    didDocCache.setDIDDocument(iss, userDoc);
 
-    return await this.getVerifiedAcceptedRoles(userDid, done);
+    return await this.getVerifiedAcceptedRoles(userDid, done, didDocCache);
   }
 
   /**
@@ -329,7 +332,8 @@ export class LoginStrategy extends BaseStrategy {
    */
   private async getVerifiedAcceptedRoles(
     userDid: string,
-    done: (err?: Error, user?: unknown, info?: unknown) => void
+    done: (err?: Error, user?: unknown, info?: unknown) => void,
+    didDocCache?: DIDDocumentCache
   ): Promise<void> {
     const userAddress = addressOf(userDid);
     try {
@@ -343,7 +347,7 @@ export class LoginStrategy extends BaseStrategy {
       const userClaims =
         this.cacheServerClient?.address === userAddress
           ? []
-          : await this.credentialResolver.eip191JwtsOf(userDid);
+          : await this.credentialResolver.eip191JwtsOf(userDid, didDocCache);
 
       const claimsToVerify = this.includeAllRoles
         ? userClaims
