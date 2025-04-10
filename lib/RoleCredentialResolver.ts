@@ -2,16 +2,14 @@ import { RoleCredentialSubject } from '@energyweb/credential-governance';
 import {
   CredentialResolver,
   RoleEIP191JWT,
-  RolePayload,
   VerifiableCredential,
   IRoleCredentialCache,
   IpfsCredentialResolver,
   isEIP191Jwt,
   isVerifiableCredential,
-  transformClaim,
-  filterOutMaliciousClaims,
   isCID,
   IDIDDocumentCache,
+  DIDDocumentCache,
 } from '@energyweb/vc-verification';
 import { DidStore } from '@ew-did-registry/did-ipfs-store';
 import {
@@ -20,7 +18,6 @@ import {
 } from '@ew-did-registry/did-resolver-interface';
 import { providers, utils } from 'ethers';
 import { CacheServerClient } from './cacheServerClient';
-import { decode } from 'jsonwebtoken';
 import { Logger } from './Logger';
 
 /**
@@ -208,30 +205,10 @@ export class RoleCredentialResolver implements CredentialResolver {
     didDocumentCache?: IDIDDocumentCache
   ): Promise<RoleEIP191JWT[]> {
     if (this._cacheServerClient?.isAvailable) {
-      const services = await this._cacheServerClient.getRoleCredentials(did);
-      Logger.info(`DID Document for DID: ${did} resolved from SSI-Hub`);
-      return (
-        await Promise.all(
-          services.map(async ({ serviceEndpoint }) => {
-            if (!isCID(serviceEndpoint)) {
-              return {};
-            }
-            const claimToken = await this._ipfsStore.get(serviceEndpoint);
-            let rolePayload: RolePayload | undefined;
-            // expect that JWT has 3 dot-separated parts
-            if (claimToken.split('.').length === 3) {
-              rolePayload = decode(claimToken) as RolePayload;
-            }
-            return {
-              payload: rolePayload,
-              eip191Jwt: claimToken,
-            } as RoleEIP191JWT;
-          })
-        )
-      )
-        .filter(isEIP191Jwt)
-        .map(transformClaim)
-        .filter(filterOutMaliciousClaims);
+      if (!didDocumentCache) {
+        didDocumentCache = new DIDDocumentCache();
+        await this.getDIDDocument(did, didDocumentCache);
+      }
     }
     return await this._ipfsCredentialResolver.eip191JwtsOf(
       did,
