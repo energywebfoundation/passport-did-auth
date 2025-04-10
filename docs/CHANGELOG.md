@@ -1,3 +1,10 @@
+## [2.1.0-alpha.2](https://github.com/energywebfoundation/passport-did-auth/compare/v2.1.0-alpha.1...v2.1.0-alpha.2) (2025-04-10)
+
+
+### Features
+
+* use cached did document ([681af40](https://github.com/energywebfoundation/passport-did-auth/commit/681af408bd8773a4173456347f4d48395926459f))
+
 ## [2.1.0-alpha.1](https://github.com/energywebfoundation/passport-did-auth/compare/v2.0.1-alpha.3...v2.1.0-alpha.1) (2025-01-15)
 
 
