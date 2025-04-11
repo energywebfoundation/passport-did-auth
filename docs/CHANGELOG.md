@@ -1,3 +1,10 @@
+## [2.1.0-alpha.3](https://github.com/energywebfoundation/passport-did-auth/compare/v2.1.0-alpha.2...v2.1.0-alpha.3) (2025-04-11)
+
+
+### Documentation
+
+* publish release ([1f07cb1](https://github.com/energywebfoundation/passport-did-auth/commit/1f07cb1cac075c1ca345d1872eaf28f1dbae6911))
+
 ## [2.1.0-alpha.2](https://github.com/energywebfoundation/passport-did-auth/compare/v2.1.0-alpha.1...v2.1.0-alpha.2) (2025-04-10)
 
 
