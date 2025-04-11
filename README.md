@@ -10,57 +10,57 @@ This repository consists of a Node.js Password Strategy which authenticates base
 
 ## Sequence diagram
 
- ```mermaid
+```mermaid
 sequenceDiagram
 autonumber
-    participant C as Client
-    participant LS as LoginStrategy
-    participant CV as ClaimVerifier
-    participant PV as ProofVerifier
-    participant CR as CredentialResolver
-    participant IV as IssuerVerification
-    participant SH as SSI-HUB
-    participant IPFS
-    participant DR as DomainReader
+   participant C as Client
+   participant LS as LoginStrategy
+   participant CV as ClaimVerifier
+   participant PV as ProofVerifier
+   participant CR as CredentialResolver
+   participant IV as IssuerVerification
+   participant SH as SSI-HUB
+   participant IPFS
+   participant DR as DomainReader
 rect rgb(200, 255, 255)
-    Note right of C: Initialisation
-    C->>C: Client sets the login strategy options and initialises LoginStrategy
-    Note right of C: Validation Call
-    C->>LS: LoginStrategy.validate(token, payload)
+   Note right of C: Initialisation
+   C->>C: Client sets the login strategy options and initialises LoginStrategy
+   Note right of C: Validation Call
+   C->>LS: LoginStrategy.validate(token, payload)
 end
 rect rgb(255, 220, 255)
-    Note right of LS: Signature and role validation
-    LS->>PV: Authenticate token issuer
-    LS ->> CR : Fetches role credentials {by DID}
-    alt Fetch DID Document from SSI-HUB if cacheClient initialised
-      CR->>SH: Fetch cached DID Document
-      loop For each serviceEndpoint
-        CR->>IPFS : Resolve credential from IPFS
-      end
-    else Resolve DID Document from Blockchain
-      loop For each serviceEndpoint
-        CR->>IPFS : Resolve credential from IPFS
-      end
-    end
-    CR-->>LS: returns credentials
+   Note right of LS: Signature and role validation
+   LS->>PV: Authenticate token issuer
+   LS ->> CR : Fetches role credentials {by DID}
+   alt Fetch DID Document from SSI-HUB if cacheClient initialised
+     CR->>SH: Fetch cached DID Document
+     loop For each serviceEndpoint
+       CR->>IPFS : Resolve credential from IPFS
+     end
+   else Resolve DID Document from Blockchain
+     loop For each serviceEndpoint
+       CR->>IPFS : Resolve credential from IPFS
+     end
+   end
+   CR-->>LS: returns credentials
 end
 rect rgb(255, 255, 220)
-    Note right of CV: Issuer verification
-    LS->>LS: Initialise ClaimVerifier <br> {RoleEIP191Jwt[], getRoleDefinition, IssuerVerification}
-    LS->>CV: ClaimVerifier.getVerifiedRoles(userCredentials, getRoleDefinition, issuerVerification) 
-    loop For each claims
-      alt Fetch role definition from SSI-HUB if cacheClient initialised
-        CV->>SH: Request role definition
-        SH-->>CV: return role definition
-      else Fetch role definition from DomainReader
-        CV->>DR: Request role definition
-        DR-->>CV: return role definition
-      end
-      CV->>IV: IssuerVerification.verifyIssuer() <br> verifies issuers in the hierarchy along with their revocation status and expiration
-      IV-->>CV : Returns VerificationResult
-    end
-    CV-->>LS: returns verified roles
-    LS->>LS: checks if accepted roles are in verified roles
+   Note right of CV: Issuer verification
+   LS->>LS: Initialise ClaimVerifier <br> {RoleEIP191Jwt[], getRoleDefinition, IssuerVerification}
+   LS->>CV: ClaimVerifier.getVerifiedRoles(userCredentials, getRoleDefinition, issuerVerification)
+   loop For each claims
+     alt Fetch role definition from SSI-HUB if cacheClient initialised
+       CV->>SH: Request role definition
+       SH-->>CV: return role definition
+     else Fetch role definition from DomainReader
+       CV->>DR: Request role definition
+       DR-->>CV: return role definition
+     end
+     CV->>IV: IssuerVerification.verifyIssuer() <br> verifies issuers in the hierarchy along with their revocation status and expiration
+     IV-->>CV : Returns VerificationResult
+   end
+   CV-->>LS: returns verified roles
+   LS->>LS: checks if accepted roles are in verified roles
 end
 ```
 
@@ -178,14 +178,16 @@ const payload = {
 
 await loginStrategy.validate(token, payload);
 ```
+
 where the `iss` is DID of the subject and `blockNumber` is block number (or height) of the most recently mined block.
 
 ### Login with SIWE (Sign-in with Ethereum)
 
-* While login with SIWE, one must initialise LoginStrategy with `siweMessageUri` (one of the attribute of `LoginStrategyOptions`).
+- While login with SIWE, one must initialise LoginStrategy with `siweMessageUri` (one of the attribute of `LoginStrategyOptions`).
 
 ```typescript
-const token = '0xdc35c7f8ba2720df052e0092556456127f00f7707eaa8e3bbff7e56774e7f2e05a093cfc9e02964c33d86e8e066e221b7d153d27e5a2e97ccd5ca7d3f2ce06cb1b'; // EIP712 signature
+const token =
+  '0xdc35c7f8ba2720df052e0092556456127f00f7707eaa8e3bbff7e56774e7f2e05a093cfc9e02964c33d86e8e066e221b7d153d27e5a2e97ccd5ca7d3f2ce06cb1b'; // EIP712 signature
 
 const sampleSiwePayload: Partial<SiweMessagePayload> = {
   domain: 'login.xyz',
@@ -201,6 +203,7 @@ const sampleSiwePayload: Partial<SiweMessagePayload> = {
 
 await loginStrategy.validate(token, payload);
 ```
+
 > Read more about Sign-In with Ethereum [here](https://docs.login.xyz)
 
 ### Prerequisities
@@ -215,6 +218,10 @@ nodejs version 16.10+
 ```
 npm run build
 ```
+
+### Publish new release
+
+New release is published when merged to develop or master branch. Library uses semantic versioning (https://github.com/semantic-release/semantic-release). Additionaly commit types `docs`, `style`, `refactor` and `perf` trigger patch release
 
 ### Example applications
 
