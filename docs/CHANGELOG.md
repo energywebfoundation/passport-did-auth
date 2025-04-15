@@ -1,3 +1,10 @@
+## [2.1.0-alpha.4](https://github.com/energywebfoundation/passport-did-auth/compare/v2.1.0-alpha.3...v2.1.0-alpha.4) (2025-04-15)
+
+
+### Features
+
+* upgrade ew-credentials@2.2.1-alpha.323 ([6358b54](https://github.com/energywebfoundation/passport-did-auth/commit/6358b54883b32644471288ad8b9ac1ca0fbd49e3))
+
 ## [2.1.0-alpha.3](https://github.com/energywebfoundation/passport-did-auth/compare/v2.1.0-alpha.2...v2.1.0-alpha.3) (2025-04-11)
 
 
