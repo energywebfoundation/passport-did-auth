@@ -1,3 +1,10 @@
+## [2.1.0-alpha.5](https://github.com/energywebfoundation/passport-did-auth/compare/v2.1.0-alpha.4...v2.1.0-alpha.5) (2025-06-11)
+
+
+### Features
+
+* s3 storage implementation ([c56644f](https://github.com/energywebfoundation/passport-did-auth/commit/c56644ff615cbe16bb382449f2cea80d9aad8e07))
+
 ## [2.1.0-alpha.4](https://github.com/energywebfoundation/passport-did-auth/compare/v2.1.0-alpha.3...v2.1.0-alpha.4) (2025-04-15)
 
 
