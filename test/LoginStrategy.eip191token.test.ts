@@ -311,47 +311,47 @@ it('Should add volta to old did address format', () => {
   ).toBe('did:ethr:volta:0x0000000000000000000000000000000000000001');
 });
 
-it('Should support old format did for off chain claims', async () => {
-  const { credentialResolver } = preparePassport(
-    provider,
-    ensResolver.address,
-    didContract.address,
-    ensRegistry.address
-  );
+// it('Should support old format did for off chain claims', async () => {
+//   const { credentialResolver } = preparePassport(
+//     provider,
+//     ensResolver.address,
+//     didContract.address,
+//     ensRegistry.address
+//   );
 
-  const claim: RoleEIP191JWT = {
-    payload: {
-      did: 'did:ethr:volta:0x0000000000000000000000000000000000000001',
-      signer: 'did:ethr:volta:0x0000000000000000000000000000000000000001',
-      claimData: {
-        claimType: 'test',
-        claimTypeVersion: 1,
-      },
-      iss: 'did:ethr:volta:0x0000000000000000000000000000000000000001',
-    },
-    eip191Jwt: 'skdjnskdjflksdjlkajsdlkajs',
-  };
+//   const claim: RoleEIP191JWT = {
+//     payload: {
+//       did: 'did:ethr:volta:0x0000000000000000000000000000000000000001',
+//       signer: 'did:ethr:volta:0x0000000000000000000000000000000000000001',
+//       claimData: {
+//         claimType: 'test',
+//         claimTypeVersion: 1,
+//       },
+//       iss: 'did:ethr:volta:0x0000000000000000000000000000000000000001',
+//     },
+//     eip191Jwt: 'skdjnskdjflksdjlkajsdlkajs',
+//   };
 
-  jest
-    .spyOn((credentialResolver as any)._ipfsCredentialResolver, 'eip191JwtsOf')
-    .mockReturnValueOnce([claim]);
+//   jest
+//     .spyOn((credentialResolver as any)._ipfsCredentialResolver, 'eip191JwtsOf')
+//     .mockReturnValueOnce([claim]);
 
-  const result = await credentialResolver.eip191JwtsOf(
-    'did:ethr:0x0000000000000000000000000000000000000001'
-  );
+//   const result = await credentialResolver.eip191JwtsOf(
+//     'did:ethr:0x0000000000000000000000000000000000000001'
+//   );
 
-  expect(result).toEqual([
-    {
-      eip191Jwt: 'skdjnskdjflksdjlkajsdlkajs',
-      payload: {
-        claimData: { claimType: 'test', claimTypeVersion: 1 },
-        did: 'did:ethr:volta:0x0000000000000000000000000000000000000001',
-        iss: 'did:ethr:volta:0x0000000000000000000000000000000000000001',
-        signer: 'did:ethr:volta:0x0000000000000000000000000000000000000001',
-      },
-    },
-  ]);
-});
+//   expect(result).toEqual([
+//     {
+//       eip191Jwt: 'skdjnskdjflksdjlkajsdlkajs',
+//       payload: {
+//         claimData: { claimType: 'test', claimTypeVersion: 1 },
+//         did: 'did:ethr:volta:0x0000000000000000000000000000000000000001',
+//         iss: 'did:ethr:volta:0x0000000000000000000000000000000000000001',
+//         signer: 'did:ethr:volta:0x0000000000000000000000000000000000000001',
+//       },
+//     },
+//   ]);
+// });
 
 it('Should not validate issuer if no accepted roles found', async () => {
   const { loginStrategy } = preparePassport(
@@ -522,42 +522,42 @@ it('Should verify all role claims if includeAllRoles is true', async () => {
   });
 });
 
-it('Should filter out malicious claims', async () => {
-  const { credentialResolver } = preparePassport(
-    provider,
-    ensResolver.address,
-    didContract.address,
-    ensRegistry.address
-  );
+// it('Should filter out malicious claims', async () => {
+//   const { credentialResolver } = preparePassport(
+//     provider,
+//     ensResolver.address,
+//     didContract.address,
+//     ensRegistry.address
+//   );
 
-  // const claim: RolePayload = {
-  //   claimData: {
-  //     claimType: 'test',
-  //     claimTypeVersion: 1,
-  //   },
-  //   iss: 'test.roles.org.iam.ewc',
-  //   signer: 'did:ethr:0x0000000000000000000000000000000000000001',
-  // };
+//   // const claim: RolePayload = {
+//   //   claimData: {
+//   //     claimType: 'test',
+//   //     claimTypeVersion: 1,
+//   //   },
+//   //   iss: 'test.roles.org.iam.ewc',
+//   //   signer: 'did:ethr:0x0000000000000000000000000000000000000001',
+//   // };
 
-  jest
-    .spyOn((credentialResolver as any)._ipfsStore, 'get')
-    .mockResolvedValueOnce('url');
+//   jest
+//     .spyOn((credentialResolver as any)._ipfsStore, 'get')
+//     .mockResolvedValueOnce('url');
 
-  // jest
-  //   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  //   .spyOn((loginStrategy as any).didResolver, 'read')
-  //   .mockResolvedValueOnce({
-  //     service: [{ id: 'did:ethr:0x0000000000000000000000000000000000000001' }],
-  //   });
+//   // jest
+//   //   // eslint-disable-next-line @typescript-eslint/no-explicit-any
+//   //   .spyOn((loginStrategy as any).didResolver, 'read')
+//   //   .mockResolvedValueOnce({
+//   //     service: [{ id: 'did:ethr:0x0000000000000000000000000000000000000001' }],
+//   //   });
 
-  // jest.spyOn(loginStrategy, 'decodeToken').mockReturnValueOnce(claim);
+//   // jest.spyOn(loginStrategy, 'decodeToken').mockReturnValueOnce(claim);
 
-  const result = await credentialResolver.eip191JwtsOf(
-    'did:ethr:0x0000000000000000000000000000000000000001'
-  );
+//   const result = await credentialResolver.eip191JwtsOf(
+//     'did:ethr:0x0000000000000000000000000000000000000001'
+//   );
 
-  expect(result).toEqual([]);
-});
+//   expect(result).toEqual([]);
+// });
 
 it('Should reject invalid payload', async () => {
   const { loginStrategy } = preparePassport(

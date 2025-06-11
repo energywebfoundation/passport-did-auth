@@ -6,7 +6,6 @@ import {
 import { CredentialResolver } from '@energyweb/vc-verification';
 import { Methods } from '@ew-did-registry/did';
 import { ethrReg } from '@ew-did-registry/did-ethr-resolver';
-import { DidStore } from '@ew-did-registry/did-ipfs-store';
 import { RegistrySettings } from '@ew-did-registry/did-resolver-interface';
 import { providers } from 'ethers';
 import passport from 'passport';
@@ -16,6 +15,7 @@ import { verifyCredential } from 'didkit-wasm-node';
 import { RoleIssuerResolver } from '../../lib/RoleIssuerResolver';
 import { RoleCredentialResolver } from '../../lib/RoleCredentialResolver';
 import { RoleRevokerResolver } from '../../lib/RoleRevokerResolver';
+import { MockDidStore } from './MockDidStore';
 
 export const LOGIN_STRATEGY = 'login';
 export const private_pem_secret = `-----BEGIN RSA PRIVATE KEY-----
@@ -109,7 +109,7 @@ export const preparePassport = (
     address: didRegistryAddress,
     method: Methods.Erc1056,
   };
-  const didStore = new DidStore('http://localhost:8080');
+  const didStore = new MockDidStore('', {});
   const domainReader = new DomainReader({
     ensRegistryAddress: ensRegistryAddress,
     provider: provider,
