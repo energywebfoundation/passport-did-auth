@@ -4,14 +4,14 @@ import {
   RoleEIP191JWT,
   VerifiableCredential,
   IRoleCredentialCache,
-  IpfsCredentialResolver,
+  S3CredentialResolver,
   isEIP191Jwt,
   isVerifiableCredential,
   isCID,
   IDIDDocumentCache,
   DIDDocumentCache,
 } from '@energyweb/vc-verification';
-import { DidStore } from '@ew-did-registry/did-ipfs-store';
+import { DidStore } from '@ew-did-registry/did-s3-store';
 import {
   IDIDDocument,
   RegistrySettings,
@@ -26,8 +26,8 @@ import { Logger } from './Logger';
  */
 export class RoleCredentialResolver implements CredentialResolver {
   private _cacheServerClient?: CacheServerClient;
-  private _ipfsCredentialResolver: IpfsCredentialResolver;
-  private _ipfsStore: DidStore;
+  private _credentialResolver: S3CredentialResolver;
+  private _didStore: DidStore;
 
   constructor(
     provider: providers.Provider,
@@ -36,8 +36,8 @@ export class RoleCredentialResolver implements CredentialResolver {
     privateKey?: string,
     cacheServerUrl?: string
   ) {
-    this._ipfsStore = didStore;
-    this._ipfsCredentialResolver = new IpfsCredentialResolver(
+    this._didStore = didStore;
+    this._credentialResolver = new S3CredentialResolver(
       provider,
       registrySetting,
       didStore
@@ -210,10 +210,7 @@ export class RoleCredentialResolver implements CredentialResolver {
         await this.getDIDDocument(did, didDocumentCache);
       }
     }
-    return await this._ipfsCredentialResolver.eip191JwtsOf(
-      did,
-      didDocumentCache
-    );
+    return await this._credentialResolver.eip191JwtsOf(did, didDocumentCache);
   }
 
   /**
@@ -235,7 +232,7 @@ export class RoleCredentialResolver implements CredentialResolver {
             if (!isCID(serviceEndpoint)) {
               return {};
             }
-            const credential = await this._ipfsStore.get(serviceEndpoint);
+            const credential = await this._didStore.get(serviceEndpoint);
             let vc;
             // expect that JWT would have 3 dot-separated parts, VC is non-JWT credential
             if (!(credential.split('.').length === 3)) {
@@ -246,10 +243,7 @@ export class RoleCredentialResolver implements CredentialResolver {
         )
       ).filter(isVerifiableCredential);
     }
-    return await this._ipfsCredentialResolver.credentialsOf(
-      did,
-      didDocumentCache
-    );
+    return await this._credentialResolver.credentialsOf(did, didDocumentCache);
   }
 
   /**
@@ -270,7 +264,7 @@ export class RoleCredentialResolver implements CredentialResolver {
     if (this._cacheServerClient?.isAvailable) {
       resolvedDIDDocument = await this._cacheServerClient.getDidDocument(did);
     } else {
-      resolvedDIDDocument = await this._ipfsCredentialResolver.getDIDDocument(
+      resolvedDIDDocument = await this._credentialResolver.getDIDDocument(
         did,
         didDocumentCache
       );
