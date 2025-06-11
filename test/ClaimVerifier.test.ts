@@ -19,7 +19,7 @@ import {
 } from '@energyweb/credential-governance';
 import { PreconditionType } from '@energyweb/credential-governance';
 import { EwSigner, Operator } from '@ew-did-registry/did-ethr-resolver';
-import { DidStore } from '@ew-did-registry/did-ipfs-store';
+import { DidStore } from '@ew-did-registry/did-s3-store';
 import { Methods } from '@ew-did-registry/did';
 import {
   deployClaimManager,
@@ -60,6 +60,7 @@ import { RoleRevokerResolver } from '../lib/RoleRevokerResolver';
 import { RoleCredentialResolver } from '../lib/RoleCredentialResolver';
 import { StatusListEntryVerification } from '@ew-did-registry/revocation';
 import { RoleCredentialStatus } from '../lib/LoginStrategy.types';
+import { MockDidStore } from './testUtils/MockDidStore';
 
 chai.use(chaiAsPromised);
 const expect = chai.expect;
@@ -145,9 +146,8 @@ describe('ClaimVerifier', () => {
     roleFactory = new DomainTransactionFactoryV2({
       domainResolverAddress: ensResolver.address,
     });
-    ipfsUrl = await spawnIpfsDaemon();
 
-    didStore = new DidStore(ipfsUrl);
+    didStore = new MockDidStore("", {});
 
     registrySettings = {
       method: Methods.Erc1056,
