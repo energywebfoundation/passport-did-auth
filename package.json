@@ -24,7 +24,7 @@
     "build:typechain:claimManager": "typechain --target ethers-v5 --out-dir ethers \"./node_modules/@energyweb/onchain-claims/dist/contracts/ClaimManager.json\"",
     "build:typechain:roledefinitionresolver": "typechain --target ethers-v5 --out-dir ethers \"./node_modules/@energyweb/credential-governance/dist/contracts/RoleDefinitionResolver.json\"",
     "build:typechain:domainnotifier": "typechain --target ethers-v5 --out-dir ethers \"./node_modules/@energyweb/credential-governance/dist/contracts/DomainNotifier.json\"",
-    "test": "npm run start-rpc -- \"jest --detectOpenHandles\" & npm run wait",
+    "test": "npm run start-rpc -- \"jest --detectOpenHandles\"",
     "test:watch": "npm run start-rpc -- \"jest --watchAll --detectOpenHandles\"",
     "lint": "eslint -c .eslintrc.js --ext .ts lib test"
   },
