@@ -110,7 +110,7 @@ beforeAll(async () => {
     cacheServerSupportsAuth: false,
   });
   // eslint-disable-next-line
-  jest.spyOn(CacheClient.prototype, 'login').mockImplementation(async () => {});
+  jest.spyOn(CacheClient.prototype, 'login').mockImplementation(async () => { });
   const { connectToCacheServer } = await initWithPrivateKeySigner(
     userPrivKey,
     rpcUrl
@@ -230,7 +230,7 @@ it('Should reject invalid issuer', async () => {
 
   const consoleListener = jest.spyOn(console, 'log');
   await loginStrategy?.validate(token, payload, () => {
-    expect(consoleListener).toBeCalledWith(
+    expect(consoleListener).toHaveBeenCalledWith(
       'Not Verified: Authentication proof is not valid'
     );
   });
@@ -262,7 +262,7 @@ it('Should reject invalid token', async () => {
 
   const consoleListener = jest.spyOn(console, 'log');
   await loginStrategy?.validate(token, payload, () => {
-    expect(consoleListener).toBeCalledWith(
+    expect(consoleListener).toHaveBeenCalledWith(
       'Not Verified: Authentication proof is not valid'
     );
   });
@@ -292,7 +292,7 @@ it('Should reject invalid token payload', async () => {
 
   const consoleListener = jest.spyOn(console, 'log');
   await loginStrategy?.validate(token, payload, () => {
-    expect(consoleListener).toBeCalledWith('Token payload is not valid');
+    expect(consoleListener).toHaveBeenCalledWith('Token payload is not valid');
   });
 });
 
@@ -459,7 +459,7 @@ it('Should verify only accepted roles if includeAllRoles is false', async () => 
 
   const consoleListener = jest.spyOn(console, 'log');
   await loginStrategy?.validate(token, payload, () => {
-    expect(consoleListener).toBeCalledWith(
+    expect(consoleListener).toHaveBeenCalledWith(
       'includeAllRoles: false, verifying only accepted roles'
     );
   });
@@ -516,7 +516,7 @@ it('Should verify all role claims if includeAllRoles is true', async () => {
 
   const consoleListener = jest.spyOn(console, 'log');
   await loginStrategy?.validate(token, payload, () => {
-    expect(consoleListener).toBeCalledWith(
+    expect(consoleListener).toHaveBeenCalledWith(
       'includeAllRoles: true, verifying all roles'
     );
   });
