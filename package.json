@@ -1,6 +1,6 @@
 {
   "name": "passport-did-auth",
-  "version": "2.1.0-alpha.6",
+  "version": "2.1.0-alpha.7",
   "description": "",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
