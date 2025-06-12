@@ -1,3 +1,13 @@
+## [2.1.0-alpha.6](https://github.com/energywebfoundation/passport-did-auth/compare/v2.1.0-alpha.5...v2.1.0-alpha.6) (2025-06-12)
+
+
+### Bug Fixes
+
+* update to latest @energyweb/vc-verification ([2043f35](https://github.com/energywebfoundation/passport-did-auth/commit/2043f358d51f686d492af2083ac1e83ed04b3c2f))
+* update using 127.0.0.1 ([c21ce1e](https://github.com/energywebfoundation/passport-did-auth/commit/c21ce1e86be60d531c3ff7931a71790c9f422224))
+* update version node 18 ([62f0a6a](https://github.com/energywebfoundation/passport-did-auth/commit/62f0a6aa4d5012375782fdf101292c9e0310fefb))
+* using updated syntax ([aa8d42b](https://github.com/energywebfoundation/passport-did-auth/commit/aa8d42bb9c8d7a8dc62c0408a4d32b7a3e97d713))
+
 ## [2.1.0-alpha.5](https://github.com/energywebfoundation/passport-did-auth/compare/v2.1.0-alpha.4...v2.1.0-alpha.5) (2025-06-11)
 
 
