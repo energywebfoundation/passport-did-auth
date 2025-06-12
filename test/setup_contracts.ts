@@ -20,7 +20,7 @@ import {
 const { JsonRpcProvider } = providers;
 
 const GANACHE_PORT = 8544;
-export const rpcUrl = `http://localhost:${GANACHE_PORT}`;
+export const rpcUrl = `http://127.0.0.1:${GANACHE_PORT}`;
 export const provider = new JsonRpcProvider(rpcUrl);
 
 export let ensRegistry: ENSRegistry;

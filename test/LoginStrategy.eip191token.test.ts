@@ -38,7 +38,7 @@ import { RoleEIP191JWT } from '@energyweb/vc-verification';
 import { Chain } from '@ew-did-registry/did';
 
 const GANACHE_PORT = 8544;
-const rpcUrl = `http://localhost:${GANACHE_PORT}`;
+const rpcUrl = `http://127.0.0.1:${GANACHE_PORT}`;
 
 const provider = new providers.JsonRpcProvider(rpcUrl);
 
@@ -65,8 +65,8 @@ interface IAM {
 const iam: IAM = {};
 
 const server = new ServerMock(
-  { host: 'localhost', port: 9000 },
-  { host: 'localhost', port: 9001 }
+  { host: '127.0.0.1', port: 9000 },
+  { host: '127.0.0.1', port: 9001 }
 );
 const asyncStart = () => new Promise((resolve) => server.start(resolve));
 const asyncStop = () => new Promise((resolve) => server.stop(resolve));
@@ -106,11 +106,11 @@ beforeAll(async () => {
   });
 
   setCacheConfig(chainId, {
-    url: 'http://localhost:9000/',
+    url: 'http://127.0.0.1:9000/',
     cacheServerSupportsAuth: false,
   });
   // eslint-disable-next-line
-  jest.spyOn(CacheClient.prototype, 'login').mockImplementation(async () => {});
+  jest.spyOn(CacheClient.prototype, 'login').mockImplementation(async () => { });
   const { connectToCacheServer } = await initWithPrivateKeySigner(
     userPrivKey,
     rpcUrl
@@ -230,7 +230,7 @@ it('Should reject invalid issuer', async () => {
 
   const consoleListener = jest.spyOn(console, 'log');
   await loginStrategy?.validate(token, payload, () => {
-    expect(consoleListener).toBeCalledWith(
+    expect(consoleListener).toHaveBeenCalledWith(
       'Not Verified: Authentication proof is not valid'
     );
   });
@@ -262,7 +262,7 @@ it('Should reject invalid token', async () => {
 
   const consoleListener = jest.spyOn(console, 'log');
   await loginStrategy?.validate(token, payload, () => {
-    expect(consoleListener).toBeCalledWith(
+    expect(consoleListener).toHaveBeenCalledWith(
       'Not Verified: Authentication proof is not valid'
     );
   });
@@ -292,7 +292,7 @@ it('Should reject invalid token payload', async () => {
 
   const consoleListener = jest.spyOn(console, 'log');
   await loginStrategy?.validate(token, payload, () => {
-    expect(consoleListener).toBeCalledWith('Token payload is not valid');
+    expect(consoleListener).toHaveBeenCalledWith('Token payload is not valid');
   });
 });
 
@@ -459,7 +459,7 @@ it('Should verify only accepted roles if includeAllRoles is false', async () => 
 
   const consoleListener = jest.spyOn(console, 'log');
   await loginStrategy?.validate(token, payload, () => {
-    expect(consoleListener).toBeCalledWith(
+    expect(consoleListener).toHaveBeenCalledWith(
       'includeAllRoles: false, verifying only accepted roles'
     );
   });
@@ -516,7 +516,7 @@ it('Should verify all role claims if includeAllRoles is true', async () => {
 
   const consoleListener = jest.spyOn(console, 'log');
   await loginStrategy?.validate(token, payload, () => {
-    expect(consoleListener).toBeCalledWith(
+    expect(consoleListener).toHaveBeenCalledWith(
       'includeAllRoles: true, verifying all roles'
     );
   });
