@@ -113,7 +113,7 @@ const provider = new providers.JsonRpcProvider(rpcUrl);
 
 const loginStrategyOptions: LoginStrategyOptions = {
   jwtSecret: 'private_pem_secret',
-  rpcUrl: `http://localhost:8544`,
+  rpcUrl: `http://127.0.0.1:8544`,
   name: LOGIN_STRATEGY,
   didContractAddress: didRegistryAddress,
   ensRegistryAddress: ensRegistryAddress,

@@ -38,7 +38,7 @@ import { RoleEIP191JWT } from '@energyweb/vc-verification';
 import { Chain } from '@ew-did-registry/did';
 
 const GANACHE_PORT = 8544;
-const rpcUrl = `http://localhost:${GANACHE_PORT}`;
+const rpcUrl = `http://127.0.0.1:${GANACHE_PORT}`;
 
 const provider = new providers.JsonRpcProvider(rpcUrl);
 
@@ -65,8 +65,8 @@ interface IAM {
 const iam: IAM = {};
 
 const server = new ServerMock(
-  { host: 'localhost', port: 9000 },
-  { host: 'localhost', port: 9001 }
+  { host: '127.0.0.1', port: 9000 },
+  { host: '127.0.0.1', port: 9001 }
 );
 const asyncStart = () => new Promise((resolve) => server.start(resolve));
 const asyncStop = () => new Promise((resolve) => server.stop(resolve));
@@ -106,7 +106,7 @@ beforeAll(async () => {
   });
 
   setCacheConfig(chainId, {
-    url: 'http://localhost:9000/',
+    url: 'http://127.0.0.1:9000/',
     cacheServerSupportsAuth: false,
   });
   // eslint-disable-next-line

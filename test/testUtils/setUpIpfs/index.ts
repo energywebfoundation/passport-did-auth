@@ -24,7 +24,7 @@ export async function spawnIpfs() {
   try {
     await waitOn({
       // https://ipfscluster.io/documentation/reference/api/
-      resources: ['http-get://localhost:8080/id'],
+      resources: ['http-get://127.0.0.1:8080/id'],
       delay: 5000,
       timeout: 30000,
     });

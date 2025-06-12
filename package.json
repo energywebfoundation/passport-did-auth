@@ -8,7 +8,7 @@
     "/dist"
   ],
   "scripts": {
-    "wait": "wait-on http://localhost:8544",
+    "wait": "wait-on http://127.0.0.1:8544",
     "start-rpc": "run-with-testrpc -m \"candy maple cake sugar pudding cream honey rich smooth crumble sweet treat\" --port 8544 --chainId 73799 --accounts 20 --gasLimit=10000000",
     "ganache": "ganache-cli -m \"candy maple cake sugar pudding cream honey rich smooth crumble sweet treat\" --port 8544 --accounts 20 --networkId=9 --gasLimit=10000000",
     "prepare": "npm run build && husky install",

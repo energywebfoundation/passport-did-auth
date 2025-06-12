@@ -23,7 +23,7 @@ import { SiweMessage as SiweMessagePayload } from 'siwe';
 import request from 'supertest';
 
 const GANACHE_PORT = 8544;
-const rpcUrl = `http://localhost:${GANACHE_PORT}`;
+const rpcUrl = `http://127.0.0.1:${GANACHE_PORT}`;
 
 const provider = new providers.JsonRpcProvider(rpcUrl);
 const wallet = Wallet.createRandom().connect(provider);
@@ -46,8 +46,8 @@ const token =
   '0xdc35c7f8ba2720df052e0092556456127f00f7707eaa8e3bbff7e56774e7f2e05a093cfc9e02964c33d86e8e066e221b7d153d27e5a2e97ccd5ca7d3f2ce06cb1b';
 
 const server = new ServerMock(
-  { host: 'localhost', port: 9000 },
-  { host: 'localhost', port: 9001 }
+  { host: '127.0.0.1', port: 9000 },
+  { host: '127.0.0.1', port: 9001 }
 );
 const asyncStart = () => new Promise((resolve) => server.start(resolve));
 const asyncStop = () => new Promise((resolve) => server.stop(resolve));
@@ -85,7 +85,7 @@ beforeAll(async () => {
   });
 
   setCacheConfig(chainId, {
-    url: 'http://localhost:9000/',
+    url: 'http://127.0.0.1:9000/',
     cacheServerSupportsAuth: false,
   });
 });
