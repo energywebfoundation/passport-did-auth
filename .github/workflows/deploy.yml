@@ -2,9 +2,9 @@ name: Deploy
 
 on:
   push:
-    branches: ['develop', 'master']
+    branches: ['develop', 'master', 'feat/s3-build-01']
   pull_request:
-    branches: ['develop', 'master']
+    branches: ['develop', 'master', 'feat/s3-build-01']
 
 jobs:
   cancel-previous:
@@ -49,6 +49,14 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GH_PUSH_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Deploy on feat/s3-build-01 branch
+        if: github.ref == 'refs/heads/feat/s3-build-01'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_PUSH_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          RUN_NUMBER: ${{ github.run_number }}
+        run: npm run publish:canary
 
   sync_development_with_master:
     runs-on: ubuntu-latest

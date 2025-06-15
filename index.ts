@@ -3,7 +3,6 @@ import { LoginStrategy } from './lib/LoginStrategy';
 import { RoleCredentialResolver } from './lib/RoleCredentialResolver';
 import { RoleIssuerResolver } from './lib/RoleIssuerResolver';
 import { RoleRevokerResolver } from './lib/RoleRevokerResolver';
-import { DidStore } from '@ew-did-registry/did-s3-store';
 import { RegistrySettings } from '@ew-did-registry/did-resolver-interface';
 import { Methods } from '@ew-did-registry/did';
 import {
@@ -25,6 +24,7 @@ import {
   RoleStatus,
   SiweReqPayload,
 } from './lib/LoginStrategy.types';
+import { DidStore } from '@energyweb/vc-verification';
 
 export {
   AuthorisedUser,
