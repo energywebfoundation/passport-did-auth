@@ -1,4 +1,4 @@
-import { DidStore } from '@ew-did-registry/did-s3-store';
+import { DidStore } from "@energyweb/vc-verification";
 
 export class MockDidStore extends DidStore {
   private mockStorage: Record<string, string> = {};

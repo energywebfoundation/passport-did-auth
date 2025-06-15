@@ -10,8 +10,8 @@ import {
   isCID,
   IDIDDocumentCache,
   DIDDocumentCache,
+  DidStore,
 } from '@energyweb/vc-verification';
-import { DidStore } from '@ew-did-registry/did-s3-store';
 import {
   IDIDDocument,
   RegistrySettings,
