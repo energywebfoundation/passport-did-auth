@@ -1,21 +1,21 @@
 import { RoleCredentialSubject } from '@energyweb/credential-governance';
 import {
   CredentialResolver,
-  RoleEIP191JWT,
-  VerifiableCredential,
+  DIDDocumentCache,
+  IDIDDocumentCache,
   IRoleCredentialCache,
+  RoleEIP191JWT,
   S3CredentialResolver,
+  VerifiableCredential,
+  isCID,
   isEIP191Jwt,
   isVerifiableCredential,
-  isCID,
-  IDIDDocumentCache,
-  DIDDocumentCache,
 } from '@energyweb/vc-verification';
-import { DidStore } from '@ew-did-registry/did-s3-store';
 import {
   IDIDDocument,
   RegistrySettings,
 } from '@ew-did-registry/did-resolver-interface';
+import { IDidStore } from '@ew-did-registry/did-store-interface';
 import { providers, utils } from 'ethers';
 import { CacheServerClient } from './cacheServerClient';
 import { Logger } from './Logger';
@@ -27,12 +27,12 @@ import { Logger } from './Logger';
 export class RoleCredentialResolver implements CredentialResolver {
   private _cacheServerClient?: CacheServerClient;
   private _credentialResolver: S3CredentialResolver;
-  private _didStore: DidStore;
+  private _didStore: IDidStore;
 
   constructor(
     provider: providers.Provider,
     registrySetting: RegistrySettings,
-    didStore: DidStore,
+    didStore: IDidStore,
     privateKey?: string,
     cacheServerUrl?: string
   ) {
