@@ -102,8 +102,8 @@ it('Should be able to login with siwe', async () => {
     didContract.address,
     ensRegistry.address
   );
-  const connection = server.listen(4242, () => {
-    console.log('Test Server is ready and listening on port 4242');
+  const connection = server.listen(4243, () => {
+    console.log('Test Server is ready and listening on port 4243');
   });
   const response = await request(server)
     .post('/login')

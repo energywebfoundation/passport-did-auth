@@ -171,8 +171,8 @@ it('Verifies asset authentication', async () => {
     didContract.address,
     ensRegistry.address
   );
-  const connection = server.listen(4242, () => {
-    console.log('Test Server is ready and listening on port 4242');
+  const connection = server.listen(4244, () => {
+    console.log('Test Server is ready and listening on port 4244');
   });
   const response = await request(server).post('/login').send({ identityToken });
   expect(response.statusCode).toBe(200);
