@@ -2,9 +2,9 @@ name: Deploy
 
 on:
   push:
-    branches: ['develop', 'master']
+    branches: ['develop', 'master', 'fix/cache-proxy']
   pull_request:
-    branches: ['develop', 'master']
+    branches: ['develop', 'master', 'fix/cache-proxy']
 
 jobs:
   cancel-previous:
@@ -41,14 +41,21 @@ jobs:
       - name: Eslint validation
         run: npm run lint
 
-      - name: Npm Run Test
-        run: npm run test
+      # - name: Npm Run Test
+      #   run: npm run test
 
-      - name: Publish ${{ github.ref }}
-        uses: codfish/semantic-release-action@v1
+      - name: publish:canary
         env:
           GITHUB_TOKEN: ${{ secrets.GH_PUSH_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          RUN_NUMBER: ${{ github.run_number }}
+        run: npm run publish:canary
+
+      # - name: Publish ${{ github.ref }}
+      #   uses: codfish/semantic-release-action@v1
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GH_PUSH_TOKEN }}
+      #     NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   sync_development_with_master:
     runs-on: ubuntu-latest

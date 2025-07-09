@@ -13,6 +13,7 @@ import { Logger } from './Logger';
 import { Agent as HttpAgent } from 'http';
 import { Agent as HttpsAgent } from 'https';
 import { SiweMessage } from 'siwe';
+import { DidStoreType } from 'iam-client-lib';
 
 export class CacheServerClient {
   private readonly signer: Signer;
@@ -51,7 +52,7 @@ export class CacheServerClient {
     ) {
       return response;
     },
-    this.handleUnauthorized);
+      this.handleUnauthorized);
     this.url = url;
   }
 
@@ -197,6 +198,24 @@ export class CacheServerClient {
   async getDidDocument(did: string): Promise<IDIDDocument> {
     const { data } = await this.httpClient.get<IDIDDocument>(
       `/DID/${did}?includeClaims=true`
+    );
+    return data;
+  }
+
+  async addStoreClaim(claim: string, type: DidStoreType = DidStoreType.S3): Promise<string> {
+    const { data } = await this.httpClient.post<string>(
+      '/store',
+      {
+        data: claim,
+        type
+      }
+    );
+    return data;
+  }
+
+  async getStoreClaim(uri: string): Promise<string> {
+    const { data } = await this.httpClient.get<string>(
+      `/store/${uri}`
     );
     return data;
   }

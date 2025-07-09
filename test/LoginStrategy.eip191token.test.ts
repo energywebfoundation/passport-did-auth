@@ -9,6 +9,7 @@ import {
   DidRegistry,
   setCacheConfig,
   CacheClient,
+  DidStoreType,
 } from 'iam-client-lib';
 import ServerMock from 'mock-http-server';
 import { assert } from 'chai';
@@ -119,7 +120,8 @@ beforeAll(async () => {
 
   const { claimsService, didRegistry } = await connectToDidRegistry({
     host: 'ipfs is not used in these test',
-    privateKey: userPrivKey
+    privateKey: userPrivKey,
+    type: DidStoreType.SSI
   });
   iam.claimsService = claimsService;
   iam.assetService = assetsService;
@@ -245,7 +247,8 @@ it('Should reject invalid token', async () => {
   const { connectToDidRegistry } = await connectToCacheServer();
   const { claimsService } = await connectToDidRegistry({
     host: 'ipfs is not used in these test',
-    privateKey: userPrivKey
+    privateKey: userPrivKey,
+    type: DidStoreType.SSI
   });
   const { loginStrategy } = preparePassport(
     provider,
@@ -278,7 +281,8 @@ it('Should reject invalid token payload', async () => {
   const { connectToDidRegistry } = await connectToCacheServer();
   const { claimsService } = await connectToDidRegistry({
     host: 'ipfs is not used in these test',
-    privateKey: userPrivKey
+    privateKey: userPrivKey,
+    type: DidStoreType.SSI
   });
   const { loginStrategy } = preparePassport(
     provider,

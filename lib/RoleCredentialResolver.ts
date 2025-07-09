@@ -17,7 +17,9 @@ import {
 } from '@ew-did-registry/did-resolver-interface';
 import { IDidStore } from '@ew-did-registry/did-store-interface';
 import { providers, utils } from 'ethers';
+import { DidStoreType } from 'iam-client-lib';
 import { CacheServerClient } from './cacheServerClient';
+import { DidStoreProxy } from './did-store.proxy';
 import { Logger } from './Logger';
 
 /**
@@ -26,22 +28,15 @@ import { Logger } from './Logger';
  */
 export class RoleCredentialResolver implements CredentialResolver {
   private _cacheServerClient?: CacheServerClient;
-  private _credentialResolver: S3CredentialResolver;
-  private _didStore: IDidStore;
+  private _credentialResolver?: S3CredentialResolver;
+  private _didStore?: IDidStore;
 
   constructor(
     provider: providers.Provider,
     registrySetting: RegistrySettings,
-    didStore: IDidStore,
     privateKey?: string,
     cacheServerUrl?: string
   ) {
-    this._didStore = didStore;
-    this._credentialResolver = new S3CredentialResolver(
-      provider,
-      registrySetting,
-      didStore
-    );
     if (privateKey && cacheServerUrl) {
       this._cacheServerClient = new CacheServerClient({
         privateKey,
@@ -49,6 +44,14 @@ export class RoleCredentialResolver implements CredentialResolver {
         url: cacheServerUrl,
       });
       this._cacheServerClient.login();
+
+      this._didStore = new DidStoreProxy(this._cacheServerClient);
+      this._credentialResolver = new S3CredentialResolver(
+        provider,
+        registrySetting,
+        this._didStore
+      );
+
     }
   }
 
@@ -210,7 +213,7 @@ export class RoleCredentialResolver implements CredentialResolver {
         await this.getDIDDocument(did, didDocumentCache);
       }
     }
-    return await this._credentialResolver.eip191JwtsOf(did, didDocumentCache);
+    return await this._credentialResolver!.eip191JwtsOf(did, didDocumentCache);
   }
 
   /**
@@ -232,7 +235,7 @@ export class RoleCredentialResolver implements CredentialResolver {
             if (!isCID(serviceEndpoint)) {
               return {};
             }
-            const credential = await this._didStore.get(serviceEndpoint);
+            const credential = await this._didStore!.get(serviceEndpoint);
             let vc;
             // expect that JWT would have 3 dot-separated parts, VC is non-JWT credential
             if (!(credential.split('.').length === 3)) {
@@ -243,7 +246,7 @@ export class RoleCredentialResolver implements CredentialResolver {
         )
       ).filter(isVerifiableCredential);
     }
-    return await this._credentialResolver.credentialsOf(did, didDocumentCache);
+    return await this._credentialResolver!.credentialsOf(did, didDocumentCache);
   }
 
   /**
@@ -264,7 +267,7 @@ export class RoleCredentialResolver implements CredentialResolver {
     if (this._cacheServerClient?.isAvailable) {
       resolvedDIDDocument = await this._cacheServerClient.getDidDocument(did);
     } else {
-      resolvedDIDDocument = await this._credentialResolver.getDIDDocument(
+      resolvedDIDDocument = await this._credentialResolver!.getDIDDocument(
         did,
         didDocumentCache
       );

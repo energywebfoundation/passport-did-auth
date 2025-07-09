@@ -53,7 +53,6 @@ export interface LoginStrategyOptions extends StrategyOptions {
   }[];
   didContractAddress: string;
   ensRegistryAddress: string;
-  ipfsUrl?: string;
   acceptedRoles?: string[];
   includeAllRoles?: boolean;
   jwtSecret?: string | Buffer;
@@ -352,9 +351,9 @@ export class LoginStrategy extends BaseStrategy {
       const claimsToVerify = this.includeAllRoles
         ? userClaims
         : userClaims.filter((claim) => {
-            const claimType = claim?.payload?.claimData?.claimType;
-            return claimType && this.acceptedRoles.has(claimType);
-          });
+          const claimType = claim?.payload?.claimData?.claimType;
+          return claimType && this.acceptedRoles.has(claimType);
+        });
 
       if (this.includeAllRoles && claimsToVerify.length === userClaims.length) {
         Logger.info('includeAllRoles: true, verifying all roles');
