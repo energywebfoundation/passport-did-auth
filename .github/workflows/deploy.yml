@@ -2,9 +2,9 @@ name: Deploy
 
 on:
   push:
-    branches: ['develop', 'master']
+    branches: ['develop', 'master', 'fix/update-version']
   pull_request:
-    branches: ['develop', 'master']
+    branches: ['develop', 'master', 'fix/update-version']
 
 jobs:
   cancel-previous:
@@ -49,6 +49,14 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GH_PUSH_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Deploy on fix/update-version
+        if: github.ref == 'refs/heads/fix/update-version'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_PUSH_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          RUN_NUMBER: ${{ github.run_number }}
+        run: npm run publish:canary
 
   sync_development_with_master:
     runs-on: ubuntu-latest
