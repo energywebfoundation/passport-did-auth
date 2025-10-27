@@ -34,6 +34,7 @@ export class RoleCredentialResolver implements CredentialResolver {
   constructor(
     provider: providers.Provider,
     registrySetting: RegistrySettings,
+    didStore?: IDidStore,
     privateKey?: string,
     cacheServerUrl?: string
   ) {
@@ -51,7 +52,14 @@ export class RoleCredentialResolver implements CredentialResolver {
         registrySetting,
         this._didStore
       );
-
+    } else if (didStore) {
+      // Initialize with provided didStore for testing/fallback scenarios
+      this._didStore = didStore;
+      this._credentialResolver = new S3CredentialResolver(
+        provider,
+        registrySetting,
+        this._didStore
+      );
     }
   }
 

@@ -204,7 +204,7 @@ export class CacheServerClient {
 
   async addStoreClaim(claim: string, type: DidStoreType = DidStoreType.S3): Promise<string> {
     const { data } = await this.httpClient.post<string>(
-      '/store',
+      '/s3',
       {
         data: claim,
         type
@@ -215,7 +215,7 @@ export class CacheServerClient {
 
   async getStoreClaim(uri: string): Promise<string> {
     const { data } = await this.httpClient.get<string>(
-      `/store/${uri}`
+      `/s3/${uri}`
     );
     return data;
   }
