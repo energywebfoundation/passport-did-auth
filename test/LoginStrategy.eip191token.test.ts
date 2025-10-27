@@ -119,6 +119,7 @@ beforeAll(async () => {
 
   const { claimsService, didRegistry } = await connectToDidRegistry({
     host: 'ipfs is not used in these test',
+    privateKey: userPrivKey
   });
   iam.claimsService = claimsService;
   iam.assetService = assetsService;
@@ -170,8 +171,8 @@ it('Verifies asset authentication', async () => {
     didContract.address,
     ensRegistry.address
   );
-  const connection = server.listen(4242, () => {
-    console.log('Test Server is ready and listening on port 4242');
+  const connection = server.listen(4244, () => {
+    console.log('Test Server is ready and listening on port 4244');
   });
   const response = await request(server).post('/login').send({ identityToken });
   expect(response.statusCode).toBe(200);
@@ -243,7 +244,8 @@ it('Should reject invalid token', async () => {
   );
   const { connectToDidRegistry } = await connectToCacheServer();
   const { claimsService } = await connectToDidRegistry({
-    host: 'ipfs is not used in these tests',
+    host: 'ipfs is not used in these test',
+    privateKey: userPrivKey
   });
   const { loginStrategy } = preparePassport(
     provider,
@@ -274,7 +276,10 @@ it('Should reject invalid token payload', async () => {
     rpcUrl
   );
   const { connectToDidRegistry } = await connectToCacheServer();
-  const { claimsService } = await connectToDidRegistry();
+  const { claimsService } = await connectToDidRegistry({
+    host: 'ipfs is not used in these test',
+    privateKey: userPrivKey
+  });
   const { loginStrategy } = preparePassport(
     provider,
     ensResolver.address,
