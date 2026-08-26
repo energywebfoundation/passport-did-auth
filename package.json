@@ -53,7 +53,7 @@
     "@ew-did-registry/did-s3-store": "0.9.1-alpha.1545.0",
     "@ew-did-registry/jwt": "0.9.1-alpha.1545.0",
     "@ew-did-registry/keys": "0.9.1-alpha.1545.0",
-    "axios": "0.27.0",
+    "axios": "0.33.0",
     "base64url": "3.0.1",
     "cockatiel": "2.0.2",
     "eth-ens-namehash": "2.0.8",
