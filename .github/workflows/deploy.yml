@@ -26,7 +26,7 @@ jobs:
           token: ${{ secrets.GH_PUSH_TOKEN }}
       - uses: actions/setup-node@v2-beta
         with:
-          node-version: '18.20.8'
+          node-version: '22'
           registry-url: https://registry.npmjs.org/
 
       - name: Set npm credentials
@@ -45,7 +45,7 @@ jobs:
         run: npm run test
 
       - name: Publish ${{ github.ref }}
-        uses: codfish/semantic-release-action@v1
+        run: npx semantic-release
         env:
           GITHUB_TOKEN: ${{ secrets.GH_PUSH_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

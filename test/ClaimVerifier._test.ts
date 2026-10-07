@@ -19,7 +19,6 @@ import {
 } from '@energyweb/credential-governance';
 import { PreconditionType } from '@energyweb/credential-governance';
 import { EwSigner, Operator } from '@ew-did-registry/did-ethr-resolver';
-import { DidStore } from '@ew-did-registry/did-ipfs-store';
 import { Methods } from '@ew-did-registry/did';
 import {
   deployClaimManager,
@@ -47,7 +46,7 @@ import {
   IUpdateData,
 } from '@ew-did-registry/did-resolver-interface';
 import { Keys } from '@ew-did-registry/keys';
-import { spawnIpfsDaemon, shutDownIpfsDaemon } from './testUtils/ipfs-daemon';
+import { MockDidStore } from './testUtils/MockDidStore';
 import {
   adminStatusList,
   managerStatusList,
@@ -100,8 +99,7 @@ let managerDid: string;
 let adminOperator: Operator;
 let managerOperator: Operator;
 let providerSettings: ProviderSettings;
-let ipfsUrl: string;
-let didStore: DidStore;
+let didStore: MockDidStore;
 
 const validity = 10 * 60 * 1000;
 jest.setTimeout(84000);
@@ -137,17 +135,12 @@ describe('ClaimVerifier', () => {
     manager = EwSigner.fromPrivateKey(managerKeys.privateKey, providerSettings);
   });
 
-  afterEach(async () => {
-    await shutDownIpfsDaemon();
-  });
-
   beforeEach(async function () {
     roleFactory = new DomainTransactionFactoryV2({
       domainResolverAddress: ensResolver.address,
     });
-    ipfsUrl = await spawnIpfsDaemon();
 
-    didStore = new DidStore(ipfsUrl);
+    didStore = new MockDidStore('', {});
 
     registrySettings = {
       method: Methods.Erc1056,
