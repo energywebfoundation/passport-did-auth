@@ -23,13 +23,15 @@ jobs:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
-          token: ${{ secrets.GH_PUSH_TOKEN }}
+          # The push token is only needed to push release commits and tags.
+          token: ${{ github.event_name == 'push' && secrets.GH_PUSH_TOKEN || github.token }}
       - uses: actions/setup-node@v2-beta
         with:
-          node-version: '18.20.8'
+          node-version: '22'
           registry-url: https://registry.npmjs.org/
 
       - name: Set npm credentials
+        if: github.event_name == 'push'
         run: npm config set //registry.npmjs.org/:_authToken ${{ secrets.NPM_TOKEN }}
 
       - name: Install package
@@ -45,7 +47,8 @@ jobs:
         run: npm run test
 
       - name: Publish ${{ github.ref }}
-        uses: codfish/semantic-release-action@v1
+        if: github.event_name == 'push'
+        run: npx semantic-release
         env:
           GITHUB_TOKEN: ${{ secrets.GH_PUSH_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

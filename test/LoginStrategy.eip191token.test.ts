@@ -274,7 +274,9 @@ it('Should reject invalid token payload', async () => {
     rpcUrl
   );
   const { connectToDidRegistry } = await connectToCacheServer();
-  const { claimsService } = await connectToDidRegistry();
+  const { claimsService } = await connectToDidRegistry({
+    host: 'ipfs is not used in these tests',
+  });
   const { loginStrategy } = preparePassport(
     provider,
     ensResolver.address,

@@ -54,10 +54,10 @@ export default {
   // forceCoverageMatch: [],
 
   // A path to a module which exports an async function that is triggered once before all test suites
-  // globalSetup: undefined,
+  globalSetup: '<rootDir>/test/testUtils/globalSetup.ts',
 
   // A path to a module which exports an async function that is triggered once after all test suites
-  // globalTeardown: undefined,
+  globalTeardown: '<rootDir>/test/testUtils/globalTeardown.ts',
 
   // A set of global variables that need to be available in all test environments
   // globals: {},
@@ -175,10 +175,11 @@ export default {
   // transform: undefined,
 
   // An array of regexp pattern strings that are matched against all source file paths, matched files will skip transformation
-  // transformIgnorePatterns: [
-  //   "/node_modules/",
-  //   "\\.pnp\\.[^\\/]+$"
-  // ],
+  // ESM-only versions forced by package.json "overrides" are transformed so their CommonJS dependants can load them
+  transformIgnorePatterns: [
+    '/node_modules/(?!(decode-uri-component|parse-duration)/)',
+    '\\.pnp\\.[^\\/]+$',
+  ],
 
   // An array of regexp pattern strings that are matched against all modules before the module loader will automatically return a mock for them
   // unmockedModulePathPatterns: undefined,

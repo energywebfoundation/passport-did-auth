@@ -210,7 +210,7 @@ await loginStrategy.validate(token, payload);
 
 ```
 npm version 7+
-nodejs version 16.10+
+nodejs version 22+
 ```
 
 ### Building the Passport Strategy
