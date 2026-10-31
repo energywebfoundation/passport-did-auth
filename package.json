@@ -97,7 +97,7 @@
     "eslint": "^8.6.0",
     "eslint-config-prettier": "^8.3.0",
     "express": "^4.22.3",
-    "hardhat": "^2.29.1",
+    "hardhat": "^3.21.2",
     "husky": "^7.0.2",
     "iam-client-lib": "^8.0.1-alpha.3",
     "jest": "^30.0.0",
