@@ -1,0 +1,5 @@
+# Accepted dependency findings. Delete a line once that package is upgraded.
+# follow-redirects 1.16.1 is fixed in 1.16.2
+CVE-2026-116689
+# joi 17.13.8 is fixed in 17.13.9 and 18.3.1
+CVE-2026-118772

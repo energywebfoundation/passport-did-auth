@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 3
     steps:
-      - uses: styfle/cancel-workflow-action@0.11.0
+      - uses: styfle/cancel-workflow-action@b173b6ec0100793626c2d9e6b90435061f4fc3e5 # 0.11.0
         with:
           access_token: ${{ github.token }}
 
@@ -20,12 +20,12 @@ jobs:
     runs-on: ubuntu-latest
     needs: cancel-previous
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@0717577d45739eb3c851188b29f50ed6c0b2194e # v2.8.0
         with:
           fetch-depth: 0
           # The push token is only needed to push release commits and tags.
           token: ${{ github.event_name == 'push' && secrets.GH_PUSH_TOKEN || github.token }}
-      - uses: actions/setup-node@v2-beta
+      - uses: actions/setup-node@27082cecf3ff7a1742dbd5e12605f0cb59dce2d9 # v2.1.3
         with:
           node-version: '22'
           registry-url: https://registry.npmjs.org/
@@ -58,7 +58,7 @@ jobs:
     if: github.ref == 'refs/heads/master'
     needs: deploy
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@0717577d45739eb3c851188b29f50ed6c0b2194e # v2.8.0
         with:
           fetch-depth: 0
           ref: develop
